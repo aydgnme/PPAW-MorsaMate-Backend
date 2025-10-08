@@ -1,0 +1,57 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Environment files
+.env
+.env.*
+*.env
+
+# Build artifacts
+build/
+target/
+out/
+bin/
+
+# Gradle
+.gradle/
+gradle-wrapper.jar
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.settings/
+.project
+.classpath
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation
+README.md
+DEPLOYMENT.md
+docs/
+
+# Docker
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Tests
+**/test/**
+**/*test*
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+*~
