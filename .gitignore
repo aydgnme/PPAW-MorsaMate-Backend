@@ -1,6 +1,7 @@
 HELP.md
 .gradle
-.claude
+.claude/
+.idea/
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
@@ -61,3 +62,26 @@ logs/
 bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
+
+
+#Scrips
+scripts/
+
+#docs
+docs/GITHUB_SETUP_GUIDE.md
+docs/ISSUES.md
+docs/ISSUES_BY_PROJECT.md
+docs/MILESTONES.md
+docs/PROJECTS.md
+docs/SPRINT_1_ISSUES.md
+
+# Database
+database/backup/physical/*
+database/backup/logical/*
+!database/backup/physical/.gitkeep
+!database/backup/logical/.gitkeep
+database/test/**/*.class
+database/test/com/
+*.jar
+!gradle/wrapper/*.jar
+

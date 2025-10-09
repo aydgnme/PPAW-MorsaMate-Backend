@@ -14,8 +14,9 @@ public class CategoryResponse {
     private Long id;
     private String name;
     private String description;
-    private String icon;
-    private Integer orderIndex;
+    private Integer displayOrder;
+    private String iconUrl;
+    private Boolean isActive;
     private LocalDateTime createdAt;
 
     public static CategoryResponse from(Category c) {
@@ -24,8 +25,9 @@ public class CategoryResponse {
                 .id(c.getId())
                 .name(c.getName())
                 .description(c.getDescription())
-                .icon(c.getIcon())
-                .orderIndex(c.getOrderIndex())
+                .displayOrder(c.getDisplayOrder())
+                .iconUrl(c.getIconUrl())
+                .isActive(c.getIsActive())
                 .createdAt(c.getCreatedAt())
                 .build();
     }

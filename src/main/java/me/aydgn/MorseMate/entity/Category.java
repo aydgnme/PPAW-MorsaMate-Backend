@@ -33,18 +33,19 @@ public class Category extends BaseEntity {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    // SQL: icon VARCHAR(50)
-    @Size(max = 50)
-    @Column(name = "icon", length = 50)
-    private String icon;
+    // SQL: display_order INTEGER
+    @Column(name = "display_order")
+    private Integer displayOrder;
 
-    // SQL: order_index INTEGER
-    @Column(name = "order_index")
-    private Integer orderIndex;
+    // SQL: icon_url VARCHAR(255)
+    @Size(max = 255)
+    @Column(name = "icon_url", length = 255)
+    private String iconUrl;
 
-    // SQL: created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    // SQL: is_active BOOLEAN DEFAULT TRUE
+    @Column(name = "is_active", nullable = false)
+    @Builder.Default
+    private Boolean isActive = true;
 
     // Optional: bi-directional relation to lessons (lessons.category_id)
     @OneToMany(mappedBy = "category", fetch = FetchType.LAZY, orphanRemoval = false)
@@ -54,11 +55,8 @@ public class Category extends BaseEntity {
     /* ---------- lifecycle hooks ---------- */
     @PrePersist
     private void prePersist() {
-        // DB default da verir; uygulama tarafında null ise set etmek faydalı
-        if (this.createdAt == null) {
-            this.createdAt = LocalDateTime.now();
-        }
         if (this.name != null) this.name = this.name.trim();
-        if (this.icon != null) this.icon = this.icon.trim();
+        if (this.iconUrl != null) this.iconUrl = this.iconUrl.trim();
+        if (this.isActive == null) this.isActive = true;
     }
 }
