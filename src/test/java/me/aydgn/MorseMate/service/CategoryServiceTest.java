@@ -46,7 +46,7 @@ class CategoryServiceTest {
                 .id(1L)
                 .name("Basics")
                 .description("Basic Morse code lessons")
-                .iconUrl("https://example.com/icon-basics.png")
+                .iconUrl("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='12' fill='%230ea5e9'/><circle cx='18' cy='32' r='6' fill='white'/><rect x='30' y='26' width='24' height='12' rx='6' fill='white'/></svg>")
                 .displayOrder(1)
                 .isActive(true)
                 .build();
@@ -56,7 +56,7 @@ class CategoryServiceTest {
                 .id(2L)
                 .name("Advanced")
                 .description("Advanced Morse code lessons")
-                .iconUrl("https://example.com/icon-advanced.png")
+                .iconUrl("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='12' fill='%237a3aed'/><rect x='10' y='26' width='20' height='12' rx='6' fill='white'/><circle cx='36' cy='32' r='6' fill='white'/><rect x='42' y='26' width='12' height='12' rx='6' fill='white'/></svg>")
                 .displayOrder(2)
                 .isActive(true)
                 .build();

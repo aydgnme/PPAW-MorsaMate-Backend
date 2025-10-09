@@ -1,6 +1,7 @@
 package me.aydgn.MorseMate.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
@@ -21,6 +22,7 @@ public class CreateCategoryRequest {
     private Integer displayOrder;
 
     @Size(max = 255, message = "Icon URL must not exceed 255 characters")
+    @Pattern(regexp = "^(https?://.*)?$", message = "Icon URL must be a valid HTTP or HTTPS URL")
     private String iconUrl;
 
     @Builder.Default
