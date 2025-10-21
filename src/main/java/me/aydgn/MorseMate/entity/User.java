@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import me.aydgn.MorseMate.enums.Role;
 import org.hibernate.annotations.Check;
 
 import java.time.LocalDateTime;
@@ -105,6 +106,12 @@ public class User extends BaseEntity {
     @Builder.Default
     private Boolean emailVerified = false;
 
+    // SQL: role VARCHAR(20) DEFAULT 'USER' NOT NULL
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false, length = 20)
+    @Builder.Default
+    private Role role = Role.USER;
+
     /* --------- Lifecycle hooks: DB varsayılanlarını ve normalizasyonu destekle --------- */
     @PrePersist
     private void prePersist() {
@@ -128,6 +135,7 @@ public class User extends BaseEntity {
         }
         if (this.level == null) this.level = 1;
         if (this.totalPoints == null) this.totalPoints = 0;
+        if (this.role == null) this.role = Role.USER;
     }
 
     /* ------------------ Domain methods (opsiyonel) ------------------ */

@@ -1,0 +1,662 @@
+ {
+    "info": {
+      "_postman_id": "5ed85bb8-3f01-4a1d-8bf5-1e36a4ed3b42",
+      "name": "MorseMate API",
+      "description": "Postman collection covering MorseMate API endpoints for
+  local development.",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/
+  collection.json"
+    },
+    "item": [
+      {
+        "name": "System",
+        "item": [
+          {
+            "name": "API Root",
+            "request": {
+              "method": "GET",
+              "header": [],
+              "url": {
+                "raw": "{{baseUrl}}/api",
+                "host": [
+                  "{{baseUrl}}"
+                ],
+                "path": [
+                  "api"
+                ]
+              }
+            },
+            "response": [
+              {
+                "name": "200 OK",
+                "originalRequest": {
+                  "method": "GET",
+                  "header": [],
+                  "url": {
+                    "raw": "{{baseUrl}}/api",
+                    "host": [
+                      "{{baseUrl}}"
+                    ],
+                    "path": [
+                      "api"
+                    ]
+                  }
+                },
+                "status": "OK",
+                "code": 200,
+                "_postman_previewlanguage": "json",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": "{\n  \"message\": \"Welcome to MorseMate API\",\n
+  \"version\": \"1.0.0\",\n  \"endpoints\": {\n    \"health\": \"/api/health\",
+  \n    \"ping\": \"/api/ping\",\n    \"info\": \"/api/info\",\n    \"auth\":
+  \"/auth/*\",\n    \"categories\": \"/v1/categories\"\n  }\n}"
+              }
+            ]
+          },
+          {
+            "name": "Health Check",
+            "request": {
+              "method": "GET",
+              "header": [],
+              "url": {
+                "raw": "{{baseUrl}}/api/health",
+                "host": [
+                  "{{baseUrl}}"
+                ],
+                "path": [
+                  "api",
+                  "health"
+                ]
+              }
+            },
+            "response": [
+              {
+                "name": "200 OK",
+                "originalRequest": {
+                  "method": "GET",
+                  "header": [],
+                  "url": {
+                    "raw": "{{baseUrl}}/api/health",
+                    "host": [
+                      "{{baseUrl}}"
+                    ],
+                    "path": [
+                      "api",
+                      "health"
+                    ]
+                  }
+                },
+                "status": "OK",
+                "code": 200,
+                "_postman_previewlanguage": "json",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": "{\n  \"status\": \"UP\",\n  \"timestamp\": \"2024-06-
+  01T12:34:56.789\",\n  \"service\": \"MorseMate API\"\n}"
+              }
+            ]
+          },
+          {
+            "name": "Ping",
+            "request": {
+              "method": "GET",
+              "header": [],
+              "url": {
+                "raw": "{{baseUrl}}/api/ping",
+                "host": [
+                  "{{baseUrl}}"
+                ],
+                "path": [
+                  "api",
+                  "ping"
+                ]
+              }
+            },
+            "response": [
+              {
+                "name": "200 OK",
+                "originalRequest": {
+                  "method": "GET",
+                  "header": [],
+                  "url": {
+                    "raw": "{{baseUrl}}/api/ping",
+                    "host": [
+                      "{{baseUrl}}"
+                    ],
+                    "path": [
+                      "api",
+                      "ping"
+                    ]
+                  }
+                },
+                "status": "OK",
+                "code": 200,
+                "_postman_previewlanguage": "json",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": "{\n  \"message\": \"pong\"\n}"
+              }
+            ]
+          },
+          {
+            "name": "System Info",
+            "request": {
+              "method": "GET",
+              "header": [],
+              "url": {
+                "raw": "{{baseUrl}}/api/info",
+                "host": [
+                  "{{baseUrl}}"
+                ],
+                "path": [
+                  "api",
+                  "info"
+                ]
+              }
+            },
+            "response": [
+              {
+                "name": "200 OK",
+                "originalRequest": {
+                  "method": "GET",
+                  "header": [],
+                  "url": {
+                    "raw": "{{baseUrl}}/api/info",
+                    "host": [
+                      "{{baseUrl}}"
+                    ],
+                    "path": [
+                      "api",
+                      "info"
+                    ]
+                  }
+                },
+                "status": "OK",
+                "code": 200,
+                "_postman_previewlanguage": "json",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": "{\n  \"applicationName\": \"MorseMate\",\n
+  \"version\": \"1.0.0\",\n  \"environment\": \"local\",\n  \"serverTime\":
+  \"2024-06-01T12:34:56.789\",\n  \"javaVersion\": \"17.0.9\",\n
+  \"springBootVersion\": \"3.2.5\"\n}"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Categories",
+        "item": [
+          {
+            "name": "List Categories",
+            "request": {
+              "method": "GET",
+              "header": [],
+              "url": {
+                "raw": "{{baseUrl}}/v1/categories",
+                "host": [
+                  "{{baseUrl}}"
+                ],
+                "path": [
+                  "v1",
+                  "categories"
+                ]
+              }
+            },
+            "response": [
+              {
+                "name": "200 OK",
+                "originalRequest": {
+                  "method": "GET",
+                  "header": [],
+                  "url": {
+                    "raw": "{{baseUrl}}/v1/categories",
+                    "host": [
+                      "{{baseUrl}}"
+                    ],
+                    "path": [
+                      "v1",
+                      "categories"
+                    ]
+                  }
+                },
+                "status": "OK",
+                "code": 200,
+                "_postman_previewlanguage": "json",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": "[\n  {\n    \"id\": 1,\n    \"name\": \"Beginner\",\n
+  \"description\": \"Learn the alphabet in Morse code\",\n    \"displayOrder\":
+  1,\n    \"iconUrl\": \"https://cdn.morsemate.dev/icons/beginner.svg\",\n
+  \"isActive\": true,\n    \"createdAt\": \"2024-01-10T09:15:23.000\"\n  },
+  \n  {\n    \"id\": 2,\n    \"name\": \"Numbers\",\n    \"description\":
+  \"Master Morse code numbers\",\n    \"displayOrder\": 2,\n    \"iconUrl\":
+  \"https://cdn.morsemate.dev/icons/numbers.svg\",\n    \"isActive\": true,\n
+  \"createdAt\": \"2024-01-15T10:05:42.000\"\n  }\n]"
+              }
+            ]
+          },
+          {
+            "name": "Get Category by ID",
+            "request": {
+              "method": "GET",
+              "header": [],
+              "url": {
+                "raw": "{{baseUrl}}/v1/categories/{{categoryId}}",
+                "host": [
+                  "{{baseUrl}}"
+                ],
+                "path": [
+                  "v1",
+                  "categories",
+                  "{{categoryId}}"
+                ]
+              }
+            },
+            "response": [
+              {
+                "name": "200 OK",
+                "originalRequest": {
+                  "method": "GET",
+                  "header": [],
+                  "url": {
+                    "raw": "{{baseUrl}}/v1/categories/{{categoryId}}",
+                    "host": [
+                      "{{baseUrl}}"
+                    ],
+                    "path": [
+                      "v1",
+                      "categories",
+                      "{{categoryId}}"
+                    ]
+                  }
+                },
+                "status": "OK",
+                "code": 200,
+                "_postman_previewlanguage": "json",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": "{\n  \"id\": 1,\n  \"name\": \"Beginner\",\n
+  \"description\": \"Learn the alphabet in Morse code\",\n  \"displayOrder\":
+  1,\n  \"iconUrl\": \"https://cdn.morsemate.dev/icons/beginner.svg\",\n
+  \"isActive\": true,\n  \"createdAt\": \"2024-01-10T09:15:23.000\"\n}"
+              }
+            ]
+          },
+          {
+            "name": "Create Category",
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{adminToken}}",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n  \"name\": \"Intermediate Letters\",\n
+  \"description\": \"Letters and numbers in Morse code\",\n  \"displayOrder\":
+  3,\n  \"iconUrl\": \"https://cdn.morsemate.dev/icons/intermediate.svg\",\n
+  \"isActive\": true\n}",
+                "options": {
+                  "raw": {
+                    "language": "json"
+                  }
+                }
+              },
+              "url": {
+                "raw": "{{baseUrl}}/v1/categories",
+                "host": [
+                  "{{baseUrl}}"
+                ],
+                "path": [
+                  "v1",
+                  "categories"
+                ]
+              }
+            },
+            "response": [
+              {
+                "name": "201 Created",
+                "originalRequest": {
+                  "method": "POST",
+                  "header": [
+                    {
+                      "key": "Authorization",
+                      "value": "Bearer {{adminToken}}",
+                      "type": "text"
+                    },
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json",
+                      "type": "text"
+                    }
+                  ],
+                  "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"name\": \"Intermediate Letters\",\n
+  \"description\": \"Letters and numbers in Morse code\",\n  \"displayOrder\":
+  3,\n  \"iconUrl\": \"https://cdn.morsemate.dev/icons/intermediate.svg\",\n
+  \"isActive\": true\n}",
+                    "options": {
+                      "raw": {
+                        "language": "json"
+                      }
+                    }
+                  },
+                  "url": {
+                    "raw": "{{baseUrl}}/v1/categories",
+                    "host": [
+                      "{{baseUrl}}"
+                    ],
+                    "path": [
+                      "v1",
+                      "categories"
+                    ]
+                  }
+                },
+                "status": "Created",
+                "code": 201,
+                "_postman_previewlanguage": "json",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": "{\n  \"id\": 3,\n  \"name\": \"Intermediate
+  Letters\",\n  \"description\": \"Letters and numbers in Morse code\",
+  \n  \"displayOrder\": 3,\n  \"iconUrl\": \"https://cdn.morsemate.dev/icons/
+  intermediate.svg\",\n  \"isActive\": true,\n  \"createdAt\": \"2024-06-
+  01T12:34:56.789\"\n}"
+              }
+            ]
+          },
+          {
+            "name": "Update Category",
+            "request": {
+              "method": "PUT",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{adminToken}}",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n  \"description\": \"Updated description for
+  intermediate level\",\n  \"displayOrder\": 4,\n  \"isActive\": true\n}",
+                "options": {
+                  "raw": {
+                    "language": "json"
+                  }
+                }
+              },
+              "url": {
+                "raw": "{{baseUrl}}/v1/categories/{{categoryId}}",
+                "host": [
+                  "{{baseUrl}}"
+                ],
+                "path": [
+                  "v1",
+                  "categories",
+                  "{{categoryId}}"
+                ]
+              }
+            },
+            "response": [
+              {
+                "name": "200 OK",
+                "originalRequest": {
+                  "method": "PUT",
+                  "header": [
+                    {
+                      "key": "Authorization",
+                      "value": "Bearer {{adminToken}}",
+                      "type": "text"
+                    },
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json",
+                      "type": "text"
+                    }
+                  ],
+                  "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"description\": \"Updated description for
+  intermediate level\",\n  \"displayOrder\": 4,\n  \"isActive\": true\n}",
+                    "options": {
+                      "raw": {
+                        "language": "json"
+                      }
+                    }
+                  },
+                  "url": {
+                    "raw": "{{baseUrl}}/v1/categories/{{categoryId}}",
+                    "host": [
+                      "{{baseUrl}}"
+                    ],
+                    "path": [
+                      "v1",
+                      "categories",
+                      "{{categoryId}}"
+                    ]
+                  }
+                },
+                "status": "OK",
+                "code": 200,
+                "_postman_previewlanguage": "json",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": "{\n  \"id\": 3,\n  \"name\": \"Intermediate Letters\",
+  \n  \"description\": \"Updated description for intermediate level\",
+  \n  \"displayOrder\": 4,\n  \"iconUrl\": \"https://cdn.morsemate.dev/icons/
+  intermediate.svg\",\n  \"isActive\": true,\n  \"createdAt\": \"2024-06-
+  01T12:34:56.789\"\n}"
+              }
+            ]
+          },
+          {
+            "name": "Delete Category",
+            "request": {
+              "method": "DELETE",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{adminToken}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{baseUrl}}/v1/categories/{{categoryId}}",
+                "host": [
+                  "{{baseUrl}}"
+                ],
+                "path": [
+                  "v1",
+                  "categories",
+                  "{{categoryId}}"
+                ]
+              }
+            },
+            "response": [
+              {
+                "name": "200 OK",
+                "originalRequest": {
+                  "method": "DELETE",
+                  "header": [
+                    {
+                      "key": "Authorization",
+                      "value": "Bearer {{adminToken}}",
+                      "type": "text"
+                    }
+                  ],
+                  "url": {
+                    "raw": "{{baseUrl}}/v1/categories/{{categoryId}}",
+                    "host": [
+                      "{{baseUrl}}"
+                    ],
+                    "path": [
+                      "v1",
+                      "categories",
+                      "{{categoryId}}"
+                    ]
+                  }
+                },
+                "status": "OK",
+                "code": 200,
+                "_postman_previewlanguage": "json",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": "{\n  \"message\": \"Category deleted successfully\"\n}"
+              }
+            ]
+          },
+          {
+            "name": "Admin: List All Categories",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{adminToken}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{baseUrl}}/v1/categories/admin/all",
+                "host": [
+                  "{{baseUrl}}"
+                ],
+                "path": [
+                  "v1",
+                  "categories",
+                  "admin",
+                  "all"
+                ]
+              }
+            },
+            "response": [
+              {
+                "name": "200 OK",
+                "originalRequest": {
+                  "method": "GET",
+                  "header": [
+                    {
+                      "key": "Authorization",
+                      "value": "Bearer {{adminToken}}",
+                      "type": "text"
+                    }
+                  ],
+                  "url": {
+                    "raw": "{{baseUrl}}/v1/categories/admin/all",
+                    "host": [
+                      "{{baseUrl}}"
+                    ],
+                    "path": [
+                      "v1",
+                      "categories",
+                      "admin",
+                      "all"
+                    ]
+                  }
+                },
+                "status": "OK",
+                "code": 200,
+                "_postman_previewlanguage": "json",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": "[\n  {\n    \"id\": 1,\n    \"name\": \"Beginner\",\n
+  \"description\": \"Learn the alphabet in Morse code\",\n    \"displayOrder\":
+  1,\n    \"iconUrl\": \"https://cdn.morsemate.dev/icons/beginner.svg\",\n
+  \"isActive\": true,\n    \"createdAt\": \"2024-01-10T09:15:23.000\"\n  },
+  \n  {\n    \"id\": 2,\n    \"name\": \"Numbers\",\n    \"description\":
+  \"Master Morse code numbers\",\n    \"displayOrder\": 2,\n    \"iconUrl\":
+  \"https://cdn.morsemate.dev/icons/numbers.svg\",\n    \"isActive\": false,\n
+  \"createdAt\": \"2024-01-15T10:05:42.000\"\n  }\n]"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "event": [],
+    "variable": [],
+    "protocolProfileBehavior": {}
+  }
+
+  {
+    "id": "8f7f50a1-0ab6-4cb8-9bbc-9f2e4b2c4b27",
+    "name": "MorseMate Local",
+    "values": [
+      {
+        "key": "baseUrl",
+        "value": "http://localhost:8080",
+        "enabled": true
+      },
+      {
+        "key": "categoryId",
+        "value": "1",
+        "enabled": true
+      },
+      {
+        "key": "adminToken",
+        "value": "",
+        "enabled": false
+      }
+    ],
+    "_postman_variable_scope": "environment",
+    "_postman_exported_at": "2024-06-01T12:00:00.000Z",
+    "_postman_exported_using": "Postman/10.24.0"
+  }
