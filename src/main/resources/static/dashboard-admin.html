@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MorseMate - Admin Dashboard</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>📡 MorseMate</h2>
+                <span class="user-badge user-badge-admin">👑 ADMIN</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active">
+                    <span class="nav-icon">🏠</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-icon">👥</span>
+                    <span>Users</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-icon">📚</span>
+                    <span>Lessons</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-icon">📂</span>
+                    <span>Categories</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-icon">💎</span>
+                    <span>Subscriptions</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-icon">📊</span>
+                    <span>Analytics</span>
+                </a>
+                <a href="/api-docs.html" class="nav-item">
+                    <span class="nav-icon">📖</span>
+                    <span>API Docs</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-icon">⚙️</span>
+                    <span>Settings</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button onclick="logout()" class="logout-btn">
+                    <span>🚪</span> Logout
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <header class="top-bar">
+                <div class="welcome-section">
+                    <h1>Admin Panel 👑</h1>
+                    <p>Manage MorseMate application</p>
+                </div>
+                <div class="user-info">
+                    <div class="admin-info">
+                        <span class="admin-name" id="username">Admin</span>
+                        <span class="admin-role">System Administrator</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <!-- Quick Actions -->
+                <div class="admin-actions">
+                    <button class="action-btn action-btn-primary">
+                        <span class="action-icon">➕</span>
+                        <span>Create Lesson</span>
+                    </button>
+                    <button class="action-btn action-btn-success">
+                        <span class="action-icon">📂</span>
+                        <span>Add Category</span>
+                    </button>
+                    <button class="action-btn action-btn-info">
+                        <span class="action-icon">👤</span>
+                        <span>Add User</span>
+                    </button>
+                    <button class="action-btn action-btn-warning">
+                        <span class="action-icon">📊</span>
+                        <span>View Reports</span>
+                    </button>
+                </div>
+
+                <!-- System Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card admin-card">
+                        <div class="stat-card-icon">👥</div>
+                        <div class="stat-card-info">
+                            <h3 id="totalUsers">Loading...</h3>
+                            <p>Total Users</p>
+                            <small class="stat-trend">+12 this month</small>
+                        </div>
+                    </div>
+                    <div class="stat-card admin-card">
+                        <div class="stat-card-icon">📚</div>
+                        <div class="stat-card-info">
+                            <h3 id="totalLessons">Loading...</h3>
+                            <p>Total Lessons</p>
+                            <small class="stat-trend">+3 this week</small>
+                        </div>
+                    </div>
+                    <div class="stat-card admin-card">
+                        <div class="stat-card-icon">📂</div>
+                        <div class="stat-card-info">
+                            <h3 id="totalCategories">Loading...</h3>
+                            <p>Categories</p>
+                            <small class="stat-trend">Stable</small>
+                        </div>
+                    </div>
+                    <div class="stat-card admin-card">
+                        <div class="stat-card-icon">⭐</div>
+                        <div class="stat-card-info">
+                            <h3 id="premiumUsers">Loading...</h3>
+                            <p>Premium Users</p>
+                            <small class="stat-trend">+5 this month</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <section class="activity-section">
+                    <h2>Recent Activity</h2>
+                    <div class="activity-list" id="activityList">
+                        <div class="activity-item">
+                            <div class="activity-icon">👤</div>
+                            <div class="activity-content">
+                                <p><strong>New user registered:</strong> john_doe</p>
+                                <small>2 hours ago</small>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon">📚</div>
+                            <div class="activity-content">
+                                <p><strong>Lesson completed:</strong> Introduction to Morse</p>
+                                <small>3 hours ago</small>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon">⭐</div>
+                            <div class="activity-content">
+                                <p><strong>Premium upgrade:</strong> user_123</p>
+                                <small>5 hours ago</small>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- System Health -->
+                <section class="health-section">
+                    <h2>System Health</h2>
+                    <div class="health-grid">
+                        <div class="health-card">
+                            <div class="health-header">
+                                <h3>Database</h3>
+                                <span class="health-status health-status-good">●</span>
+                            </div>
+                            <p class="health-info">Connected • 23ms latency</p>
+                        </div>
+                        <div class="health-card">
+                            <div class="health-header">
+                                <h3>API Server</h3>
+                                <span class="health-status health-status-good">●</span>
+                            </div>
+                            <p class="health-info">Running • 100% uptime</p>
+                        </div>
+                        <div class="health-card">
+                            <div class="health-header">
+                                <h3>Storage</h3>
+                                <span class="health-status health-status-warning">●</span>
+                            </div>
+                            <p class="health-info">78% used • 22GB free</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/dashboard-common.js"></script>
+    <script>
+        // Admin-specific initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUserData();
+            loadAdminStats();
+            loadRecentActivity();
+        });
+
+        async function loadAdminStats() {
+            // Load admin statistics
+            // This would call actual API endpoints
+            console.log('Loading admin statistics...');
+        }
+
+        async function loadRecentActivity() {
+            // Load recent system activity
+            console.log('Loading recent activity...');
+        }
+    </script>
+</body>
+</html>
