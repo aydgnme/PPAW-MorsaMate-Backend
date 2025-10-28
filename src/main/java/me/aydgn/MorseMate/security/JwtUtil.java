@@ -2,6 +2,8 @@ package me.aydgn.MorseMate.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -10,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 @Component
+@Slf4j
 public class JwtUtil {
 
     @Value("${jwt.secret}")
@@ -18,6 +21,28 @@ public class JwtUtil {
     @Value("${jwt.expiration:86400000}") // default 24h in ms
     private Long jwtExpiration;
 
+    private static final int MIN_KEY_LENGTH = 32; // 256 bits minimum
+
+    /**
+     * Validate JWT secret key on application startup
+     */
+    @PostConstruct
+    public void validateSecretKey() {
+        if (jwtSecret == null || jwtSecret.trim().isEmpty()) {
+            throw new IllegalStateException("JWT secret key is not configured. Please set JWT_SECRET environment variable.");
+        }
+
+        byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
+        if (keyBytes.length < MIN_KEY_LENGTH) {
+            throw new IllegalStateException(
+                    String.format("JWT secret key is too short (%d bytes). Minimum required: %d bytes (256 bits). " +
+                            "Please use a longer secret key for security.", keyBytes.length, MIN_KEY_LENGTH)
+            );
+        }
+
+        log.info("JWT secret key validated successfully ({} bytes)", keyBytes.length);
+    }
+
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
@@ -25,7 +50,7 @@ public class JwtUtil {
     /**
      * Generate JWT token for a user
      */
-    public String generateToken(Long userId, String username, String email) {
+    public String generateToken(Long userId, String username, String email, String role) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpiration);
 
@@ -33,6 +58,7 @@ public class JwtUtil {
                 .setSubject(userId.toString())
                 .claim("username", username)
                 .claim("email", email)
+                .claim("role", role)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(getSigningKey(), SignatureAlgorithm.HS512)
@@ -61,6 +87,14 @@ public class JwtUtil {
     public String getEmailFromToken(String token) {
         Claims claims = parseToken(token);
         return claims.get("email", String.class);
+    }
+
+    /**
+     * Extract role from JWT token
+     */
+    public String getRoleFromToken(String token) {
+        Claims claims = parseToken(token);
+        return claims.get("role", String.class);
     }
 
     /**

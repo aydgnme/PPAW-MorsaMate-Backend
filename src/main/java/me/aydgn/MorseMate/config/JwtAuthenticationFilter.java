@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import me.aydgn.MorseMate.security.JwtUtil;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -17,6 +19,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -36,17 +39,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (StringUtils.hasText(jwt) && jwtUtil.validateToken(jwt)) {
                 Long userId = jwtUtil.getUserIdFromToken(jwt);
+                String role = jwtUtil.getRoleFromToken(jwt);
+
+                // Create authority from role (e.g., "USER" -> "ROLE_USER")
+                List<GrantedAuthority> authorities = Collections.emptyList();
+                if (StringUtils.hasText(role)) {
+                    String authorityName = role.startsWith("ROLE_") ? role : "ROLE_" + role;
+                    authorities = Collections.singletonList(new SimpleGrantedAuthority(authorityName));
+                }
 
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         userId.toString(), // principal (user ID as string)
                         null, // credentials
-                        Collections.emptyList() // authorities (add roles later if needed)
+                        authorities // authorities with role
                 );
 
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                log.debug("JWT authenticated user: {}", userId);
+                log.debug("JWT authenticated user: {} with role: {}", userId, role);
             }
         } catch (Exception ex) {
             log.error("Could not set user authentication in security context", ex);

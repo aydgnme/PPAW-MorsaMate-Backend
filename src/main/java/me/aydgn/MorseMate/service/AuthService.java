@@ -129,8 +129,13 @@ public class AuthService {
             // Clear rate limit on successful registration
             rateLimitService.registerSuccess(rateLimitKey);
 
-            // Generate JWT token
-            String accessToken = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getEmail());
+            // Generate JWT token with role
+            String accessToken = jwtUtil.generateToken(
+                    user.getId(),
+                    user.getUsername(),
+                    user.getEmail(),
+                    user.getRole().name()
+            );
 
             // Build response (don't expose sensitive data)
             return AuthResponse.ofTokens(
@@ -203,8 +208,13 @@ public class AuthService {
 
         log.info("User logged in successfully: {}", user.getUsername());
 
-        // Generate JWT token
-        String accessToken = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getEmail());
+        // Generate JWT token with role
+        String accessToken = jwtUtil.generateToken(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getRole().name()
+        );
 
         // Build response
         return AuthResponse.ofTokens(
