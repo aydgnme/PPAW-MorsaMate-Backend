@@ -134,7 +134,7 @@ loginForm.addEventListener('submit', async (e) => {
 
         if (response.ok) {
             // Login successful
-            const { token, user } = data;
+            const { accessToken, user } = data;  // Backend returns 'accessToken', not 'token'
 
             // Check if user is admin
             if (user.role !== 'ADMIN') {
@@ -144,7 +144,7 @@ loginForm.addEventListener('submit', async (e) => {
             }
 
             // Store token and user info
-            localStorage.setItem('adminToken', token);
+            localStorage.setItem('adminToken', accessToken);
             localStorage.setItem('adminUser', JSON.stringify(user));
 
             if (rememberMe) {
