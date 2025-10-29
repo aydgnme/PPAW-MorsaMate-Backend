@@ -51,6 +51,9 @@ public class SecurityConfig {
                         .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 
+                        // Admin Panel (MVC pages - publicly accessible, protected by JWT in frontend)
+                        .requestMatchers("/admin/**").permitAll()
+
                         // Static resources (CSS, JS, HTML pages)
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/fonts/**").permitAll()
                         .requestMatchers("/*.html", "/*.ico", "/*.png", "/*.jpg").permitAll()
