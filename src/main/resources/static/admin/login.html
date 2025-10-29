@@ -34,8 +34,9 @@
                             type="text"
                             id="username"
                             name="username"
-                            placeholder="Enter your username"
+                            placeholder="Enter your username (min 3 chars)"
                             required
+                            minlength="3"
                             autocomplete="username"
                         >
                     </div>
@@ -52,8 +53,9 @@
                             type="password"
                             id="password"
                             name="password"
-                            placeholder="Enter your password"
+                            placeholder="Enter your password (min 8 chars)"
                             required
+                            minlength="8"
                             autocomplete="current-password"
                         >
                         <button type="button" class="toggle-password" onclick="togglePassword()">
