@@ -30,7 +30,7 @@ import java.util.Map;
  * Provides endpoints for managing gems and transactions
  */
 @RestController
-@RequestMapping("/v1/gems")
+@RequestMapping("/${api.version}/gems")
 @RequiredArgsConstructor
 @Slf4j
 public class GemController {

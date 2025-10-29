@@ -26,7 +26,7 @@ import java.util.Map;
  * Provides endpoints for recording and tracking exercise attempts
  */
 @RestController
-@RequestMapping("/v1/attempts")
+@RequestMapping("/${api.version}/attempts")
 @RequiredArgsConstructor
 @Slf4j
 public class ExerciseAttemptController {

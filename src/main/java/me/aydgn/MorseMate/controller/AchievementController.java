@@ -26,7 +26,7 @@ import java.util.Map;
  * Provides endpoints for managing achievements and user achievements
  */
 @RestController
-@RequestMapping("/v1/achievements")
+@RequestMapping("/${api.version}/achievements")
 @RequiredArgsConstructor
 @Slf4j
 public class AchievementController {

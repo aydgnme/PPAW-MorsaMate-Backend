@@ -24,7 +24,7 @@ import java.util.List;
  * Provides endpoints for CRUD operations on exercises
  */
 @RestController
-@RequestMapping("/v1/exercises")
+@RequestMapping("/${api.version}/exercises")
 @RequiredArgsConstructor
 @Slf4j
 public class ExerciseController {

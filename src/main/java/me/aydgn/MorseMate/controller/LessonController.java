@@ -24,7 +24,7 @@ import java.util.List;
  * Provides endpoints for CRUD operations on lessons
  */
 @RestController
-@RequestMapping("/v1/lessons")
+@RequestMapping("/${api.version}/lessons")
 @RequiredArgsConstructor
 @Slf4j
 public class LessonController {

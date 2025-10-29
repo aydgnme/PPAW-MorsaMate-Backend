@@ -27,7 +27,7 @@ import java.util.Map;
  * Provides endpoints for managing power-ups and user purchases
  */
 @RestController
-@RequestMapping("/v1/powerups")
+@RequestMapping("/${api.version}/powerups")
 @RequiredArgsConstructor
 @Slf4j
 public class PowerUpController {

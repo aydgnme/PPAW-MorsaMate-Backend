@@ -20,7 +20,7 @@ import java.util.List;
  * Provides endpoints for CRUD operations on categories
  */
 @RestController
-@RequestMapping("/v1/categories")
+@RequestMapping("/${api.version}/categories")
 @RequiredArgsConstructor
 @Slf4j
 public class CategoryController {

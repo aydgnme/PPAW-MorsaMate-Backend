@@ -17,7 +17,7 @@ import java.util.Map;
  * Provides endpoints for viewing leaderboards and user rankings
  */
 @RestController
-@RequestMapping("/v1/leaderboard")
+@RequestMapping("/${api.version}/leaderboard")
 @RequiredArgsConstructor
 @Slf4j
 public class LeaderboardController {
