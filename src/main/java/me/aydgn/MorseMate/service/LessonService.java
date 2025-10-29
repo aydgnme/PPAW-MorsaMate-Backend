@@ -10,6 +10,8 @@ import me.aydgn.MorseMate.entity.Lesson;
 import me.aydgn.MorseMate.exception.InvalidOperationException;
 import me.aydgn.MorseMate.exception.ResourceNotFoundException;
 import me.aydgn.MorseMate.repository.LessonRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -29,6 +31,7 @@ public class LessonService {
     /**
      * Get all lessons for a specific category ordered by orderIndex
      */
+    @Cacheable(value = "lessons", key = "'category_' + #categoryId")
     @Transactional(readOnly = true)
     public List<LessonResponse> getLessonsByCategoryId(Long categoryId) {
         log.debug("Fetching lessons for category id: {}", categoryId);
@@ -44,6 +47,7 @@ public class LessonService {
     /**
      * Get lesson by ID
      */
+    @Cacheable(value = "lessons", key = "#id + '_' + #includeExercises")
     @Transactional(readOnly = true)
     public LessonResponse getLessonById(Long id, boolean includeExercises) {
         log.debug("Fetching lesson with id: {} (includeExercises: {})", id, includeExercises);
@@ -65,6 +69,7 @@ public class LessonService {
     /**
      * Get lesson entity by ID (internal use)
      */
+    @Cacheable(value = "lessons", key = "'entity_' + #id")
     @Transactional(readOnly = true)
     public Lesson findLessonById(Long id) {
         return lessonRepository.findById(id)
@@ -87,6 +92,7 @@ public class LessonService {
     /**
      * Create a new lesson
      */
+    @CacheEvict(value = "lessons", allEntries = true)
     @Transactional
     public LessonResponse createLesson(CreateLessonRequest request) {
         log.debug("Creating new lesson with title: {}", request.getTitle());
@@ -127,6 +133,7 @@ public class LessonService {
     /**
      * Update an existing lesson
      */
+    @CacheEvict(value = "lessons", allEntries = true)
     @Transactional
     public LessonResponse updateLesson(Long id, UpdateLessonRequest request) {
         log.debug("Updating lesson with id: {}", id);
@@ -192,6 +199,7 @@ public class LessonService {
     /**
      * Delete a lesson by ID
      */
+    @CacheEvict(value = "lessons", allEntries = true)
     @Transactional
     public void deleteLesson(Long id) {
         log.debug("Deleting lesson with id: {}", id);
@@ -215,6 +223,7 @@ public class LessonService {
     /**
      * Get total exercise count for a lesson
      */
+    @Cacheable(value = "lessons", key = "'exercise_count_' + #lessonId")
     @Transactional(readOnly = true)
     public long getExerciseCount(Long lessonId) {
         log.debug("Counting exercises for lesson id: {}", lessonId);
@@ -226,6 +235,7 @@ public class LessonService {
     /**
      * Update lesson order index
      */
+    @CacheEvict(value = "lessons", allEntries = true)
     @Transactional
     public void updateLessonOrder(Long lessonId, int orderIndex) {
         log.debug("Updating order index for lesson id: {} to {}", lessonId, orderIndex);

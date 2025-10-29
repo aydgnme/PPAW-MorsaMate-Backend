@@ -10,6 +10,8 @@ import me.aydgn.MorseMate.exception.DuplicateResourceException;
 import me.aydgn.MorseMate.exception.InvalidOperationException;
 import me.aydgn.MorseMate.exception.ResourceNotFoundException;
 import me.aydgn.MorseMate.repository.CategoryRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +28,7 @@ public class CategoryService {
     /**
      * Get all categories ordered by displayOrder
      */
+    @Cacheable(value = "categories", key = "'all'")
     @Transactional(readOnly = true)
     public List<CategoryResponse> getAllCategories() {
         log.debug("Fetching all categories ordered by displayOrder");
@@ -38,6 +41,7 @@ public class CategoryService {
     /**
      * Get all active categories ordered by displayOrder
      */
+    @Cacheable(value = "categories", key = "'active'")
     @Transactional(readOnly = true)
     public List<CategoryResponse> getActiveCategories() {
         log.debug("Fetching all active categories ordered by displayOrder");
@@ -50,6 +54,7 @@ public class CategoryService {
     /**
      * Get category by ID
      */
+    @Cacheable(value = "categories", key = "#id")
     @Transactional(readOnly = true)
     public CategoryResponse getCategoryById(Long id) {
         log.debug("Fetching category with id: {}", id);
@@ -60,6 +65,7 @@ public class CategoryService {
     /**
      * Get category entity by ID (internal use)
      */
+    @Cacheable(value = "categories", key = "'entity_' + #id")
     @Transactional(readOnly = true)
     public Category findCategoryById(Long id) {
         return categoryRepository.findById(id)
@@ -72,6 +78,7 @@ public class CategoryService {
     /**
      * Create a new category
      */
+    @CacheEvict(value = "categories", allEntries = true)
     @Transactional
     public CategoryResponse createCategory(CreateCategoryRequest request) {
         log.debug("Creating new category with name: {}", request.getName());
@@ -100,6 +107,7 @@ public class CategoryService {
     /**
      * Update an existing category
      */
+    @CacheEvict(value = "categories", allEntries = true)
     @Transactional
     public CategoryResponse updateCategory(Long id, UpdateCategoryRequest request) {
         log.debug("Updating category with id: {}", id);
@@ -142,6 +150,7 @@ public class CategoryService {
     /**
      * Delete a category by ID
      */
+    @CacheEvict(value = "categories", allEntries = true)
     @Transactional
     public void deleteCategory(Long id) {
         log.debug("Deleting category with id: {}", id);
@@ -165,6 +174,7 @@ public class CategoryService {
     /**
      * Get category with lessons
      */
+    @Cacheable(value = "categories", key = "'with_lessons_' + #id")
     @Transactional(readOnly = true)
     public Category getCategoryWithLessons(Long id) {
         log.debug("Fetching category with lessons for id: {}", id);
@@ -178,6 +188,7 @@ public class CategoryService {
     /**
      * Get total lesson count for a category
      */
+    @Cacheable(value = "categories", key = "'lesson_count_' + #categoryId")
     @Transactional(readOnly = true)
     public long getLessonCount(Long categoryId) {
         log.debug("Counting lessons for category id: {}", categoryId);

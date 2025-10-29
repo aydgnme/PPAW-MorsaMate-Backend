@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lessons Management - MorseMate Admin</title>
+    <link rel="stylesheet" href="/css/admin.css">
+    <style>
+        body {
+            background: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .admin-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: white;
+            box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .sidebar-header h2 {
+            color: #4F46E5;
+            font-size: 20px;
+            margin: 0;
+        }
+
+        .nav-menu {
+            padding: 16px 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: #6B7280;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .nav-item:hover {
+            background: #f3f4f6;
+            color: #4F46E5;
+        }
+
+        .nav-item.active {
+            background: #EEF2FF;
+            color: #4F46E5;
+            border-left: 3px solid #4F46E5;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 250px;
+            flex: 1;
+            padding: 24px;
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .content-header h1 {
+            color: #1F2937;
+            font-size: 28px;
+            margin: 0;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #4F46E5;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #4338CA;
+        }
+
+        .btn-success {
+            background: #10B981;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #EF4444;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6B7280;
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* Table */
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f9fafb;
+        }
+
+        th {
+            padding: 16px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: #6B7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 16px;
+            border-top: 1px solid #e5e7eb;
+            color: #1F2937;
+        }
+
+        tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-beginner {
+            background: #D1FAE5;
+            color: #059669;
+        }
+
+        .badge-intermediate {
+            background: #FEF3C7;
+            color: #D97706;
+        }
+
+        .badge-advanced {
+            background: #FEE2E2;
+            color: #DC2626;
+        }
+
+        .category-badge {
+            background: #EEF2FF;
+            color: #4F46E5;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: #1F2937;
+            font-size: 20px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #6B7280;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #374151;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #4F46E5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6B7280;
+        }
+
+        .spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #4F46E5;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        .alert-success {
+            background: #D1FAE5;
+            color: #059669;
+            border: 1px solid #A7F3D0;
+        }
+
+        .alert-error {
+            background: #FEE2E2;
+            color: #DC2626;
+            border: 1px solid #FECACA;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>MorseMate Admin</h2>
+            </div>
+            <nav class="nav-menu">
+                <a href="/admin/dashboard" class="nav-item">Dashboard</a>
+                <a href="/admin/categories.html" class="nav-item">Categories</a>
+                <a href="/admin/lessons.html" class="nav-item active">Lessons</a>
+                <a href="/admin/login.html" class="nav-item" onclick="event.preventDefault(); logout();">Logout</a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="content-header">
+                <h1>Lessons Management</h1>
+                <button class="btn btn-primary" onclick="openCreateModal()">+ New Lesson</button>
+            </div>
+
+            <div id="alertContainer"></div>
+
+            <div class="table-container">
+                <div id="loadingContainer" class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading lessons...</p>
+                </div>
+                <table id="lessonsTable" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Category (FK)</th>
+                            <th>Difficulty</th>
+                            <th>Order</th>
+                            <th>Exercises</th>
+                            <th>Points</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lessonsTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create/Edit Modal -->
+    <div id="lessonModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Create Lesson</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="lessonForm">
+                <div class="modal-body">
+                    <input type="hidden" id="lessonId">
+
+                    <div class="form-group">
+                        <label for="categoryId">Category (FK) *</label>
+                        <select id="categoryId" name="categoryId" required>
+                            <option value="">Select Category...</option>
+                        </select>
+                        <small style="color: #6B7280; font-size: 12px;">Foreign Key relationship to Category table</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="title">Title *</label>
+                        <input type="text" id="title" name="title" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea id="description" name="description" rows="2"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="content">Content *</label>
+                        <textarea id="content" name="content" rows="4" required></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="difficulty">Difficulty *</label>
+                            <select id="difficulty" name="difficulty" required>
+                                <option value="BEGINNER">Beginner</option>
+                                <option value="INTERMEDIATE">Intermediate</option>
+                                <option value="ADVANCED">Advanced</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="orderIndex">Order Index *</label>
+                            <input type="number" id="orderIndex" name="orderIndex" required min="0" value="0">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pointsReward">Points Reward</label>
+                            <input type="number" id="pointsReward" name="pointsReward" min="0" value="10">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="estimatedDuration">Duration (min)</label>
+                            <input type="number" id="estimatedDuration" name="estimatedDuration" min="1">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = window.location.origin;
+        const token = localStorage.getItem('adminToken');
+        let categories = [];
+        let allLessons = [];
+
+        // Check authentication
+        if (!token) {
+            window.location.href = '/admin/login.html';
+        }
+
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCategories();
+        });
+
+        // Load all categories
+        async function loadCategories() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/v1/categories`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to load categories');
+
+                categories = await response.json();
+                populateCategoryDropdown();
+                loadAllLessons();
+            } catch (error) {
+                console.error('Error loading categories:', error);
+                showAlert('Failed to load categories', 'error');
+            }
+        }
+
+        // Populate category dropdown
+        function populateCategoryDropdown() {
+            const select = document.getElementById('categoryId');
+            select.innerHTML = '<option value="">Select Category...</option>';
+
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.id;
+                option.textContent = category.name;
+                select.appendChild(option);
+            });
+        }
+
+        // Load all lessons from all categories
+        async function loadAllLessons() {
+            allLessons = [];
+
+            for (const category of categories) {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/v1/lessons?categoryId=${category.id}`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        const lessons = await response.json();
+                        lessons.forEach(lesson => {
+                            lesson.categoryName = category.name;
+                            allLessons.push(lesson);
+                        });
+                    }
+                } catch (error) {
+                    console.error(`Error loading lessons for category ${category.id}:`, error);
+                }
+            }
+
+            displayLessons(allLessons);
+        }
+
+        // Display lessons in table
+        function displayLessons(lessons) {
+            const tbody = document.getElementById('lessonsTableBody');
+            tbody.innerHTML = '';
+
+            if (lessons.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #6B7280;">No lessons found</td></tr>';
+            } else {
+                lessons.forEach(lesson => {
+                    const row = document.createElement('tr');
+                    const difficultyClass = lesson.difficulty.toLowerCase();
+                    row.innerHTML = `
+                        <td>${lesson.id}</td>
+                        <td><strong>${lesson.title}</strong></td>
+                        <td>
+                            <span class="category-badge">${lesson.categoryName || 'N/A'}</span>
+                        </td>
+                        <td>
+                            <span class="badge badge-${difficultyClass}">${lesson.difficulty}</span>
+                        </td>
+                        <td>${lesson.orderIndex}</td>
+                        <td>${lesson.exerciseCount || 0}</td>
+                        <td>${lesson.pointsReward}</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm" onclick="openEditModal(${lesson.id})">Edit</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteLesson(${lesson.id}, '${lesson.title}')">Delete</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+
+            document.getElementById('loadingContainer').style.display = 'none';
+            document.getElementById('lessonsTable').style.display = 'table';
+        }
+
+        // Open create modal
+        function openCreateModal() {
+            document.getElementById('modalTitle').textContent = 'Create Lesson';
+            document.getElementById('lessonForm').reset();
+            document.getElementById('lessonId').value = '';
+            document.getElementById('pointsReward').value = '10';
+            document.getElementById('categoryModal').classList.add('show');
+            document.getElementById('lessonModal').classList.add('show');
+        }
+
+        // Open edit modal
+        async function openEditModal(id) {
+            try {
+                const lesson = allLessons.find(l => l.id === id);
+                if (!lesson) throw new Error('Lesson not found');
+
+                const response = await fetch(`${API_BASE_URL}/v1/lessons/${id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to load lesson');
+
+                const lessonData = await response.json();
+
+                document.getElementById('modalTitle').textContent = 'Edit Lesson';
+                document.getElementById('lessonId').value = lessonData.id;
+                document.getElementById('categoryId').value = lessonData.categoryId;
+                document.getElementById('title').value = lessonData.title;
+                document.getElementById('description').value = lessonData.description || '';
+                document.getElementById('content').value = lessonData.content;
+                document.getElementById('difficulty').value = lessonData.difficulty;
+                document.getElementById('orderIndex').value = lessonData.orderIndex;
+                document.getElementById('pointsReward').value = lessonData.pointsReward;
+                document.getElementById('estimatedDuration').value = lessonData.estimatedDuration || '';
+
+                document.getElementById('lessonModal').classList.add('show');
+            } catch (error) {
+                console.error('Error loading lesson:', error);
+                showAlert('Failed to load lesson', 'error');
+            }
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('lessonModal').classList.remove('show');
+        }
+
+        // Handle form submit
+        document.getElementById('lessonForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const id = document.getElementById('lessonId').value;
+            const data = {
+                categoryId: parseInt(document.getElementById('categoryId').value),
+                title: document.getElementById('title').value,
+                description: document.getElementById('description').value,
+                content: document.getElementById('content').value,
+                difficulty: document.getElementById('difficulty').value,
+                orderIndex: parseInt(document.getElementById('orderIndex').value),
+                pointsReward: parseInt(document.getElementById('pointsReward').value) || 10,
+                estimatedDuration: parseInt(document.getElementById('estimatedDuration').value) || null
+            };
+
+            try {
+                const url = id ? `${API_BASE_URL}/v1/lessons/${id}` : `${API_BASE_URL}/v1/lessons`;
+                const method = id ? 'PUT' : 'POST';
+
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Failed to save lesson');
+                }
+
+                showAlert(`Lesson ${id ? 'updated' : 'created'} successfully`, 'success');
+                closeModal();
+                loadAllLessons();
+            } catch (error) {
+                console.error('Error saving lesson:', error);
+                showAlert(error.message, 'error');
+            }
+        });
+
+        // Delete lesson
+        async function deleteLesson(id, title) {
+            if (!confirm(`Are you sure you want to delete lesson "${title}"?\n\nNote: You cannot delete lessons with associated exercises.`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/v1/lessons/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Failed to delete lesson');
+                }
+
+                showAlert('Lesson deleted successfully', 'success');
+                loadAllLessons();
+            } catch (error) {
+                console.error('Error deleting lesson:', error);
+                showAlert(error.message, 'error');
+            }
+        }
+
+        // Show alert
+        function showAlert(message, type) {
+            const container = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            container.appendChild(alert);
+
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminUser');
+            window.location.href = '/admin/login.html';
+        }
+
+        // Close modal on outside click
+        document.getElementById('lessonModal').addEventListener('click', (e) => {
+            if (e.target.id === 'lessonModal') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
