@@ -28,6 +28,8 @@ public class UserProgressService {
     private final UserProgressRepository userProgressRepository;
     private final UserService userService;
     private final LessonService lessonService;
+    private final GemService gemService;
+    private final AchievementService achievementService;
 
     /**
      * Get or create user progress for a lesson
@@ -147,13 +149,52 @@ public class UserProgressService {
         log.debug("Marking lesson completed for user id: {} on lesson id: {}", userId, lessonId);
 
         UserProgress progress = getOrCreateProgress(userId, lessonId);
+        Lesson lesson = progress.getLesson();
+        boolean wasAlreadyCompleted = progress.getIsCompleted();
+
         progress.markCompleted(LocalDateTime.now(), score, stars, timeSpent);
         progress = userProgressRepository.save(progress);
 
         log.info("Marked lesson completed for progress id: {} (score: {}, stars: {}, time: {}s)",
                 progress.getId(), score, stars, timeSpent);
 
+        // Award gems for first-time lesson completion
+        if (!wasAlreadyCompleted) {
+            int gemsEarned = calculateLessonGems(stars);
+            if (gemsEarned > 0) {
+                try {
+                    gemService.addGems(userId, gemsEarned,
+                        "Lesson Completion",
+                        "Completed lesson: " + lesson.getTitle());
+                    log.info("Awarded {} gems to user {} for completing lesson {}", gemsEarned, userId, lessonId);
+                } catch (Exception e) {
+                    log.warn("Failed to award gems to user {}: {}", userId, e.getMessage());
+                }
+            }
+
+            // Check and award achievements
+            try {
+                achievementService.checkAndAwardAchievements(userId);
+                log.debug("Checked achievements for user {}", userId);
+            } catch (Exception e) {
+                log.warn("Failed to check achievements for user {}: {}", userId, e.getMessage());
+            }
+        }
+
         return UserProgressResponse.from(progress);
+    }
+
+    /**
+     * Calculate gems earned based on stars
+     */
+    private int calculateLessonGems(Integer stars) {
+        if (stars == null) return 10;
+        return switch (stars) {
+            case 3 -> 30;
+            case 2 -> 20;
+            case 1 -> 10;
+            default -> 10;
+        };
     }
 
     /**
