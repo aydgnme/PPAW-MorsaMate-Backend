@@ -18,6 +18,7 @@ public class CategoryResponse {
     private String iconUrl;
     private Boolean isActive;
     private LocalDateTime createdAt;
+    private Long lessonCount;
 
     public static CategoryResponse from(Category c) {
         if (c == null) return null;

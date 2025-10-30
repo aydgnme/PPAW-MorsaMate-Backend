@@ -34,7 +34,11 @@ public class CategoryService {
         log.debug("Fetching all categories ordered by displayOrder");
         List<Category> categories = categoryRepository.findAllByOrderByDisplayOrderAsc();
         return categories.stream()
-                .map(CategoryResponse::from)
+                .map(category -> {
+                    CategoryResponse response = CategoryResponse.from(category);
+                    response.setLessonCount(categoryRepository.countLessons(category.getId()));
+                    return response;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -47,7 +51,11 @@ public class CategoryService {
         log.debug("Fetching all active categories ordered by displayOrder");
         List<Category> categories = categoryRepository.findByIsActiveTrueOrderByDisplayOrderAsc();
         return categories.stream()
-                .map(CategoryResponse::from)
+                .map(category -> {
+                    CategoryResponse response = CategoryResponse.from(category);
+                    response.setLessonCount(categoryRepository.countLessons(category.getId()));
+                    return response;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -59,7 +67,9 @@ public class CategoryService {
     public CategoryResponse getCategoryById(Long id) {
         log.debug("Fetching category with id: {}", id);
         Category category = findCategoryById(id);
-        return CategoryResponse.from(category);
+        CategoryResponse response = CategoryResponse.from(category);
+        response.setLessonCount(categoryRepository.countLessons(category.getId()));
+        return response;
     }
 
     /**

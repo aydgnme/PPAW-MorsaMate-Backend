@@ -51,14 +51,18 @@ public class SecurityConfig {
                         .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 
-                        // Admin Panel (MVC pages - publicly accessible, protected by JWT in frontend)
-                        .requestMatchers("/admin/**").permitAll()
+                        // Info Panel - Smart routing endpoint (handles auth internally)
+                        .requestMatchers("/info-panel").permitAll()
+
+                        // Info Panel Pages (MVC pages - publicly accessible, protected by JWT in frontend)
+                        .requestMatchers("/info-panel/**").permitAll()
 
                         // Static resources (CSS, JS, HTML pages)
-                        .requestMatchers("/css/**", "/js/**", "/images/**", "/fonts/**").permitAll()
+                        .requestMatchers("/css/**", "/js/**", "/images/**", "/fonts/**", "/img/**").permitAll()
                         .requestMatchers("/*.html", "/*.ico", "/*.png", "/*.jpg").permitAll()
 
-                        // Dashboard pages (publicly accessible but protected by JavaScript)
+                        // Dashboard pages (protected by DashboardAccessInterceptor)
+                        // Allows Spring Security to pass through, interceptor handles the redirect
                         .requestMatchers("/dashboard/**").permitAll()
 
                         // All other endpoints require authentication
