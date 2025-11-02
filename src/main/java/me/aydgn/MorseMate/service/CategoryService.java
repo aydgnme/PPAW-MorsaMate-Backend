@@ -158,12 +158,14 @@ public class CategoryService {
     }
 
     /**
-     * Delete a category by ID
+     * Delete a category by ID (Soft Delete)
+     * Thanks to @SQLDelete annotation on Category entity,
+     * this will set deleted_at timestamp instead of physical deletion
      */
     @CacheEvict(value = "categories", allEntries = true)
     @Transactional
     public void deleteCategory(Long id) {
-        log.debug("Deleting category with id: {}", id);
+        log.debug("Soft deleting category with id: {}", id);
 
         Category category = findCategoryById(id);
 
@@ -177,8 +179,9 @@ public class CategoryService {
             );
         }
 
+        // This triggers @SQLDelete: UPDATE categories SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?
         categoryRepository.delete(category);
-        log.info("Category deleted successfully with id: {}", id);
+        log.info("Category soft deleted successfully with id: {}", id);
     }
 
     /**
