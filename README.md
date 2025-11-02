@@ -412,18 +412,31 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for deta
 
 ## 🗺️ Roadmap
 
-- [x] Authentication & Authorization
-- [x] User Management
-- [x] Rate Limiting
-- [x] Health Monitoring
-- [ ] Complete Learning System
-- [ ] Exercise Implementation
-- [ ] Achievement System
-- [ ] Stripe Integration
-- [ ] Notification System
-- [ ] Admin Dashboard
-- [ ] Mobile App API
-- [ ] WebSocket Support (Real-time features)
+### Completed Features
+- [x] Authentication & Authorization (JWT, BCrypt, Role-based)
+- [x] User Management (Profile, Hearts, Points, Levels, Streaks)
+- [x] Rate Limiting (5 attempts, 15-min lockout)
+- [x] Health Monitoring (API, Database, System Info)
+- [x] Learning System (Categories, Lessons, Exercises)
+- [x] Exercise Implementation (Submit, Validate, Track Progress)
+- [x] Achievement System (14 endpoints, User tracking)
+- [x] Gamification (Gems, PowerUps, Leaderboard)
+- [x] Admin Dashboard (MVC UI with Spring Cache)
+- [x] Soft Delete (16 tables, @SQLDelete, @Where)
+- [x] API Documentation (91 endpoints, Postman collections)
+
+### MVP Requirements (In Progress)
+- [ ] **Subscription Controller & Service** (Entity exists, needs implementation)
+- [ ] **Payment Controller & Service** (Entity exists, needs implementation)
+- [ ] **Stripe Integration** (Critical for monetization)
+- [ ] **Frontend Application** (Web UI or Mobile App)
+
+### Future Enhancements
+- [ ] Notification System (Push, Email, In-app)
+- [ ] WebSocket Support (Real-time notifications, Live leaderboard)
+- [ ] Mobile Apps (iOS, Android native)
+- [ ] Advanced Analytics Dashboard
+- [ ] Social Features (Friends, Challenges)
 
 ---
 
