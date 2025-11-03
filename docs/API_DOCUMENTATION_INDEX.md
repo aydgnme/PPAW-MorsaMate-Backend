@@ -1,7 +1,8 @@
 # MorseMate API - Complete Documentation Index
 
 **Version:** 1.0.0
-**Last Updated:** January 20, 2025
+**Last Updated:** November 2, 2025
+**Total API Endpoints:** 87 implemented + 13 planned (100 total)
 **Base URL:** `http://localhost:8080`
 
 ---
@@ -60,12 +61,13 @@
 
 ### 🧪 Postman Collections
 
+**Location:** `/postman` directory (moved from `/docs/postman`)
+
 | File | Description | Size | For |
 |------|-------------|------|-----|
-| **MorseMate_Postman_Collection.json** | Main API collection with all endpoints | 36 requests | Manual Testing |
-| **MorseMate_Test_Flows.json** | Automated test flows with assertions | 5 flows | Automated Testing |
-| **MorseMate_Local_Environment.json** | Local development environment | 12 variables | Local Testing |
-| **MorseMate_Production_Environment.json** | Production environment template | 12 variables | Production Testing |
+| **MorseMate_Complete_API_Collection.json** | Complete API collection | 87 endpoints | Manual Testing |
+| **MorseMate-Local.postman_environment.json** | Local development environment | Environment vars | Local Testing |
+| **README.md** | Postman usage guide | Documentation | Setup Guide |
 
 **Test Flows:**
 1. ✅ New User Registration & First Login
