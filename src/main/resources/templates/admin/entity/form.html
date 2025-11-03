@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout/base :: layout(~{::title}, ~{::content})}">
+<head>
+    <title th:text="${isEdit ? 'Edit' : 'Create'} + ' ' + ${entityName}">Form</title>
+</head>
+<body>
+<th:block th:fragment="content">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card card-primary">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i th:class="${isEdit ? 'fas fa-edit' : 'fas fa-plus'}"></i>
+                        <span th:text="${isEdit ? 'Edit' : 'Create'}">Create</span>
+                        <span th:text="${entityName}">Entity</span>
+                    </h3>
+                </div>
+
+                <form th:action="@{'/admin/entity/' + ${entityName} + (${isEdit} ? '/' + ${entity.id} + '/update' : '/save')}"
+                      method="post" id="entityForm">
+
+                    <div class="card-body">
+                        <!-- Form Fields -->
+                        <div th:each="field : ${fields}">
+                            <!-- Skip ID field for create -->
+                            <div th:if="${!(field.name == 'id' and !isEdit)}" class="form-group">
+                                <label th:for="${field.name}">
+                                    <span th:text="${field.displayName}">Field</span>
+                                    <span th:if="${field.required}" class="text-danger">*</span>
+                                </label>
+
+                                <!-- Field Type Switch -->
+                                <div th:switch="${field.type}">
+                                    <!-- String/Text Input -->
+                                    <div th:case="'STRING'">
+                                        <input type="text"
+                                               th:id="${field.name}"
+                                               th:name="${field.name}"
+                                               th:value="${isEdit ? field.getValue(entity) : ''}"
+                                               th:required="${field.required}"
+                                               th:readonly="${field.name == 'id'}"
+                                               class="form-control"
+                                               th:placeholder="${field.displayName}">
+                                    </div>
+
+                                    <!-- Text Area -->
+                                    <div th:case="'TEXT'">
+                                        <textarea th:id="${field.name}"
+                                                  th:name="${field.name}"
+                                                  th:required="${field.required}"
+                                                  class="form-control"
+                                                  rows="4"
+                                                  th:placeholder="${field.displayName}"
+                                                  th:text="${isEdit ? field.getValue(entity) : ''}"></textarea>
+                                    </div>
+
+                                    <!-- Number Input -->
+                                    <div th:case="'NUMBER'">
+                                        <input type="number"
+                                               th:id="${field.name}"
+                                               th:name="${field.name}"
+                                               th:value="${isEdit ? field.getValue(entity) : ''}"
+                                               th:required="${field.required}"
+                                               class="form-control"
+                                               step="any"
+                                               th:placeholder="${field.displayName}">
+                                    </div>
+
+                                    <!-- Integer Input -->
+                                    <div th:case="'INTEGER'">
+                                        <input type="number"
+                                               th:id="${field.name}"
+                                               th:name="${field.name}"
+                                               th:value="${isEdit ? field.getValue(entity) : ''}"
+                                               th:required="${field.required}"
+                                               class="form-control"
+                                               step="1"
+                                               th:placeholder="${field.displayName}">
+                                    </div>
+
+                                    <!-- Boolean Checkbox -->
+                                    <div th:case="'BOOLEAN'">
+                                        <div class="custom-control custom-switch">
+                                            <input type="checkbox"
+                                                   th:id="${field.name}"
+                                                   th:name="${field.name}"
+                                                   th:checked="${isEdit and field.getValue(entity)}"
+                                                   class="custom-control-input"
+                                                   value="true">
+                                            <label th:for="${field.name}" class="custom-control-label">
+                                                Enable <span th:text="${field.displayName}">Field</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <!-- Enum Select -->
+                                    <div th:case="'ENUM'">
+                                        <select th:id="${field.name}"
+                                                th:name="${field.name}"
+                                                th:required="${field.required}"
+                                                class="form-control">
+                                            <option value="">-- Select <span th:text="${field.displayName}">Option</span> --</option>
+                                            <option th:each="option : ${field.options}"
+                                                    th:value="${option}"
+                                                    th:text="${option}"
+                                                    th:selected="${isEdit and field.getValue(entity) == option}">
+                                                Option
+                                            </option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Date Input -->
+                                    <div th:case="'DATE'">
+                                        <input type="date"
+                                               th:id="${field.name}"
+                                               th:name="${field.name}"
+                                               th:value="${isEdit and field.getValue(entity) != null ? #temporals.format(field.getValue(entity), 'yyyy-MM-dd') : ''}"
+                                               th:required="${field.required}"
+                                               class="form-control">
+                                    </div>
+
+                                    <!-- DateTime Input -->
+                                    <div th:case="'DATETIME'">
+                                        <input type="datetime-local"
+                                               th:id="${field.name}"
+                                               th:name="${field.name}"
+                                               th:value="${isEdit and field.getValue(entity) != null ? #temporals.format(field.getValue(entity), 'yyyy-MM-dd\'T\'HH:mm') : ''}"
+                                               th:required="${field.required}"
+                                               class="form-control">
+                                    </div>
+
+                                    <!-- Relation (ManyToOne / OneToOne) -->
+                                    <div th:case="'RELATION'">
+                                        <select th:id="${field.name}"
+                                                th:name="${field.name}"
+                                                th:required="${field.required}"
+                                                class="form-control">
+                                            <option value="">-- Select <span th:text="${field.displayName}">Related Entity</span> --</option>
+                                            <option th:each="relOption : ${field.relationOptions}"
+                                                    th:value="${relOption.id}"
+                                                    th:text="${relOption.displayValue}"
+                                                    th:selected="${isEdit and field.getValue(entity) != null and field.getValue(entity).id == relOption.id}">
+                                                Related Option
+                                            </option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Collection (Read-only, show count) -->
+                                    <div th:case="'COLLECTION'">
+                                        <input type="text"
+                                               readonly
+                                               class="form-control"
+                                               th:value="${isEdit ? field.getValue(entity).size() + ' items' : 'No items yet'}">
+                                        <small class="form-text text-muted">
+                                            Collection fields are managed through related entities
+                                        </small>
+                                    </div>
+
+                                    <!-- Email Input -->
+                                    <div th:case="'EMAIL'">
+                                        <input type="email"
+                                               th:id="${field.name}"
+                                               th:name="${field.name}"
+                                               th:value="${isEdit ? field.getValue(entity) : ''}"
+                                               th:required="${field.required}"
+                                               class="form-control"
+                                               th:placeholder="${field.displayName}">
+                                    </div>
+
+                                    <!-- Default -->
+                                    <div th:case="*">
+                                        <input type="text"
+                                               th:id="${field.name}"
+                                               th:name="${field.name}"
+                                               th:value="${isEdit ? field.getValue(entity) : ''}"
+                                               th:required="${field.required}"
+                                               class="form-control"
+                                               th:placeholder="${field.displayName}">
+                                    </div>
+                                </div>
+
+                                <!-- Field Help Text -->
+                                <small th:if="${field.helpText}" class="form-text text-muted" th:text="${field.helpText}">
+                                    Help text
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer">
+                        <div class="row">
+                            <div class="col-6">
+                                <a th:href="@{'/admin/entity/' + ${entityName}}" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> Cancel
+                                </a>
+                            </div>
+                            <div class="col-6 text-right">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i>
+                                    <span th:text="${isEdit ? 'Update' : 'Create'}">Save</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Delete Button (only for edit mode) -->
+            <div th:if="${isEdit}" class="card card-danger">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-exclamation-triangle"></i> Danger Zone</h3>
+                </div>
+                <div class="card-body">
+                    <p>Once you delete this <span th:text="${entityName}">entity</span>, there is no going back. Please be certain.</p>
+                    <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal">
+                        <i class="fas fa-trash"></i> Delete <span th:text="${entityName}">Entity</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div th:if="${isEdit}" class="modal fade" id="deleteModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-danger">
+                    <h5 class="modal-title text-white"><i class="fas fa-exclamation-triangle"></i> Confirm Delete</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete this <span th:text="${entityName}">entity</span>?</p>
+                    <p class="text-danger"><strong>This action cannot be undone!</strong></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <form th:action="@{'/admin/entity/' + ${entityName} + '/' + ${entity.id} + '/delete'}" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Delete Permanently
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Form validation
+        document.getElementById('entityForm').addEventListener('submit', function(e) {
+            const requiredFields = this.querySelectorAll('[required]');
+            let isValid = true;
+
+            requiredFields.forEach(field => {
+                if (!field.value && field.type !== 'checkbox') {
+                    isValid = false;
+                    field.classList.add('is-invalid');
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+
+            if (!isValid) {
+                e.preventDefault();
+                alert('Please fill in all required fields');
+            }
+        });
+    </script>
+</th:block>
+</body>
+</html>

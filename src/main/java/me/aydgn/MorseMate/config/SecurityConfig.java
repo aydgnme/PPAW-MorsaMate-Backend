@@ -57,6 +57,10 @@ public class SecurityConfig {
                         // Info Panel Pages (MVC pages - publicly accessible, protected by JWT in frontend)
                         .requestMatchers("/info-panel/**").permitAll()
 
+                        // Admin Panel - Django-style CRUD interface (publicly accessible, protected by JWT in frontend)
+                        .requestMatchers("/admin", "/admin/**").permitAll()
+                        .requestMatchers("/pages/**").permitAll()
+
                         // Static resources (CSS, JS, HTML pages)
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/fonts/**", "/img/**").permitAll()
                         .requestMatchers("/*.html", "/*.ico", "/*.png", "/*.jpg").permitAll()
