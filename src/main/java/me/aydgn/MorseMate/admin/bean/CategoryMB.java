@@ -1,6 +1,5 @@
 package me.aydgn.MorseMate.admin.bean;
 
-import com.github.adminfaces.template.exception.BusinessException;
 import jakarta.annotation.PostConstruct;
 import jakarta.faces.view.ViewScoped;
 import jakarta.inject.Named;
@@ -44,7 +43,7 @@ public class CategoryMB implements Serializable {
             log.info("Loaded {} categories", categories.size());
         } catch (Exception e) {
             log.error("Error loading categories", e);
-            throw new BusinessException("Failed to load categories");
+            throw new RuntimeException("Failed to load categories", e);
         }
     }
 
@@ -62,7 +61,7 @@ public class CategoryMB implements Serializable {
             clear();
         } catch (Exception e) {
             log.error("Error saving category", e);
-            throw new BusinessException("Failed to save category");
+            throw new RuntimeException("Failed to save category", e);
         }
     }
 
@@ -77,7 +76,7 @@ public class CategoryMB implements Serializable {
             }
         } catch (Exception e) {
             log.error("Error deleting category", e);
-            throw new BusinessException("Failed to delete category. Make sure there are no related lessons.");
+            throw new RuntimeException("Failed to delete category. Make sure there are no related lessons.", e);
         }
     }
 

@@ -6,6 +6,11 @@ plugins {
     id 'jacoco'
 }
 
+// JoinFaces BOM for JSF integration
+ext {
+    joinfacesVersion = '5.2.4'
+}
+
 group = 'me.aydgn'
 version = '0.0.1-SNAPSHOT'
 description = 'Morse Code Learning Platform - Backend API'
@@ -26,30 +31,23 @@ repositories {
     mavenCentral()
 }
 
+dependencyManagement {
+    imports {
+        mavenBom "org.joinfaces:joinfaces-dependencies:${joinfacesVersion}"
+    }
+}
+
 dependencies {
+    // JoinFaces - JSF integration for Spring Boot
+    implementation "org.joinfaces:mojarra-spring-boot-starter:${joinfacesVersion}"
+    implementation "org.joinfaces:primefaces-spring-boot-starter:${joinfacesVersion}"
+
     // Spring Boot Starters
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
-
-    // JSF Implementation (Mojarra)
-    implementation 'org.glassfish:jakarta.faces:4.0.5'
-
-    // PrimeFaces
-    implementation 'org.primefaces:primefaces:14.0.0:jakarta'
-
-    // AdminFaces
-    implementation 'com.github.adminfaces:admin-template:1.3.1'
-    implementation 'com.github.adminfaces:admin-theme:1.3.1'
-
-    // Servlet API (required for JSF)
-    compileOnly 'jakarta.servlet:jakarta.servlet-api:6.0.0'
-
-    // CDI/Inject API for @Named annotation
-    implementation 'jakarta.inject:jakarta.inject-api:2.0.1'
-    implementation 'org.springframework:spring-context'
 
     // PostgreSQL Driver
     runtimeOnly 'org.postgresql:postgresql'

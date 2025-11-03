@@ -1,191 +1,161 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<ui:composition xmlns="http://www.w3.org/1999/xhtml"
-                xmlns:ui="jakarta.faces.facelets"
-                xmlns:h="jakarta.faces.html"
-                xmlns:f="jakarta.faces.core"
-                xmlns:p="http://primefaces.org/ui"
-                template="/admin.xhtml">
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="jakarta.faces.core">
+<h:head>
+    <title>Category Management - MorseMate Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+</h:head>
+<h:body>
+    <h:form id="form">
+        <p:growl id="messages" showDetail="true"/>
 
-    <ui:define name="title">
-        Category Management
-    </ui:define>
-
-    <ui:define name="description">
-        Manage all categories
-    </ui:define>
-
-    <ui:define name="body">
-        <h:form id="form">
-            <p:growl id="growl" life="4000"/>
-
-            <div class="box box-primary">
-                <div class="box-header with-border">
-                    <h3 class="box-title"><i class="fa fa-folder"></i> Category List</h3>
-                    <div class="box-tools pull-right">
-                        <p:commandButton value="New Category"
-                                         icon="fa fa-plus"
-                                         styleClass="btn-success"
-                                         actionListener="#{categoryMB.clear}"
-                                         oncomplete="PF('categoryDialog').show()"
-                                         update=":form:categoryDetail"
-                                         process="@this"/>
-                    </div>
-                </div>
-
-                <div class="box-body">
-                    <p:dataTable id="categoryTable"
-                                 var="category"
-                                 value="#{categoryMB.categories}"
-                                 rows="10"
-                                 paginator="true"
-                                 paginatorPosition="bottom"
-                                 emptyMessage="No categories found"
-                                 rowKey="#{category.id}"
-                                 selectionMode="single"
-                                 selection="#{categoryMB.selectedCategory}"
-                                 styleClass="table table-striped table-bordered">
-
-                        <p:column headerText="ID" style="width: 50px;">
-                            <h:outputText value="#{category.id}"/>
-                        </p:column>
-
-                        <p:column headerText="Name" sortBy="#{category.name}">
-                            <h:outputText value="#{category.name}"/>
-                        </p:column>
-
-                        <p:column headerText="Description">
-                            <h:outputText value="#{category.description}"/>
-                        </p:column>
-
-                        <p:column headerText="Order" style="width: 80px;">
-                            <h:outputText value="#{category.displayOrder}"/>
-                        </p:column>
-
-                        <p:column headerText="Status" style="width: 100px;">
-                            <h:outputText value="#{category.isActive ? 'Active' : 'Inactive'}"
-                                          styleClass="label #{category.isActive ? 'label-success' : 'label-danger'}"/>
-                        </p:column>
-
-                        <p:column headerText="Lessons" style="width: 80px;">
-                            <h:outputText value="#{category.lessonCount}"/>
-                        </p:column>
-
-                        <p:column headerText="Actions" style="width: 150px;">
-                            <p:commandButton icon="fa fa-edit"
-                                             styleClass="btn-primary btn-sm"
-                                             actionListener="#{categoryMB.edit(category)}"
-                                             oncomplete="PF('categoryDialog').show()"
-                                             update=":form:categoryDetail"
-                                             process="@this">
-                                <f:setPropertyActionListener value="#{category}"
-                                                             target="#{categoryMB.selectedCategory}"/>
-                            </p:commandButton>
-
-                            <p:commandButton icon="fa fa-trash"
-                                             styleClass="btn-danger btn-sm"
-                                             style="margin-left: 5px;"
-                                             oncomplete="PF('deleteDialog').show()"
-                                             update=":form:deleteConfirm"
-                                             process="@this">
-                                <f:setPropertyActionListener value="#{category}"
-                                                             target="#{categoryMB.selectedCategory}"/>
-                            </p:commandButton>
-                        </p:column>
-                    </p:dataTable>
-                </div>
+        <div style="padding: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h1>Category Management</h1>
+                <p:commandButton value="Back to Dashboard"
+                                 action="/admin/index?faces-redirect=true"
+                                 icon="pi pi-home"
+                                 styleClass="ui-button-secondary"/>
             </div>
 
-            <!-- Create/Edit Dialog -->
-            <p:dialog id="categoryDialog"
-                      header="#{categoryMB.editing ? 'Edit' : 'Create'} Category"
-                      widgetVar="categoryDialog"
-                      modal="true"
-                      width="600"
-                      closable="true"
-                      resizable="false">
+            <p:panel header="Categories">
+                <p:toolbar>
+                    <p:toolbarGroup>
+                        <p:commandButton value="New Category"
+                                         actionListener="#{categoryMB.clear}"
+                                         update=":form:categoryDialog"
+                                         oncomplete="PF('categoryDlg').show();"
+                                         icon="pi pi-plus"
+                                         styleClass="ui-button-success"/>
+                    </p:toolbarGroup>
+                </p:toolbar>
 
-                <p:outputPanel id="categoryDetail">
-                    <div class="ui-fluid">
-                        <div class="ui-g">
-                            <div class="ui-g-12">
-                                <p:outputLabel for="name" value="Name *"/>
-                                <p:inputText id="name"
-                                             value="#{categoryMB.category.name}"
-                                             required="true"
-                                             requiredMessage="Name is required"/>
-                            </div>
+                <p:dataTable id="categoryTable"
+                             var="cat"
+                             value="#{categoryMB.categories}"
+                             rows="10"
+                             paginator="true"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="10,20,50"
+                             selectionMode="single"
+                             selection="#{categoryMB.selectedCategory}"
+                             rowKey="#{cat.id}"
+                             style="margin-top: 10px;">
 
-                            <div class="ui-g-12">
-                                <p:outputLabel for="description" value="Description"/>
-                                <p:inputTextarea id="description"
-                                                 value="#{categoryMB.category.description}"
-                                                 rows="3"/>
-                            </div>
+                    <p:column headerText="ID" width="50">
+                        <h:outputText value="#{cat.id}"/>
+                    </p:column>
 
-                            <div class="ui-g-6">
-                                <p:outputLabel for="displayOrder" value="Display Order *"/>
-                                <p:inputNumber id="displayOrder"
-                                               value="#{categoryMB.category.displayOrder}"
-                                               decimalPlaces="0"
-                                               required="true"/>
-                            </div>
+                    <p:column headerText="Name" filterBy="#{cat.name}" filterMatchMode="contains">
+                        <h:outputText value="#{cat.name}"/>
+                    </p:column>
 
-                            <div class="ui-g-6">
-                                <p:outputLabel for="isActive" value="Active"/>
-                                <br/>
-                                <p:selectBooleanCheckbox id="isActive"
-                                                         value="#{categoryMB.category.isActive}"/>
-                            </div>
+                    <p:column headerText="Description">
+                        <h:outputText value="#{cat.description}"/>
+                    </p:column>
 
-                            <div class="ui-g-12">
-                                <p:outputLabel for="iconUrl" value="Icon URL"/>
-                                <p:inputText id="iconUrl"
-                                             value="#{categoryMB.category.iconUrl}"
-                                             placeholder="https://example.com/icon.png"/>
-                            </div>
-                        </div>
-                    </div>
-                </p:outputPanel>
+                    <p:column headerText="Order" width="80">
+                        <h:outputText value="#{cat.displayOrder}"/>
+                    </p:column>
 
-                <f:facet name="footer">
-                    <p:commandButton value="Cancel"
-                                     icon="fa fa-times"
-                                     onclick="PF('categoryDialog').hide()"
-                                     styleClass="btn-default"
-                                     type="button"/>
+                    <p:column headerText="Active" width="80" style="text-align: center;">
+                        <p:selectBooleanCheckbox value="#{cat.isActive}" disabled="true"/>
+                    </p:column>
 
-                    <p:commandButton value="Save"
-                                     icon="fa fa-save"
-                                     actionListener="#{categoryMB.save}"
-                                     oncomplete="if (!args.validationFailed) PF('categoryDialog').hide()"
-                                     update=":form:categoryTable :form:growl"
-                                     process=":form:categoryDetail"
-                                     styleClass="btn-primary"/>
-                </f:facet>
-            </p:dialog>
+                    <p:column headerText="Actions" width="150" style="text-align: center;">
+                        <p:commandButton icon="pi pi-pencil"
+                                         actionListener="#{categoryMB.edit(cat)}"
+                                         update=":form:categoryDialog"
+                                         oncomplete="PF('categoryDlg').show();"
+                                         styleClass="ui-button-warning"
+                                         title="Edit"/>
+                        <p:commandButton icon="pi pi-trash"
+                                         actionListener="#{categoryMB.setSelectedCategory(cat)}"
+                                         update=":form:deleteDialog"
+                                         oncomplete="PF('deleteDlg').show();"
+                                         styleClass="ui-button-danger"
+                                         style="margin-left: 5px;"
+                                         title="Delete"/>
+                    </p:column>
+                </p:dataTable>
+            </p:panel>
+        </div>
 
-            <!-- Delete Confirmation Dialog -->
-            <p:confirmDialog id="deleteConfirm"
-                             widgetVar="deleteDialog"
-                             message="Are you sure you want to delete this category?"
-                             header="Confirm Delete"
-                             severity="alert"
-                             width="400">
+        <!-- Create/Edit Dialog -->
+        <p:dialog id="categoryDialog"
+                  header="#{categoryMB.editing ? 'Edit Category' : 'New Category'}"
+                  widgetVar="categoryDlg"
+                  modal="true"
+                  showEffect="fade"
+                  hideEffect="fade"
+                  responsive="true"
+                  width="600">
 
-                <p:commandButton value="No"
-                                 onclick="PF('deleteDialog').hide()"
-                                 styleClass="btn-default"
-                                 type="button"/>
+            <p:panelGrid columns="2" layout="grid" styleClass="ui-fluid">
+                <p:outputLabel for="name" value="Name:"/>
+                <p:inputText id="name" value="#{categoryMB.category.name}" required="true"/>
 
-                <p:commandButton value="Yes, Delete"
-                                 icon="fa fa-trash"
+                <p:outputLabel for="description" value="Description:"/>
+                <p:inputTextarea id="description" value="#{categoryMB.category.description}" rows="3"/>
+
+                <p:outputLabel for="displayOrder" value="Display Order:"/>
+                <p:inputNumber id="displayOrder" value="#{categoryMB.category.displayOrder}" decimalPlaces="0"/>
+
+                <p:outputLabel for="iconUrl" value="Icon URL:"/>
+                <p:inputText id="iconUrl" value="#{categoryMB.category.iconUrl}"/>
+
+                <p:outputLabel for="isActive" value="Active:"/>
+                <p:selectBooleanCheckbox id="isActive" value="#{categoryMB.category.isActive}"/>
+            </p:panelGrid>
+
+            <f:facet name="footer">
+                <p:commandButton value="Save"
+                                 actionListener="#{categoryMB.save}"
+                                 update=":form:categoryTable :form:messages"
+                                 oncomplete="PF('categoryDlg').hide();"
+                                 icon="pi pi-check"
+                                 styleClass="ui-button-success"/>
+                <p:commandButton value="Cancel"
+                                 onclick="PF('categoryDlg').hide();"
+                                 type="button"
+                                 icon="pi pi-times"
+                                 styleClass="ui-button-secondary"/>
+            </f:facet>
+        </p:dialog>
+
+        <!-- Delete Confirmation Dialog -->
+        <p:dialog id="deleteDialog"
+                  header="Confirm Delete"
+                  widgetVar="deleteDlg"
+                  modal="true"
+                  showEffect="fade"
+                  hideEffect="fade"
+                  width="400">
+
+            <p:outputPanel style="text-align: center;">
+                <i class="pi pi-exclamation-triangle" style="font-size: 3em; color: #f44336;"/>
+                <p>Are you sure you want to delete this category?</p>
+                <h:outputText value="#{categoryMB.selectedCategory.name}"
+                              style="font-weight: bold; display: block; margin: 10px 0;"/>
+                <p style="color: #666;">This action cannot be undone.</p>
+            </p:outputPanel>
+
+            <f:facet name="footer">
+                <p:commandButton value="Delete"
                                  actionListener="#{categoryMB.delete}"
-                                 oncomplete="PF('deleteDialog').hide()"
-                                 update=":form:categoryTable :form:growl"
-                                 process="@this"
-                                 styleClass="btn-danger"/>
-            </p:confirmDialog>
-        </h:form>
-    </ui:define>
-
-</ui:composition>
+                                 update=":form:categoryTable :form:messages"
+                                 oncomplete="PF('deleteDlg').hide();"
+                                 icon="pi pi-trash"
+                                 styleClass="ui-button-danger"/>
+                <p:commandButton value="Cancel"
+                                 onclick="PF('deleteDlg').hide();"
+                                 type="button"
+                                 icon="pi pi-times"
+                                 styleClass="ui-button-secondary"/>
+            </f:facet>
+        </p:dialog>
+    </h:form>
+</h:body>
+</html>

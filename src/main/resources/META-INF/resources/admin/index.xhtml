@@ -1,172 +1,78 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<ui:composition xmlns="http://www.w3.org/1999/xhtml"
-                xmlns:ui="jakarta.faces.facelets"
-                xmlns:h="jakarta.faces.html"
-                xmlns:f="jakarta.faces.core"
-                xmlns:p="http://primefaces.org/ui"
-                template="/admin.xhtml">
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="jakarta.faces.core">
+<h:head>
+    <title>MorseMate - Admin Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+</h:head>
+<h:body>
+    <h:form>
+        <p:growl id="messages" showDetail="true"/>
 
-    <ui:define name="head-end">
-        <style type="text/css">
-            .box-header {
-                color: #fff;
-                display: block;
-                padding: 10px;
-                position: relative;
-            }
+        <div style="padding: 20px;">
+            <h1>MorseMate Admin Dashboard</h1>
+            <p:divider/>
 
-            .box-header.with-border {
-                border-bottom: 1px solid #f4f4f4;
-            }
+            <div style="display: flex; gap: 20px; flex-wrap: wrap; margin: 20px 0;">
+                <!-- Statistics Cards -->
+                <p:panel header="Categories" style="flex: 1; min-width: 200px;">
+                    <h:outputText value="#{categoryMB.categories.size()}"
+                                  style="font-size: 2em; font-weight: bold; color: #007bff;"/>
+                    <p/>
+                    <p:commandButton value="Manage"
+                                     action="/admin/category-list?faces-redirect=true"
+                                     icon="pi pi-folder"
+                                     styleClass="ui-button-info"/>
+                </p:panel>
 
-            .box-header .box-title {
-                display: inline-block;
-                font-size: 18px;
-                margin: 0;
-                line-height: 1;
-            }
+                <p:panel header="Lessons" style="flex: 1; min-width: 200px;">
+                    <h:outputText value="0"
+                                  style="font-size: 2em; font-weight: bold; color: #28a745;"/>
+                    <p/>
+                    <p:button value="Manage"
+                              icon="pi pi-book"
+                              styleClass="ui-button-success"
+                              disabled="true"/>
+                </p:panel>
 
-            .bg-aqua {
-                background-color: #00c0ef !important;
-            }
+                <p:panel header="Users" style="flex: 1; min-width: 200px;">
+                    <h:outputText value="0"
+                                  style="font-size: 2em; font-weight: bold; color: #ffc107;"/>
+                    <p/>
+                    <p:button value="Manage"
+                              icon="pi pi-users"
+                              styleClass="ui-button-warning"
+                              disabled="true"/>
+                </p:panel>
 
-            .bg-green {
-                background-color: #00a65a !important;
-            }
-
-            .bg-yellow {
-                background-color: #f39c12 !important;
-            }
-
-            .bg-red {
-                background-color: #dd4b39 !important;
-            }
-        </style>
-    </ui:define>
-
-    <ui:define name="title">
-        Admin Dashboard - MorseMate
-    </ui:define>
-
-    <ui:define name="description">
-        Welcome to MorseMate Admin Panel
-    </ui:define>
-
-    <ui:define name="body">
-        <h:form>
-            <p:growl id="growl" life="4000"/>
-
-            <!-- Statistics Boxes -->
-            <div class="row">
-                <!-- Categories Box -->
-                <div class="col-md-3 col-sm-6 col-xs-12">
-                    <div class="info-box">
-                        <span class="info-box-icon bg-aqua"><i class="fa fa-folder"></i></span>
-                        <div class="info-box-content">
-                            <span class="info-box-text">Categories</span>
-                            <span class="info-box-number">#{categoryMB.categories.size()}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Lessons Box -->
-                <div class="col-md-3 col-sm-6 col-xs-12">
-                    <div class="info-box">
-                        <span class="info-box-icon bg-green"><i class="fa fa-book"></i></span>
-                        <div class="info-box-content">
-                            <span class="info-box-text">Lessons</span>
-                            <span class="info-box-number">0</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Exercises Box -->
-                <div class="col-md-3 col-sm-6 col-xs-12">
-                    <div class="info-box">
-                        <span class="info-box-icon bg-yellow"><i class="fa fa-puzzle-piece"></i></span>
-                        <div class="info-box-content">
-                            <span class="info-box-text">Exercises</span>
-                            <span class="info-box-number">0</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Users Box -->
-                <div class="col-md-3 col-sm-6 col-xs-12">
-                    <div class="info-box">
-                        <span class="info-box-icon bg-red"><i class="fa fa-users"></i></span>
-                        <div class="info-box-content">
-                            <span class="info-box-text">Users</span>
-                            <span class="info-box-number">0</span>
-                        </div>
-                    </div>
-                </div>
+                <p:panel header="System" style="flex: 1; min-width: 200px;">
+                    <h:outputText value="Active"
+                                  style="font-size: 2em; font-weight: bold; color: #17a2b8;"/>
+                    <p/>
+                    <p:button value="Settings"
+                              icon="pi pi-cog"
+                              styleClass="ui-button-secondary"
+                              disabled="true"/>
+                </p:panel>
             </div>
 
-            <!-- Quick Actions -->
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="box box-primary">
-                        <div class="box-header with-border">
-                            <h3 class="box-title"><i class="fa fa-bolt"></i> Quick Actions</h3>
-                        </div>
-                        <div class="box-body">
-                            <p:commandButton value="Manage Categories"
-                                             icon="fa fa-folder"
-                                             styleClass="btn-primary"
-                                             action="/admin/category-list?faces-redirect=true"
-                                             style="margin-right: 10px;"/>
+            <p:divider/>
 
-                            <p:commandButton value="Manage Lessons"
-                                             icon="fa fa-book"
-                                             styleClass="btn-success"
-                                             disabled="true"
-                                             style="margin-right: 10px;"/>
-
-                            <p:commandButton value="Manage Exercises"
-                                             icon="fa fa-puzzle-piece"
-                                             styleClass="btn-warning"
-                                             disabled="true"
-                                             style="margin-right: 10px;"/>
-
-                            <p:commandButton value="Manage Users"
-                                             icon="fa fa-users"
-                                             styleClass="btn-danger"
-                                             disabled="true"/>
-                        </div>
-                    </div>
-                </div>
+            <h2>Quick Actions</h2>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <p:commandButton value="Manage Categories"
+                                 action="/admin/category-list?faces-redirect=true"
+                                 icon="pi pi-folder"
+                                 styleClass="ui-button-raised"/>
+                <p:button value="View API Docs"
+                          href="/swagger-ui/index.html"
+                          icon="pi pi-book"
+                          styleClass="ui-button-raised ui-button-info"
+                          target="_blank"/>
             </div>
-
-            <!-- System Information -->
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="box">
-                        <div class="box-header with-border">
-                            <h3 class="box-title"><i class="fa fa-info-circle"></i> System Information</h3>
-                        </div>
-                        <div class="box-body">
-                            <dl class="dl-horizontal">
-                                <dt>Application</dt>
-                                <dd>MorseMate - Morse Code Learning Platform</dd>
-
-                                <dt>Version</dt>
-                                <dd>1.0.0</dd>
-
-                                <dt>Framework</dt>
-                                <dd>Spring Boot 3.5.6 + JSF + AdminFaces</dd>
-
-                                <dt>Database</dt>
-                                <dd>PostgreSQL</dd>
-
-                                <dt>Admin Panel</dt>
-                                <dd>AdminFaces Template</dd>
-                            </dl>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </h:form>
-    </ui:define>
-
-</ui:composition>
+        </div>
+    </h:form>
+</h:body>
+</html>
