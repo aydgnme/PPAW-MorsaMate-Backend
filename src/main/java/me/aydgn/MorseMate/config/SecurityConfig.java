@@ -37,9 +37,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable)
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/*.xhtml", "/admin/**", "/jakarta.faces.resource/**")
+                )
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        // Allow sessions for JSF, but stateless for REST API
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 )
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints
@@ -57,9 +60,13 @@ public class SecurityConfig {
                         // Info Panel Pages (MVC pages - publicly accessible, protected by JWT in frontend)
                         .requestMatchers("/info-panel/**").permitAll()
 
-                        // Admin Panel - Django-style CRUD interface (publicly accessible, protected by JWT in frontend)
+                        // Admin Panel - AdminFaces JSF interface
                         .requestMatchers("/admin", "/admin/**").permitAll()
                         .requestMatchers("/pages/**").permitAll()
+                        .requestMatchers("/*.xhtml").permitAll()
+                        .requestMatchers("/admin/*.xhtml").permitAll()
+                        .requestMatchers("/jakarta.faces.resource/**").permitAll()
+                        .requestMatchers("/primefaces_resource/**").permitAll()
 
                         // Static resources (CSS, JS, HTML pages)
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/fonts/**", "/img/**").permitAll()
