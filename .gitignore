@@ -61,3 +61,8 @@ logs/
 bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
+# Eclipse metadata
+.metadata/
+
+# Lab files
+Laborator/
