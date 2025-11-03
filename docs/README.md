@@ -8,26 +8,42 @@ Welcome to the MorseMate API documentation! This directory contains all the docu
 
 ```
 docs/
-├── README.md                           # This file
-├── API_DOCUMENTATION_INDEX.md          # Main index and overview
-├── API_ENDPOINTS.md                    # Complete API reference (400+ lines)
-├── API_QUICK_REFERENCE.md              # Quick reference table
-├── API-TESTING.md                      # API testing documentation
-├── POSTMAN_GUIDE.md                    # Postman usage guide
-├── frontend-examples.md                # React/Vue examples
-├── IOS_INTEGRATION_GUIDE.md            # Complete iOS guide
-├── IOS_QUICK_START.md                  # iOS quick start
+├── README.md                           # This file - Documentation overview
+│
+├── API Documentation/
+│   ├── API_DOCUMENTATION_INDEX.md      # Main API index and overview
+│   ├── API_ENDPOINTS.md                # Complete API reference (all 91 endpoints)
+│   ├── API_QUICK_REFERENCE.md          # Quick reference table
+│   ├── API-TESTING.md                  # API testing guide
+│   ├── API_VERSIONING.md               # API versioning strategy
+│   ├── API.md                          # Legacy API documentation
+│   └── api.json                        # OpenAPI/Swagger specification
+│
+├── Integration Guides/
+│   ├── frontend-examples.md            # React/Vue/Angular examples
+│   ├── IOS_INTEGRATION_GUIDE.md        # Complete iOS integration guide
+│   ├── IOS_QUICK_START.md              # iOS quick start guide
+│   └── POSTMAN_GUIDE.md                # Postman collection usage
+│
+├── Technical Documentation/
+│   ├── CORS_CONFIGURATION.md           # CORS setup and configuration
+│   ├── SECURITY_AUDIT_REPORT.md        # Security audit findings
+│   ├── SECURITY_FLOW_ARCHITECTURE.md   # Security architecture
+│   ├── SOFT_DELETE_IMPLEMENTATION.md   # Soft delete implementation guide
+│   ├── IMPROVEMENT_SUMMARY.md          # Recent improvements summary
+│   ├── GAMIFICATION.md                 # Gamification system docs
+│   ├── QA_TEST_COVERAGE_REPORT.md      # Test coverage report
+│   └── TEST_FIXING_GUIDE.md            # Guide for fixing tests
 │
 ├── api-clients/                        # Ready-to-use API clients
 │   ├── frontend-api-client.ts          # TypeScript client (800+ lines)
 │   └── ios-api-client.swift            # Swift client (1000+ lines)
 │
-└── postman/                            # Postman collections
-    ├── MorseMate_Postman_Collection.json      # Main collection (36 endpoints)
-    ├── MorseMate_Test_Flows.json              # Automated test flows
-    ├── MorseMate_Local_Environment.json       # Local environment
-    └── MorseMate_Production_Environment.json  # Production environment
+└── ios/                                # iOS-specific documentation
+    └── API_ENDPOINTS_FOR_IOS.md        # iOS endpoint reference
 ```
+
+**Note:** Postman collections have been moved to `/postman` directory at project root.
 
 ---
 
