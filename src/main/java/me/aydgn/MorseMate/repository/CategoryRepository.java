@@ -15,16 +15,22 @@ import java.util.Optional;
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Long>, JpaSpecificationExecutor<Category> {
 
+    // Required queries from Issue #1
+    List<Category> findByIsActiveTrue();
+    List<Category> findAllByOrderByDisplayOrderAsc();
+
+    // Additional useful queries
     Optional<Category> findByNameIgnoreCase(String name);
     boolean existsByNameIgnoreCase(String name);
 
     List<Category> findAllByOrderByNameAsc();
+    List<Category> findByIsActiveTrueOrderByDisplayOrderAsc();
 
     @EntityGraph(attributePaths = "lessons")
     Optional<Category> findWithLessonsById(Long lessonId);
 
     @EntityGraph(attributePaths = "lessons")
-    List<Category> findAllByOrderByOrderIndexAsc();
+    List<Category> findAllWithLessonsByOrderByDisplayOrderAsc();
 
     @Query("select count(1) from Lesson l where l.category.id = :categoryId")
     long countLessons(@Param("categoryId") Long categoryId);

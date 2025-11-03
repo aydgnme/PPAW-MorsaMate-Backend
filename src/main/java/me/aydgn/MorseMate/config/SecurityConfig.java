@@ -43,9 +43,20 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints
+                        .requestMatchers("/", "/api").permitAll()
+                        .requestMatchers("/api/health", "/api/ping", "/api/info").permitAll()
                         .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/ping", "/health", "/db-check", "/system-check").permitAll()
+                        .requestMatchers("/v1/categories", "/v1/categories/**").permitAll()
+                        .requestMatchers("/v1/lessons", "/v1/lessons/**").permitAll()
                         .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+
+                        // Static resources (CSS, JS, HTML pages)
+                        .requestMatchers("/css/**", "/js/**", "/images/**", "/fonts/**").permitAll()
+                        .requestMatchers("/*.html", "/*.ico", "/*.png", "/*.jpg").permitAll()
+
+                        // Dashboard pages (publicly accessible but protected by JavaScript)
+                        .requestMatchers("/dashboard/**").permitAll()
 
                         // All other endpoints require authentication
                         .anyRequest().authenticated()

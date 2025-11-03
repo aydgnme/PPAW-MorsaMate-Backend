@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MorseMate API Documentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 300px;
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+        }
+
+        .sidebar h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #3498db;
+        }
+
+        .sidebar .version {
+            font-size: 14px;
+            color: #95a5a6;
+            margin-bottom: 20px;
+        }
+
+        .sidebar .description {
+            font-size: 13px;
+            margin-bottom: 30px;
+            color: #bdc3c7;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: none;
+            border-radius: 4px;
+            background: #34495e;
+            color: #ecf0f1;
+            font-size: 14px;
+        }
+
+        .search-box::placeholder {
+            color: #95a5a6;
+        }
+
+        .endpoint-group {
+            margin-bottom: 20px;
+        }
+
+        .endpoint-group h3 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #3498db;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .endpoint-group h3:hover {
+            color: #5dade2;
+        }
+
+        .endpoint-group .toggle {
+            font-size: 12px;
+        }
+
+        .endpoint-list {
+            padding-left: 10px;
+        }
+
+        .endpoint-item {
+            padding: 8px 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+
+        .endpoint-item:hover {
+            background: #34495e;
+        }
+
+        .endpoint-item.active {
+            background: #3498db;
+        }
+
+        .method-badge {
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .method-get { background: #27ae60; color: white; }
+        .method-post { background: #3498db; color: white; }
+        .method-put { background: #f39c12; color: white; }
+        .method-delete { background: #e74c3c; color: white; }
+        .method-patch { background: #9b59b6; color: white; }
+
+        .main-content {
+            margin-left: 300px;
+            flex: 1;
+            padding: 40px;
+        }
+
+        .settings-panel {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .settings-header {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 16px;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        .form-control {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-control label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #7f8c8d;
+        }
+
+        .form-control input,
+        .form-control textarea {
+            border: 1px solid #dcdde1;
+            border-radius: 4px;
+            padding: 10px 12px;
+            font-size: 13px;
+            transition: border 0.2s, box-shadow 0.2s;
+        }
+
+        .form-control textarea {
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            min-height: 140px;
+        }
+
+        .form-control input:focus,
+        .form-control textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+        }
+
+        .form-control--button {
+            justify-content: flex-end;
+        }
+
+        .form-control--button label {
+            visibility: hidden;
+            height: 0;
+            margin: 0;
+        }
+
+        .secondary-button {
+            background: #ecf0f1;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 14px;
+            font-weight: 600;
+            color: #2c3e50;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .secondary-button:hover {
+            background: #d0d7dd;
+        }
+
+        .endpoint-content {
+            margin-top: 30px;
+        }
+
+        .endpoint-detail {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .endpoint-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .endpoint-header .method-badge {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        .endpoint-path {
+            font-size: 20px;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+            color: #2c3e50;
+        }
+
+        .endpoint-summary {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .endpoint-description {
+            color: #7f8c8d;
+            margin-bottom: 20px;
+        }
+
+        .auth-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .auth-required {
+            background: #fee;
+            color: #c0392b;
+        }
+
+        .auth-not-required {
+            background: #e8f5e9;
+            color: #27ae60;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h4 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .section h5 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .parameter-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+
+        .parameter-table th,
+        .parameter-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .parameter-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 13px;
+        }
+
+        .parameter-table td {
+            font-size: 13px;
+        }
+
+        .required-badge {
+            color: #e74c3c;
+            font-weight: 600;
+        }
+
+        .required-marker {
+            color: #e74c3c;
+            font-weight: 600;
+            margin-left: 4px;
+        }
+
+        .optional-badge {
+            color: #95a5a6;
+        }
+
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 10px;
+            white-space: pre-wrap;
+        }
+
+        .response-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .response-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 14px;
+            font-weight: 600;
+            color: #7f8c8d;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .response-tab:hover {
+            color: #3498db;
+        }
+
+        .response-tab.active {
+            color: #3498db;
+            border-bottom-color: #3498db;
+        }
+
+        .response-content {
+            display: none;
+        }
+
+        .response-content.active {
+            display: block;
+        }
+
+        .status-code {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            margin-right: 10px;
+        }
+
+        .status-200, .status-201 { background: #d4edda; color: #155724; }
+        .status-400, .status-401, .status-404, .status-409 { background: #f8d7da; color: #721c24; }
+
+        .try-it-section {
+            border: 1px solid #ecf0f1;
+            background: #fdfdfd;
+            border-radius: 8px;
+            padding: 24px;
+        }
+
+        .try-it-help {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .try-url-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .try-url-input {
+            flex: 1;
+            border: 1px solid #dcdde1;
+            border-radius: 4px;
+            padding: 10px 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            background: #fafafa;
+            color: #2c3e50;
+        }
+
+        .execute-button {
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .execute-button:hover {
+            background: #2e86c1;
+        }
+
+        .execute-button:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .validation-error {
+            background: #f8d7da;
+            color: #721c24;
+            border-radius: 4px;
+            padding: 10px 12px;
+            font-size: 13px;
+            margin-bottom: 16px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .try-parameters {
+            margin-bottom: 20px;
+        }
+
+        .try-parameters-title {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+            letter-spacing: 0.05em;
+        }
+
+        .param-input {
+            border: 1px solid #dcdde1;
+            border-radius: 4px;
+            padding: 10px 12px;
+            font-size: 13px;
+            transition: border 0.2s, box-shadow 0.2s;
+        }
+
+        .param-input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+        }
+
+        .input-error {
+            border-color: #e74c3c !important;
+            box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.15) !important;
+        }
+
+        .input-hint {
+            font-size: 12px;
+            color: #95a5a6;
+        }
+
+        .param-location {
+            font-size: 11px;
+            margin-left: 8px;
+            color: #95a5a6;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .try-result {
+            margin-top: 24px;
+            border-top: 1px solid #ecf0f1;
+            padding-top: 16px;
+            display: none;
+        }
+
+        .try-result.active {
+            display: block;
+        }
+
+        .try-result-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .status-success { background: #d4edda; color: #155724; }
+        .status-client-error { background: #f8d7da; color: #721c24; }
+        .status-server-error { background: #f5c6cb; color: #721c24; }
+        .status-info { background: #d1ecf1; color: #0c5460; }
+
+        .result-duration {
+            margin-left: 10px;
+            font-size: 12px;
+            color: #95a5a6;
+        }
+
+        .clear-button {
+            background: none;
+            border: none;
+            color: #3498db;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .clear-button:hover {
+            text-decoration: underline;
+        }
+
+        .role-badges {
+            margin-top: 10px;
+        }
+
+        .welcome-screen {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .welcome-screen h2 {
+            font-size: 32px;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .welcome-screen p {
+            font-size: 18px;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 18px;
+            color: #7f8c8d;
+        }
+
+        .role-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            background: #3498db;
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 5px;
+        }
+
+        @media (max-width: 1024px) {
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                position: relative;
+                height: auto;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+
+            .endpoint-content {
+                margin-top: 20px;
+            }
+
+            .try-url-wrapper {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .try-url-input {
+                width: 100%;
+            }
+
+            .execute-button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h1 id="api-title">Loading...</h1>
+            <div class="version" id="api-version"></div>
+            <div class="description" id="api-description"></div>
+
+            <input type="text" class="search-box" id="search-box" placeholder="Search endpoints...">
+
+            <div id="endpoint-groups"></div>
+        </div>
+
+        <div class="main-content">
+            <div class="settings-panel">
+                <div class="settings-header">API Test Settings</div>
+                <div class="settings-grid">
+                    <div class="form-control">
+                        <label for="base-url-input">Base URL</label>
+                        <input type="text" id="base-url-input" placeholder="http://localhost:8080">
+                    </div>
+                    <div class="form-control">
+                        <label for="auth-token-input">Authorization header</label>
+                        <input type="text" id="auth-token-input" placeholder="Bearer eyJhbGciOi...">
+                    </div>
+                    <div class="form-control">
+                        <label for="accept-input">Accept header</label>
+                        <input type="text" id="accept-input" placeholder="application/json">
+                    </div>
+                    <div class="form-control form-control--button">
+                        <label for="reset-settings">Reset</label>
+                        <button id="reset-settings" type="button" class="secondary-button">Reset</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="endpoint-content" id="endpoint-content">
+                <div class="welcome-screen">
+                    <h2>Welcome to MorseMate API Documentation</h2>
+                    <p>Select an endpoint from the sidebar to view details</p>
+                    <p style="font-size: 14px; margin-top: 20px;">💡 Use the search box to quickly find endpoints</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let apiData = null;
+        let currentEndpoint = null;
+        let currentUrlUpdater = null;
+
+        const settings = {
+            baseUrl: window.location.origin,
+            authHeader: '',
+            acceptHeader: 'application/json'
+        };
+
+        async function loadApiDocumentation() {
+            try {
+                const response = await fetch('/api-docs', {
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Request failed with status ${response.status}`);
+                }
+
+                apiData = await response.json();
+                initializeSettings();
+                renderSidebar();
+            } catch (error) {
+                console.error('Failed to load API documentation:', error);
+                showErrorScreen('Failed to fetch API documentation. Please try again later.');
+            }
+        }
+
+        function initializeSettings() {
+            const baseUrlInput = document.getElementById('base-url-input');
+            const authInput = document.getElementById('auth-token-input');
+            const acceptInput = document.getElementById('accept-input');
+            const resetButton = document.getElementById('reset-settings');
+
+            const defaultBaseUrl = apiData.baseUrl && apiData.baseUrl.trim().length > 0
+                ? apiData.baseUrl.trim()
+                : window.location.origin;
+
+            settings.baseUrl = defaultBaseUrl;
+            settings.authHeader = '';
+            settings.acceptHeader = 'application/json';
+
+            baseUrlInput.value = defaultBaseUrl;
+            authInput.value = '';
+            acceptInput.value = settings.acceptHeader;
+
+            baseUrlInput.addEventListener('input', (event) => {
+                const value = event.target.value.trim();
+                settings.baseUrl = value.length > 0 ? value : defaultBaseUrl;
+                if (typeof currentUrlUpdater === 'function') {
+                    currentUrlUpdater();
+                }
+            });
+
+            authInput.addEventListener('input', (event) => {
+                settings.authHeader = event.target.value;
+            });
+
+            acceptInput.addEventListener('input', (event) => {
+                settings.acceptHeader = event.target.value.trim();
+            });
+
+            resetButton.addEventListener('click', () => {
+                settings.baseUrl = defaultBaseUrl;
+                settings.authHeader = '';
+                settings.acceptHeader = 'application/json';
+
+                baseUrlInput.value = defaultBaseUrl;
+                authInput.value = '';
+                acceptInput.value = settings.acceptHeader;
+
+                if (typeof currentUrlUpdater === 'function') {
+                    currentUrlUpdater();
+                }
+            });
+        }
+
+        function renderSidebar() {
+            document.getElementById('api-title').textContent = apiData.title;
+            document.getElementById('api-version').textContent = `v${apiData.version}`;
+            document.getElementById('api-description').textContent = apiData.description;
+
+            const groupsContainer = document.getElementById('endpoint-groups');
+            groupsContainer.innerHTML = '';
+
+            apiData.endpointGroups.forEach((group, groupIndex) => {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'endpoint-group';
+
+                const groupHeader = document.createElement('h3');
+                groupHeader.innerHTML = `
+                    ${escapeHtml(group.name)}
+                    <span class="toggle">▼</span>
+                `;
+                groupHeader.addEventListener('click', () => toggleGroup(groupIndex));
+
+                const endpointList = document.createElement('div');
+                endpointList.className = 'endpoint-list';
+                endpointList.id = `group-${groupIndex}`;
+
+                group.endpoints.forEach((endpoint, endpointIndex) => {
+                    const endpointItem = document.createElement('div');
+                    endpointItem.className = 'endpoint-item';
+                    endpointItem.innerHTML = `
+                        <span class="method-badge method-${endpoint.method.toLowerCase()}">${endpoint.method}</span>
+                        <span>${escapeHtml(endpoint.path)}</span>
+                    `;
+                    endpointItem.addEventListener('click', (event) => selectEndpoint(event, groupIndex, endpointIndex));
+                    endpointList.appendChild(endpointItem);
+                });
+
+                groupDiv.appendChild(groupHeader);
+                groupDiv.appendChild(endpointList);
+                groupsContainer.appendChild(groupDiv);
+            });
+        }
+
+        function showErrorScreen(message) {
+            const endpointContent = document.getElementById('endpoint-content');
+            endpointContent.innerHTML = `
+                <div class="welcome-screen">
+                    <h2>Error Loading Documentation</h2>
+                    <p>${escapeHtml(message)}</p>
+                </div>
+            `;
+        }
+
+        function toggleGroup(groupIndex) {
+            const groupList = document.getElementById(`group-${groupIndex}`);
+            if (!groupList) {
+                return;
+            }
+
+            const isHidden = groupList.style.display === 'none';
+            groupList.style.display = isHidden ? 'block' : 'none';
+        }
+
+        function selectEndpoint(event, groupIndex, endpointIndex) {
+            document.querySelectorAll('.endpoint-item').forEach(item => item.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            currentEndpoint = apiData.endpointGroups[groupIndex].endpoints[endpointIndex];
+            renderEndpointDetail(currentEndpoint);
+        }
+
+        function renderEndpointDetail(endpoint) {
+            const endpointContent = document.getElementById('endpoint-content');
+
+            const parameters = endpoint.parameters || [];
+            const pathParams = parameters.filter(param => param.in === 'path');
+            const queryParams = parameters.filter(param => param.in === 'query');
+            const headerParams = parameters.filter(param => param.in === 'header');
+            const requestBodyExample = endpoint.requestBody ? formatJson(endpoint.requestBody.example) : '';
+
+            let html = `
+                <div class="endpoint-detail">
+                    <div class="endpoint-header">
+                        <span class="method-badge method-${endpoint.method.toLowerCase()}">${endpoint.method}</span>
+                        <span class="endpoint-path">${escapeHtml(endpoint.path)}</span>
+                    </div>
+
+                    <div class="endpoint-summary">${escapeHtml(endpoint.summary || '')}</div>
+                    <div class="endpoint-description">${escapeHtml(endpoint.description || '')}</div>
+
+                    <span class="auth-badge ${endpoint.requiresAuth ? 'auth-required' : 'auth-not-required'}">
+                        ${endpoint.requiresAuth ? '🔒 Authentication Required' : '🔓 Public'}
+                    </span>
+            `;
+
+            if (endpoint.requiredRoles && endpoint.requiredRoles.length > 0) {
+                html += '<div class="role-badges">';
+                endpoint.requiredRoles.forEach(role => {
+                    html += `<span class="role-badge">${escapeHtml(role)}</span>`;
+                });
+                html += '</div>';
+            }
+
+            if (parameters.length > 0) {
+                html += `
+                    <div class="section">
+                        <h4>Parameters</h4>
+                        <table class="parameter-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>In</th>
+                                    <th>Type</th>
+                                    <th>Required</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                parameters.forEach(param => {
+                    html += `
+                        <tr>
+                            <td><strong>${escapeHtml(param.name)}</strong></td>
+                            <td>${escapeHtml(param.in)}</td>
+                            <td>${escapeHtml(param.type || '')}</td>
+                            <td><span class="${param.required ? 'required-badge' : 'optional-badge'}">${param.required ? 'Yes' : 'No'}</span></td>
+                            <td>${escapeHtml(param.description || '')}</td>
+                        </tr>
+                    `;
+                });
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+
+            if (endpoint.requestBody) {
+                html += `
+                    <div class="section">
+                        <h4>Request Body</h4>
+                        <p style="margin-bottom: 10px;"><strong>Content-Type:</strong> ${escapeHtml(endpoint.requestBody.contentType || '')}</p>
+                        <p style="margin-bottom: 10px;"><strong>Schema:</strong> ${escapeHtml(endpoint.requestBody.schema || '')}</p>
+                        <div class="code-block">${escapeHtml(requestBodyExample)}</div>
+                    </div>
+                `;
+            }
+
+            if (endpoint.responses) {
+                const responseCodes = Object.keys(endpoint.responses);
+
+                html += `
+                    <div class="section">
+                        <h4>Responses</h4>
+                        <div class="response-tabs" id="response-tabs">
+                `;
+
+                responseCodes.forEach((code, index) => {
+                    html += `
+                        <button type="button" class="response-tab ${index === 0 ? 'active' : ''}" data-code="${code}">
+                            <span class="status-code status-${code}">${code}</span>
+                        </button>
+                    `;
+                });
+
+                html += '</div>';
+
+                responseCodes.forEach((code, index) => {
+                    const response = endpoint.responses[code];
+                    html += `
+                        <div class="response-content ${index === 0 ? 'active' : ''}" id="response-${code}">
+                            <p style="margin-bottom: 10px;"><strong>Description:</strong> ${escapeHtml(response.description || '')}</p>
+                            <div class="code-block">${escapeHtml(formatJson(response.example))}</div>
+                        </div>
+                    `;
+                });
+
+                html += '</div>';
+            }
+
+            html += buildTryItSection(endpoint, { pathParams, queryParams, headerParams, requestBodyExample });
+            html += '</div>';
+
+            endpointContent.innerHTML = html;
+
+            document.querySelectorAll('.response-tab').forEach(tab => {
+                tab.addEventListener('click', (event) => switchResponseTab(event, tab.dataset.code));
+            });
+
+            setupTryItOut(endpoint);
+        }
+
+        function buildTryItSection(endpoint, groups) {
+            let html = `
+                <div class="section try-it-section">
+                    <h4>Try It Out</h4>
+                    <p class="try-it-help">Send a live request to this endpoint from your browser.</p>
+
+                    <form id="try-it-form">
+                        <div class="try-url-wrapper">
+                            <span id="try-it-method" class="method-badge method-${endpoint.method.toLowerCase()}">${endpoint.method}</span>
+                            <input type="text" id="try-it-url" class="try-url-input" readonly>
+                            <button type="submit" id="execute-button" class="execute-button">Execute</button>
+                        </div>
+                        <div id="try-it-error" class="validation-error hidden"></div>
+            `;
+
+            if (groups.pathParams.length > 0) {
+                html += `
+                        <div class="try-parameters">
+                            <div class="try-parameters-title">Path parameters</div>
+                            ${groups.pathParams.map((param, index) => buildParameterInput(param, index, 'path')).join('')}
+                        </div>
+                `;
+            }
+
+            if (groups.queryParams.length > 0) {
+                html += `
+                        <div class="try-parameters">
+                            <div class="try-parameters-title">Query parameters</div>
+                            ${groups.queryParams.map((param, index) => buildParameterInput(param, index, 'query')).join('')}
+                        </div>
+                `;
+            }
+
+            if (groups.headerParams.length > 0) {
+                html += `
+                        <div class="try-parameters">
+                            <div class="try-parameters-title">Header parameters</div>
+                            ${groups.headerParams.map((param, index) => buildParameterInput(param, index, 'header')).join('')}
+                        </div>
+                `;
+            }
+
+            if (endpoint.requestBody) {
+                html += `
+                        <div class="try-parameters">
+                            <div class="try-parameters-title">Request body</div>
+                            <div class="form-control">
+                                <label for="request-body-input">Body</label>
+                                <textarea id="request-body-input" rows="8" placeholder="Paste JSON payload here...">${escapeHtml(groups.requestBodyExample)}</textarea>
+                                <small class="input-hint">Content-Type: ${escapeHtml(endpoint.requestBody.contentType || 'application/json')}</small>
+                            </div>
+                        </div>
+                `;
+            }
+
+            html += `
+                    </form>
+
+                    <div class="try-result" id="try-it-result">
+                        <div class="try-result-header">
+                            <div class="try-result-status">
+                                <span id="result-status" class="status-pill status-info">Awaiting request</span>
+                                <span id="result-duration" class="result-duration"></span>
+                            </div>
+                            <button type="button" id="clear-result" class="clear-button">Clear</button>
+                        </div>
+                        <div class="section">
+                            <h5>Response headers</h5>
+                            <pre id="result-headers" class="code-block">(no response yet)</pre>
+                        </div>
+                        <div class="section">
+                            <h5>Response body</h5>
+                            <pre id="result-body" class="code-block">(no response yet)</pre>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            return html;
+        }
+
+        function buildParameterInput(param, index, type) {
+            const id = `${type}-param-${index}`;
+            const description = param.description ? `<small class="input-hint">${escapeHtml(param.description)}</small>` : '';
+            const example = param.example ? ` placeholder="${escapeHtml(param.example)}"` : '';
+            const encodedName = encodeURIComponent(param.name);
+            const requiredMark = param.required ? '<span class="required-marker">*</span>' : '';
+            const label = `${escapeHtml(param.name)}${requiredMark}`;
+
+            return `
+                <div class="form-control">
+                    <label for="${id}">${label}<span class="param-location">${type}</span></label>
+                    <input type="text" id="${id}" class="param-input" data-param-name="${encodedName}" data-param-in="${type}" data-required="${param.required}"${example}>
+                    ${description}
+                </div>
+            `;
+        }
+
+        function setupTryItOut(endpoint) {
+            const form = document.getElementById('try-it-form');
+            if (!form) {
+                currentUrlUpdater = null;
+                return;
+            }
+
+            const urlInput = document.getElementById('try-it-url');
+            const resultContainer = document.getElementById('try-it-result');
+            const resultStatus = document.getElementById('result-status');
+            const resultDuration = document.getElementById('result-duration');
+            const resultHeaders = document.getElementById('result-headers');
+            const resultBody = document.getElementById('result-body');
+            const errorBox = document.getElementById('try-it-error');
+            const executeButton = document.getElementById('execute-button');
+            const clearButton = document.getElementById('clear-result');
+            const bodyInput = document.getElementById('request-body-input');
+
+            const pathInputs = Array.from(form.querySelectorAll('input[data-param-in="path"]'));
+            const queryInputs = Array.from(form.querySelectorAll('input[data-param-in="query"]'));
+            const headerInputs = Array.from(form.querySelectorAll('input[data-param-in="header"]'));
+
+            const normalizeBaseUrl = () => {
+                const base = settings.baseUrl || window.location.origin;
+                return base.endsWith('/') ? base.slice(0, -1) : base;
+            };
+
+            const buildUrl = () => {
+                let path = endpoint.path;
+
+                pathInputs.forEach(input => {
+                    const rawName = getRawParamName(input);
+                    const placeholder = `{${rawName}}`;
+                    if (input.value.trim().length > 0) {
+                        const encoded = encodeURIComponent(input.value.trim());
+                        path = path.replace(new RegExp(`{${rawName}}`, 'g'), encoded);
+                    }
+                });
+
+                let url = `${normalizeBaseUrl()}${path.startsWith('/') ? path : `/${path}`}`;
+
+                const queryParts = [];
+                queryInputs.forEach(input => {
+                    const value = input.value.trim();
+                    if (value.length > 0) {
+                        queryParts.push(`${encodeURIComponent(getRawParamName(input))}=${encodeURIComponent(value)}`);
+                    }
+                });
+
+                if (queryParts.length > 0) {
+                    url += (url.includes('?') ? '&' : '?') + queryParts.join('&');
+                }
+
+                return url;
+            };
+
+            const clearErrors = () => {
+                errorBox.textContent = '';
+                errorBox.classList.add('hidden');
+                [...pathInputs, ...headerInputs, ...queryInputs].forEach(input => input.classList.remove('input-error'));
+                if (bodyInput) {
+                    bodyInput.classList.remove('input-error');
+                }
+            };
+
+            const updateUrlPreview = () => {
+                clearErrors();
+                urlInput.value = buildUrl();
+            };
+
+            currentUrlUpdater = updateUrlPreview;
+            updateUrlPreview();
+
+            [...pathInputs, ...queryInputs].forEach(input => input.addEventListener('input', updateUrlPreview));
+
+            if (clearButton) {
+                clearButton.addEventListener('click', () => {
+                    resultContainer.classList.remove('active');
+                    resultStatus.textContent = 'Awaiting request';
+                    resultStatus.className = 'status-pill status-info';
+                    resultDuration.textContent = '';
+                    resultHeaders.textContent = '(no response yet)';
+                    resultBody.textContent = '(no response yet)';
+                });
+            }
+
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                clearErrors();
+
+                const errors = [];
+
+                pathInputs.forEach(input => {
+                    if (input.dataset.required === 'true' && input.value.trim().length === 0) {
+                        input.classList.add('input-error');
+                        errors.push(`Path parameter "${getRawParamName(input)}" is required.`);
+                    }
+                });
+
+                headerInputs.forEach(input => {
+                    if (input.dataset.required === 'true' && input.value.trim().length === 0) {
+                        input.classList.add('input-error');
+                        errors.push(`Header "${getRawParamName(input)}" is required.`);
+                    }
+                });
+
+                let requestBody = null;
+                if (bodyInput) {
+                    requestBody = bodyInput.value.trim();
+                    if (requestBody.length === 0) {
+                        requestBody = null;
+                    } else if ((endpoint.requestBody?.contentType || '').includes('json')) {
+                        try {
+                            JSON.parse(requestBody);
+                        } catch (error) {
+                            bodyInput.classList.add('input-error');
+                            errors.push('Request body must be valid JSON.');
+                        }
+                    }
+                }
+
+                if (errors.length > 0) {
+                    errorBox.textContent = errors.join(' ');
+                    errorBox.classList.remove('hidden');
+                    resultContainer.classList.remove('active');
+                    return;
+                }
+
+                const url = buildUrl();
+
+                const requestInit = {
+                    method: endpoint.method,
+                    headers: {}
+                };
+
+                if (settings.acceptHeader) {
+                    requestInit.headers['Accept'] = settings.acceptHeader;
+                }
+
+                headerInputs.forEach(input => {
+                    const value = input.value.trim();
+                    if (value.length > 0) {
+                        requestInit.headers[getRawParamName(input)] = value;
+                    }
+                });
+
+                if (settings.authHeader.trim().length > 0) {
+                    requestInit.headers['Authorization'] = settings.authHeader.trim();
+                }
+
+                if (requestBody && !['GET', 'HEAD'].includes(endpoint.method.toUpperCase())) {
+                    requestInit.body = requestBody;
+                    const defaultContentType = endpoint.requestBody?.contentType || 'application/json';
+                    if (!requestInit.headers['Content-Type']) {
+                        requestInit.headers['Content-Type'] = defaultContentType;
+                    }
+                }
+
+                executeButton.disabled = true;
+                executeButton.textContent = 'Sending...';
+
+                const startTime = performance.now();
+
+                try {
+                    const response = await fetch(url, requestInit);
+                    const endTime = performance.now();
+                    const duration = Math.round(endTime - startTime);
+
+                    const responseText = await response.text();
+
+                    const statusClass = response.status >= 500
+                        ? 'status-server-error'
+                        : response.status >= 400
+                            ? 'status-client-error'
+                            : response.status >= 200 && response.status < 300
+                                ? 'status-success'
+                                : 'status-info';
+
+                    resultStatus.textContent = `${response.status} ${response.statusText || ''}`.trim();
+                    resultStatus.className = `status-pill ${statusClass}`;
+                    resultDuration.textContent = `${duration} ms`;
+
+                    const headerLines = [];
+                    response.headers.forEach((value, key) => headerLines.push(`${key}: ${value}`));
+                    resultHeaders.textContent = headerLines.length > 0 ? headerLines.join('\n') : '(no headers)';
+
+                    resultBody.textContent = responseText ? formatJson(responseText) : '(no content)';
+                    resultContainer.classList.add('active');
+                } catch (error) {
+                    resultStatus.textContent = 'Request failed';
+                    resultStatus.className = 'status-pill status-server-error';
+                    resultDuration.textContent = '';
+                    resultHeaders.textContent = '';
+                    resultBody.textContent = error.message;
+                    resultContainer.classList.add('active');
+                } finally {
+                    executeButton.disabled = false;
+                    executeButton.textContent = 'Execute';
+                }
+            });
+        }
+
+        function switchResponseTab(event, code) {
+            document.querySelectorAll('.response-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.response-content').forEach(content => content.classList.remove('active'));
+
+            event.currentTarget.classList.add('active');
+            const content = document.getElementById(`response-${code}`);
+            if (content) {
+                content.classList.add('active');
+            }
+        }
+
+        function getRawParamName(input) {
+            try {
+                return decodeURIComponent(input.dataset.paramName || '');
+            } catch (error) {
+                return input.dataset.paramName || '';
+            }
+        }
+
+        function escapeHtml(value) {
+            if (value === null || value === undefined) {
+                return '';
+            }
+
+            return String(value).replace(/[&<>"']/g, (char) => {
+                const map = {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                };
+                return map[char];
+            });
+        }
+
+        function formatJson(value) {
+            if (!value) {
+                return '';
+            }
+
+            try {
+                if (typeof value === 'string') {
+                    const parsed = JSON.parse(value);
+                    return JSON.stringify(parsed, null, 2);
+                }
+                return JSON.stringify(value, null, 2);
+            } catch (error) {
+                return value;
+            }
+        }
+
+        document.getElementById('search-box').addEventListener('input', (event) => {
+            const searchTerm = event.target.value.toLowerCase();
+
+            document.querySelectorAll('.endpoint-item').forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(searchTerm) ? 'flex' : 'none';
+            });
+        });
+
+        loadApiDocumentation();
+    </script>
+</body>
+</html>
