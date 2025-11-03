@@ -62,15 +62,20 @@ logs/
 bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
-
-# Eclipse metadata
 .metadata/
 
-# Lab files
+# Scripts
+scripts/
+
+# Lab Work (local only - not for GitHub)
 Laborator/
 
-#Scripts
-scripts/
+# Generated Files (not needed in repo)
+generated-client/
+openapi-spec.yaml
+openapi.json
+test-api.sh
+backup_.sql
 
 #docs
 docs/GITHUB_SETUP_GUIDE.md

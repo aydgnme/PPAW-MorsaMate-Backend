@@ -2,7 +2,18 @@
 
 **Base URL:** `http://localhost:8080`
 **Version:** 1.0.0
+**Last Updated:** November 2, 2025
 **Authentication:** JWT Bearer Token (except public endpoints)
+
+---
+
+## ⚠️ Important Notice
+
+**Implementation Status:**
+- ✅ **87 Endpoints:** Fully implemented and tested
+- 🔮 **13 Endpoints:** Marked as "(Future)" - Planned but not yet implemented
+
+**Note:** Endpoints marked with **(Future)** are planned features and will return 404 or are not yet available. Do not attempt to use these in production until they are implemented. See the [Future/Planned Endpoints](#future-planned-endpoints) section at the end of this document.
 
 ---
 
@@ -1932,25 +1943,190 @@ All errors return consistent JSON format:
 
 ---
 
-## 🚀 Coming Soon
+---
 
-Features planned for future releases:
+## 🔮 Future Planned Endpoints
 
-- ✅ Lessons Management (In Progress)
-- ✅ Exercises System (In Progress)
-- ⏳ Social Features (Friends, Chat)
-- ⏳ Notifications System
-- ⏳ Daily Challenges
-- ⏳ Community Lessons
-- ⏳ Offline Mode Support
-- ⏳ Multi-language Support
-- ⏳ Voice Commands
-- ⏳ AR Visualization
+The following endpoints are **PLANNED** but **NOT YET IMPLEMENTED**. They are documented here for roadmap visibility but will return 404 or errors if called.
+
+### Authentication - Future Features (6 endpoints)
+
+#### 1. Refresh Token
+```http
+POST /auth/refresh
+```
+**Status:** 🔮 Planned for Milestone 4
+**Purpose:** Refresh expired JWT token
+
+#### 2. Logout
+```http
+POST /auth/logout
+Authorization: Bearer {token}
+```
+**Status:** 🔮 Planned for Milestone 4
+**Purpose:** Invalidate JWT token
+
+#### 3. Forgot Password
+```http
+POST /auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "user@example.com"
+}
+```
+**Status:** 🔮 Planned for Milestone 4
+**Purpose:** Send password reset email
+
+#### 4. Reset Password
+```http
+POST /auth/reset-password
+Content-Type: application/json
+
+{
+  "token": "reset_token_from_email",
+  "newPassword": "NewPassword123"
+}
+```
+**Status:** 🔮 Planned for Milestone 4
+**Purpose:** Reset password with token
+
+#### 5. Verify Email
+```http
+POST /auth/verify-email
+Content-Type: application/json
+
+{
+  "token": "verification_token"
+}
+```
+**Status:** 🔮 Planned for Milestone 5
+**Purpose:** Verify user email address
+
+#### 6. Resend Verification Email
+```http
+POST /auth/resend-verification
+Authorization: Bearer {token}
+```
+**Status:** 🔮 Planned for Milestone 5
+**Purpose:** Resend email verification
 
 ---
 
-**Last Updated:** January 20, 2025
-**API Version:** 1.0.0
-**Documentation Version:** 1.0
+### User Management - Future Features (2 endpoints)
 
-For more information, visit: https://docs.morsemate.com
+#### 7. Upload Profile Picture
+```http
+POST /users/me/picture
+Authorization: Bearer {token}
+Content-Type: multipart/form-data
+```
+**Status:** 🔮 Planned for Milestone 5
+**Purpose:** Upload user profile picture
+
+#### 8. Change Password
+```http
+PUT /users/me/password
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "currentPassword": "OldPass123",
+  "newPassword": "NewPass123"
+}
+```
+**Status:** 🔮 Planned for Milestone 4
+**Purpose:** Change password for authenticated user
+
+---
+
+### Social Features - Future (4 endpoints)
+
+#### 9. Send Friend Request
+```http
+POST /users/friends/request
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "friendId": 123
+}
+```
+**Status:** 🔮 Planned for Milestone 6
+**Purpose:** Send friend request to another user
+
+#### 10. Accept Friend Request
+```http
+POST /users/friends/accept
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "requestId": 456
+}
+```
+**Status:** 🔮 Planned for Milestone 6
+**Purpose:** Accept incoming friend request
+
+#### 11. Get Friends List
+```http
+GET /users/friends
+Authorization: Bearer {token}
+```
+**Status:** 🔮 Planned for Milestone 6
+**Purpose:** Get list of user's friends
+
+#### 12. Remove Friend
+```http
+DELETE /users/friends/{friendId}
+Authorization: Bearer {token}
+```
+**Status:** 🔮 Planned for Milestone 6
+**Purpose:** Remove friend from user's list
+
+---
+
+### Rate Limiting (1 feature)
+
+#### 13. Rate Limiting Headers
+**Status:** 🔮 Planned for Milestone 4
+**Purpose:** Add rate limiting to all endpoints
+
+**Response Headers:**
+```
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 95
+X-RateLimit-Reset: 1642684800
+```
+
+---
+
+## 🚀 Implementation Roadmap
+
+### Milestone 4 - MVP Completion (In Progress)
+- Subscription & Payment System
+- Stripe Integration
+- Frontend Application (React)
+- Token refresh mechanism
+- Password reset flow
+
+### Milestone 5 - Enhanced Features
+- Email verification system
+- Profile picture upload
+- Notification system
+- WebSocket support
+
+### Milestone 6 - Social Features
+- Friends system
+- Social leaderboards
+- Chat/messaging
+- Community challenges
+
+---
+
+**Last Updated:** November 2, 2025
+**API Version:** 1.0.0
+**Documentation Version:** 2.0
+**Total Endpoints:** 87 implemented + 13 planned = 100 total
+
+For more information, visit the GitHub repository.

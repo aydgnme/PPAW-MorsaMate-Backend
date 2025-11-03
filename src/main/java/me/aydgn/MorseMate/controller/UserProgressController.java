@@ -25,7 +25,7 @@ import java.util.Map;
  * Provides endpoints for tracking and managing user learning progress
  */
 @RestController
-@RequestMapping("/v1/progress")
+@RequestMapping("/${api.version}/progress")
 @RequiredArgsConstructor
 @Slf4j
 public class UserProgressController {

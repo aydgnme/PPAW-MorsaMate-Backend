@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - MorseMate</title>
+    <link rel="stylesheet" href="/css/admin.css">
+    <style>
+        body { background: #f5f5f5; margin: 0; padding: 0; }
+        .admin-container { display: flex; min-height: 100vh; }
+        .sidebar { width: 250px; background: white; box-shadow: 2px 0 4px rgba(0,0,0,0.1); position: fixed; height: 100vh; overflow-y: auto; }
+        .sidebar-header { padding: 24px 20px; border-bottom: 1px solid #e5e7eb; }
+        .sidebar-header h2 { color: #4F46E5; font-size: 20px; margin: 0; }
+        .nav-menu { padding: 16px 0; }
+        .nav-item { display: flex; align-items: center; padding: 12px 20px; color: #6B7280; text-decoration: none; transition: all 0.2s; }
+        .nav-item:hover { background: #f3f4f6; color: #4F46E5; }
+        .nav-item.active { background: #EEF2FF; color: #4F46E5; border-left: 3px solid #4F46E5; }
+        .main-content { margin-left: 250px; flex: 1; padding: 24px; }
+        .content-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .content-header h1 { color: #1F2937; font-size: 28px; margin: 0; }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-primary { background: #4F46E5; color: white; }
+        .btn-primary:hover { background: #4338CA; }
+        .btn-danger { background: #EF4444; color: white; }
+        .btn-secondary { background: #6B7280; color: white; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .table-container { background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden; margin-bottom: 30px; }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: #f9fafb; }
+        th { padding: 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6B7280; text-transform: uppercase; letter-spacing: 0.5px; }
+        td { padding: 16px; border-top: 1px solid #e5e7eb; color: #1F2937; }
+        tbody tr:hover { background: #f9fafb; }
+        .badge { padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 500; }
+        .badge-success { background: #D1FAE5; color: #059669; }
+        .badge-danger { background: #FEE2E2; color: #DC2626; }
+        .badge-beginner { background: #D1FAE5; color: #059669; }
+        .badge-intermediate { background: #FEF3C7; color: #D97706; }
+        .badge-advanced { background: #FEE2E2; color: #DC2626; }
+        .category-badge { background: #EEF2FF; color: #4F46E5; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 500; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.show { display: flex; }
+        .modal-content { background: white; border-radius: 12px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
+        .modal-header { padding: 20px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h2 { margin: 0; color: #1F2937; font-size: 20px; }
+        .modal-close { background: none; border: none; font-size: 24px; color: #6B7280; cursor: pointer; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
+        .modal-body { padding: 20px; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; margin-bottom: 8px; color: #374151; font-weight: 500; font-size: 14px; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; font-family: inherit; }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: #4F46E5; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+        .modal-footer { padding: 20px; border-top: 1px solid #e5e7eb; display: flex; gap: 12px; justify-content: flex-end; }
+        .loading { text-align: center; padding: 40px; color: #6B7280; }
+        .spinner { border: 3px solid #f3f4f6; border-top: 3px solid #4F46E5; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 16px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; }
+        .alert-success { background: #D1FAE5; color: #059669; border: 1px solid #A7F3D0; }
+        .alert-error { background: #FEE2E2; color: #DC2626; border: 1px solid #FECACA; }
+        .checkbox-wrapper { display: flex; align-items: center; gap: 8px; }
+        .checkbox-wrapper input[type="checkbox"] { width: auto; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <img src="/img/appIco.png" alt="MorseMate Logo" style="width: 32px; height: 32px; object-fit: contain; border-radius: 6px;">
+                    <h2 style="margin: 0;">MorseMate Admin</h2>
+                </div>
+            </div>
+            <nav class="nav-menu">
+                <a href="/info-panel/dashboard.html" class="nav-item active">Dashboard</a>
+                <a href="/info-panel/login.html" class="nav-item" onclick="event.preventDefault(); logout();">Logout</a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div id="alertContainer"></div>
+
+            <!-- Categories Section -->
+            <div class="content-header">
+                <h1>Categories Management</h1>
+                <button class="btn btn-primary" onclick="openCreateCategoryModal()">+ New Category</button>
+            </div>
+            <div class="table-container">
+                <div id="loadingCategoriesContainer" class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading categories...</p>
+                </div>
+                <table id="categoriesTable" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Order</th>
+                            <th>Lessons</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="categoriesTableBody">
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Lessons Section -->
+            <div class="content-header">
+                <h1>Lessons Management</h1>
+                <button class="btn btn-primary" onclick="openCreateLessonModal()">+ New Lesson</button>
+            </div>
+            <div class="table-container">
+                <div id="loadingLessonsContainer" class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading lessons...</p>
+                </div>
+                <table id="lessonsTable" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Category (FK)</th>
+                            <th>Difficulty</th>
+                            <th>Order</th>
+                            <th>Exercises</th>
+                            <th>Points</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lessonsTableBody">
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Exercises Section -->
+            <div class="content-header">
+                <h1>Exercises Management</h1>
+                <button class="btn btn-primary" onclick="openCreateExerciseModal()">+ New Exercise</button>
+            </div>
+            <div class="table-container">
+                <div id="loadingExercisesContainer" class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading exercises...</p>
+                </div>
+                <table id="exercisesTable" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Question</th>
+                            <th>Lesson (FK)</th>
+                            <th>Type</th>
+                            <th>Difficulty</th>
+                            <th>Points</th>
+                            <th>Time Limit</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="exercisesTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Create/Edit Modal -->
+    <div id="categoryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="categoryModalTitle">Create Category</h2>
+                <button class="modal-close" onclick="closeCategoryModal()">&times;</button>
+            </div>
+            <form id="categoryForm">
+                <div class="modal-body">
+                    <input type="hidden" id="categoryId">
+                    <div class="form-group">
+                        <label for="categoryName">Name *</label>
+                        <input type="text" id="categoryName" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="categoryDescription">Description</label>
+                        <textarea id="categoryDescription" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="displayOrder">Display Order *</label>
+                        <input type="number" id="displayOrder" name="displayOrder" required min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="iconUrl">Icon URL</label>
+                        <input type="text" id="iconUrl" name="iconUrl" placeholder="https://...">
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" id="isActive" name="isActive" checked>
+                            <span>Active</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeCategoryModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lesson Create/Edit Modal -->
+    <div id="lessonModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="lessonModalTitle">Create Lesson</h2>
+                <button class="modal-close" onclick="closeLessonModal()">&times;</button>
+            </div>
+            <form id="lessonForm">
+                <div class="modal-body">
+                    <input type="hidden" id="lessonId">
+                    <div class="form-group">
+                        <label for="lessonCategoryId">Category (FK) *</label>
+                        <select id="lessonCategoryId" name="categoryId" required>
+                            <option value="">Select Category...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="lessonTitle">Title *</label>
+                        <input type="text" id="lessonTitle" name="title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="lessonDescription">Description</label>
+                        <textarea id="lessonDescription" name="description" rows="2"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="lessonContent">Content *</label>
+                        <textarea id="lessonContent" name="content" rows="4" required></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="difficulty">Difficulty *</label>
+                            <select id="difficulty" name="difficulty" required>
+                                <option value="BEGINNER">Beginner</option>
+                                <option value="INTERMEDIATE">Intermediate</option>
+                                <option value="ADVANCED">Advanced</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="orderIndex">Order Index *</label>
+                            <input type="number" id="orderIndex" name="orderIndex" required min="0" value="0">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pointsReward">Points Reward</label>
+                            <input type="number" id="pointsReward" name="pointsReward" min="0" value="10">
+                        </div>
+                        <div class="form-group">
+                            <label for="estimatedDuration">Duration (min)</label>
+                            <input type="number" id="estimatedDuration" name="estimatedDuration" min="1">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeLessonModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Exercise Create/Edit Modal -->
+    <div id="exerciseModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="exerciseModalTitle">Create Exercise</h2>
+                <button class="modal-close" onclick="closeExerciseModal()">&times;</button>
+            </div>
+            <form id="exerciseForm">
+                <div class="modal-body">
+                    <input type="hidden" id="exerciseId">
+                    <div class="form-group">
+                        <label for="exerciseLessonId">Lesson (FK) *</label>
+                        <select id="exerciseLessonId" name="lessonId" required>
+                            <option value="">Select Lesson...</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="exerciseType">Type *</label>
+                            <select id="exerciseType" name="type" required onchange="toggleOptionsField()">
+                                <option value="">Select Type...</option>
+                                <option value="ENCODE">Encode</option>
+                                <option value="DECODE">Decode</option>
+                                <option value="MULTI_CHOICE">Multi Choice</option>
+                                <option value="AUDIO">Audio</option>
+                                <option value="SPEED_TEST">Speed Test</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="exerciseDifficulty">Difficulty *</label>
+                            <select id="exerciseDifficulty" name="difficulty" required>
+                                <option value="EASY">Easy</option>
+                                <option value="MEDIUM">Medium</option>
+                                <option value="HARD">Hard</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="exerciseQuestion">Question *</label>
+                        <textarea id="exerciseQuestion" name="question" rows="2" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="exerciseCorrectAnswer">Correct Answer *</label>
+                        <input type="text" id="exerciseCorrectAnswer" name="correctAnswer" required>
+                    </div>
+                    <div class="form-group" id="optionsGroup" style="display: none;">
+                        <label for="exerciseOptions">Options (comma-separated)</label>
+                        <input type="text" id="exerciseOptions" name="options" placeholder="Option1, Option2, Option3, Option4">
+                        <small style="color: #6B7280; font-size: 12px;">Required for Multi Choice exercises</small>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="exercisePoints">Points</label>
+                            <input type="number" id="exercisePoints" name="points" min="0" value="5">
+                        </div>
+                        <div class="form-group">
+                            <label for="exerciseTimeLimit">Time Limit (sec)</label>
+                            <input type="number" id="exerciseTimeLimit" name="timeLimit" min="0" placeholder="Optional">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="exerciseHint">Hint (optional)</label>
+                        <textarea id="exerciseHint" name="hint" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeExerciseModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = window.location.origin;
+        const token = localStorage.getItem('adminToken');
+        let categories = [];
+        let allLessons = [];
+        let allExercises = [];
+
+        // Check authentication
+        if (!token) {
+            window.location.href = '/info-panel/login.html';
+        }
+
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadCategories();
+            await loadAllLessons();
+            loadAllExercises();
+        });
+
+        // -------------------
+        // CATEGORY MANAGEMENT
+        // -------------------
+
+        async function loadCategories() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/v1/categories`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) throw new Error('Failed to load categories');
+                categories = await response.json();
+                displayCategories(categories);
+                populateCategoryDropdown();
+            } catch (error) {
+                console.error('Error loading categories:', error);
+                showAlert('Failed to load categories', 'error');
+            }
+        }
+
+        function displayCategories(categories) {
+            const tbody = document.getElementById('categoriesTableBody');
+            tbody.innerHTML = '';
+            if (categories.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: #6B7280;">No categories found</td></tr>';
+            } else {
+                categories.forEach(category => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${category.id}</td>
+                        <td><strong>${category.name}</strong></td>
+                        <td>${category.description || '-'}</td>
+                        <td>${category.displayOrder}</td>
+                        <td>${category.lessonCount || 0}</td>
+                        <td><span class="badge ${category.isActive ? 'badge-success' : 'badge-danger'}">${category.isActive ? 'Active' : 'Inactive'}</span></td>
+                        <td>
+                            <button class="btn btn-primary btn-sm" onclick="openEditCategoryModal(${category.id})">Edit</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteCategory(${category.id}, '${category.name}')">Delete</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+            document.getElementById('loadingCategoriesContainer').style.display = 'none';
+            document.getElementById('categoriesTable').style.display = 'table';
+        }
+
+        function openCreateCategoryModal() {
+            document.getElementById('categoryModalTitle').textContent = 'Create Category';
+            document.getElementById('categoryForm').reset();
+            document.getElementById('categoryId').value = '';
+            document.getElementById('isActive').checked = true;
+            document.getElementById('categoryModal').classList.add('show');
+        }
+
+        async function openEditCategoryModal(id) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/v1/categories/${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) throw new Error('Failed to load category');
+                const category = await response.json();
+                document.getElementById('categoryModalTitle').textContent = 'Edit Category';
+                document.getElementById('categoryId').value = category.id;
+                document.getElementById('categoryName').value = category.name;
+                document.getElementById('categoryDescription').value = category.description || '';
+                document.getElementById('displayOrder').value = category.displayOrder;
+                document.getElementById('iconUrl').value = category.iconUrl || '';
+                document.getElementById('isActive').checked = category.isActive;
+                document.getElementById('categoryModal').classList.add('show');
+            } catch (error) {
+                console.error('Error loading category:', error);
+                showAlert('Failed to load category', 'error');
+            }
+        }
+
+        function closeCategoryModal() {
+            document.getElementById('categoryModal').classList.remove('show');
+        }
+
+        document.getElementById('categoryForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('categoryId').value;
+            const data = {
+                name: document.getElementById('categoryName').value,
+                description: document.getElementById('categoryDescription').value,
+                displayOrder: parseInt(document.getElementById('displayOrder').value),
+                iconUrl: document.getElementById('iconUrl').value,
+                isActive: document.getElementById('isActive').checked
+            };
+            try {
+                const url = id ? `${API_BASE_URL}/v1/categories/${id}` : `${API_BASE_URL}/v1/categories`;
+                const method = id ? 'PUT' : 'POST';
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Failed to save category');
+                }
+                showAlert(`Category ${id ? 'updated' : 'created'} successfully`, 'success');
+                closeCategoryModal();
+                loadCategories();
+            } catch (error) {
+                console.error('Error saving category:', error);
+                showAlert(error.message, 'error');
+            }
+        });
+
+        async function deleteCategory(id, name) {
+            if (!confirm(`Are you sure you want to delete category "${name}"?\n\nNote: You cannot delete categories with associated lessons.`)) return;
+            try {
+                const response = await fetch(`${API_BASE_URL}/v1/categories/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Failed to delete category');
+                }
+                showAlert('Category deleted successfully', 'success');
+                loadCategories();
+            } catch (error) {
+                console.error('Error deleting category:', error);
+                showAlert(error.message, 'error');
+            }
+        }
+
+        // -----------------
+        // LESSON MANAGEMENT
+        // -----------------
+
+        function populateCategoryDropdown() {
+            const select = document.getElementById('lessonCategoryId');
+            select.innerHTML = '<option value="">Select Category...</option>';
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.id;
+                option.textContent = category.name;
+                select.appendChild(option);
+            });
+        }
+
+        async function loadAllLessons() {
+            allLessons = [];
+            const lessonPromises = categories.map(category =>
+                fetch(`${API_BASE_URL}/v1/lessons?categoryId=${category.id}`, { headers: { 'Authorization': `Bearer ${token}` } })
+                    .then(res => res.ok ? res.json() : Promise.resolve([]))
+                    .then(lessons => lessons.map(lesson => ({...lesson, categoryName: category.name})))
+            );
+            try {
+                const lessonsByCat = await Promise.all(lessonPromises);
+                allLessons = lessonsByCat.flat();
+                displayLessons(allLessons);
+            } catch (error) {
+                console.error('Error loading lessons:', error);
+                showAlert('Failed to load lessons', 'error');
+            }
+        }
+
+        function displayLessons(lessons) {
+            const tbody = document.getElementById('lessonsTableBody');
+            tbody.innerHTML = '';
+            if (lessons.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #6B7280;">No lessons found</td></tr>';
+            } else {
+                lessons.forEach(lesson => {
+                    const row = document.createElement('tr');
+                    const difficultyClass = lesson.difficulty.toLowerCase();
+                    row.innerHTML = `
+                        <td>${lesson.id}</td>
+                        <td><strong>${lesson.title}</strong></td>
+                        <td><span class="category-badge">${lesson.categoryName || 'N/A'}</span></td>
+                        <td><span class="badge badge-${difficultyClass}">${lesson.difficulty}</span></td>
+                        <td>${lesson.orderIndex}</td>
+                        <td>${lesson.exerciseCount || 0}</td>
+                        <td>${lesson.pointsReward}</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm" onclick="openEditLessonModal(${lesson.id})">Edit</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteLesson(${lesson.id}, '${lesson.title}')">Delete</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+            document.getElementById('loadingLessonsContainer').style.display = 'none';
+            document.getElementById('lessonsTable').style.display = 'table';
+        }
+
+        function openCreateLessonModal() {
+            document.getElementById('lessonModalTitle').textContent = 'Create Lesson';
+            document.getElementById('lessonForm').reset();
+            document.getElementById('lessonId').value = '';
+            document.getElementById('pointsReward').value = '10';
+            document.getElementById('lessonModal').classList.add('show');
+        }
+
+        async function openEditLessonModal(id) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/v1/lessons/${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) throw new Error('Failed to load lesson');
+                const lessonData = await response.json();
+                document.getElementById('lessonModalTitle').textContent = 'Edit Lesson';
+                document.getElementById('lessonId').value = lessonData.id;
+                document.getElementById('lessonCategoryId').value = lessonData.categoryId;
+                document.getElementById('lessonTitle').value = lessonData.title;
+                document.getElementById('lessonDescription').value = lessonData.description || '';
+                document.getElementById('lessonContent').value = lessonData.content;
+                document.getElementById('difficulty').value = lessonData.difficulty;
+                document.getElementById('orderIndex').value = lessonData.orderIndex;
+                document.getElementById('pointsReward').value = lessonData.pointsReward;
+                document.getElementById('estimatedDuration').value = lessonData.estimatedDuration || '';
+                document.getElementById('lessonModal').classList.add('show');
+            } catch (error) {
+                console.error('Error loading lesson:', error);
+                showAlert('Failed to load lesson', 'error');
+            }
+        }
+
+        function closeLessonModal() {
+            document.getElementById('lessonModal').classList.remove('show');
+        }
+
+        document.getElementById('lessonForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('lessonId').value;
+            const data = {
+                categoryId: parseInt(document.getElementById('lessonCategoryId').value),
+                title: document.getElementById('lessonTitle').value,
+                description: document.getElementById('lessonDescription').value,
+                content: document.getElementById('lessonContent').value,
+                difficulty: document.getElementById('difficulty').value,
+                orderIndex: parseInt(document.getElementById('orderIndex').value),
+                pointsReward: parseInt(document.getElementById('pointsReward').value) || 10,
+                estimatedDuration: parseInt(document.getElementById('estimatedDuration').value) || null
+            };
+            try {
+                const url = id ? `${API_BASE_URL}/v1/lessons/${id}` : `${API_BASE_URL}/v1/lessons`;
+                const method = id ? 'PUT' : 'POST';
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Failed to save lesson');
+                }
+                showAlert(`Lesson ${id ? 'updated' : 'created'} successfully`, 'success');
+                closeLessonModal();
+                loadAllLessons();
+                loadCategories();
+            } catch (error) {
+                console.error('Error saving lesson:', error);
+                showAlert(error.message, 'error');
+            }
+        });
+
+        async function deleteLesson(id, title) {
+            if (!confirm(`Are you sure you want to delete lesson "${title}"?\n\nNote: You cannot delete lessons with associated exercises.`)) return;
+            try {
+                const response = await fetch(`${API_BASE_URL}/v1/lessons/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Failed to delete lesson');
+                }
+                showAlert('Lesson deleted successfully', 'success');
+                loadAllLessons();
+                loadCategories();
+            } catch (error) {
+                console.error('Error deleting lesson:', error);
+                showAlert(error.message, 'error');
+            }
+        }
+
+        // -------------------
+        // EXERCISE MANAGEMENT
+        // -------------------
+
+        function populateLessonDropdown() {
+            const select = document.getElementById('exerciseLessonId');
+            select.innerHTML = '<option value="">Select Lesson...</option>';
+            allLessons.forEach(lesson => {
+                const option = document.createElement('option');
+                option.value = lesson.id;
+                option.textContent = `${lesson.title} (${lesson.categoryName})`;
+                select.appendChild(option);
+            });
+        }
+
+        async function loadAllExercises() {
+            allExercises = [];
+            const exercisePromises = allLessons.map(lesson =>
+                fetch(`${API_BASE_URL}/v1/exercises?lessonId=${lesson.id}`, { headers: { 'Authorization': `Bearer ${token}` } })
+                    .then(res => res.ok ? res.json() : Promise.resolve([]))
+                    .then(exercises => exercises.map(ex => ({...ex, lessonTitle: lesson.title})))
+            );
+            try {
+                const exercisesByLesson = await Promise.all(exercisePromises);
+                allExercises = exercisesByLesson.flat();
+                displayExercises(allExercises);
+                populateLessonDropdown();
+            } catch (error) {
+                console.error('Error loading exercises:', error);
+                showAlert('Failed to load exercises', 'error');
+            }
+        }
+
+        function displayExercises(exercises) {
+            const tbody = document.getElementById('exercisesTableBody');
+            tbody.innerHTML = '';
+            if (exercises.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #6B7280;">No exercises found</td></tr>';
+            } else {
+                exercises.forEach(exercise => {
+                    const row = document.createElement('tr');
+                    const difficultyClass = exercise.difficulty.toLowerCase();
+                    const typeClass = exercise.type.toLowerCase().replace('_', '-');
+                    const questionPreview = exercise.question.length > 50 ? exercise.question.substring(0, 50) + '...' : exercise.question;
+                    row.innerHTML = `
+                        <td>${exercise.id}</td>
+                        <td><strong>${questionPreview}</strong></td>
+                        <td><span class="category-badge">${exercise.lessonTitle || 'N/A'}</span></td>
+                        <td><span class="badge badge-${difficultyClass}">${exercise.type}</span></td>
+                        <td><span class="badge badge-${difficultyClass}">${exercise.difficulty}</span></td>
+                        <td>${exercise.points || 5}</td>
+                        <td>${exercise.timeLimit || '-'}</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm" onclick="openEditExerciseModal(${exercise.id})">Edit</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteExercise(${exercise.id}, '${questionPreview.replace(/'/g, "\\'")}')">Delete</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+            document.getElementById('loadingExercisesContainer').style.display = 'none';
+            document.getElementById('exercisesTable').style.display = 'table';
+        }
+
+        function toggleOptionsField() {
+            const type = document.getElementById('exerciseType').value;
+            const optionsGroup = document.getElementById('optionsGroup');
+            if (type === 'MULTI_CHOICE') {
+                optionsGroup.style.display = 'block';
+            } else {
+                optionsGroup.style.display = 'none';
+            }
+        }
+
+        function openCreateExerciseModal() {
+            document.getElementById('exerciseModalTitle').textContent = 'Create Exercise';
+            document.getElementById('exerciseForm').reset();
+            document.getElementById('exerciseId').value = '';
+            document.getElementById('exercisePoints').value = '5';
+            document.getElementById('optionsGroup').style.display = 'none';
+            document.getElementById('exerciseModal').classList.add('show');
+        }
+
+        async function openEditExerciseModal(id) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/v1/exercises/${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) throw new Error('Failed to load exercise');
+                const exerciseData = await response.json();
+                document.getElementById('exerciseModalTitle').textContent = 'Edit Exercise';
+                document.getElementById('exerciseId').value = exerciseData.id;
+                document.getElementById('exerciseLessonId').value = exerciseData.lessonId;
+                document.getElementById('exerciseType').value = exerciseData.type;
+                document.getElementById('exerciseDifficulty').value = exerciseData.difficulty;
+                document.getElementById('exerciseQuestion').value = exerciseData.question;
+                document.getElementById('exerciseCorrectAnswer').value = exerciseData.correctAnswer;
+                document.getElementById('exercisePoints').value = exerciseData.points || 5;
+                document.getElementById('exerciseTimeLimit').value = exerciseData.timeLimit || '';
+                document.getElementById('exerciseHint').value = exerciseData.hint || '';
+
+                // Handle options for MULTI_CHOICE
+                if (exerciseData.type === 'MULTI_CHOICE' && exerciseData.options) {
+                    document.getElementById('exerciseOptions').value = exerciseData.options.join(', ');
+                    document.getElementById('optionsGroup').style.display = 'block';
+                } else {
+                    document.getElementById('optionsGroup').style.display = 'none';
+                }
+
+                document.getElementById('exerciseModal').classList.add('show');
+            } catch (error) {
+                console.error('Error loading exercise:', error);
+                showAlert('Failed to load exercise', 'error');
+            }
+        }
+
+        function closeExerciseModal() {
+            document.getElementById('exerciseModal').classList.remove('show');
+        }
+
+        document.getElementById('exerciseForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('exerciseId').value;
+
+            const data = {
+                lessonId: parseInt(document.getElementById('exerciseLessonId').value),
+                type: document.getElementById('exerciseType').value,
+                question: document.getElementById('exerciseQuestion').value,
+                correctAnswer: document.getElementById('exerciseCorrectAnswer').value,
+                difficulty: document.getElementById('exerciseDifficulty').value,
+                points: parseInt(document.getElementById('exercisePoints').value) || 5,
+                timeLimit: parseInt(document.getElementById('exerciseTimeLimit').value) || null,
+                hint: document.getElementById('exerciseHint').value || null
+            };
+
+            // Handle options for MULTI_CHOICE
+            const type = document.getElementById('exerciseType').value;
+            if (type === 'MULTI_CHOICE') {
+                const optionsText = document.getElementById('exerciseOptions').value;
+                if (optionsText && optionsText.trim()) {
+                    data.options = optionsText.split(',').map(opt => opt.trim()).filter(opt => opt.length > 0);
+                } else {
+                    showAlert('Options are required for Multi Choice exercises', 'error');
+                    return;
+                }
+            }
+
+            try {
+                const url = id ? `${API_BASE_URL}/v1/exercises/${id}` : `${API_BASE_URL}/v1/exercises`;
+                const method = id ? 'PUT' : 'POST';
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Failed to save exercise');
+                }
+                showAlert(`Exercise ${id ? 'updated' : 'created'} successfully`, 'success');
+                closeExerciseModal();
+                loadAllExercises();
+                loadAllLessons(); // Refresh to update exercise counts
+            } catch (error) {
+                console.error('Error saving exercise:', error);
+                showAlert(error.message, 'error');
+            }
+        });
+
+        async function deleteExercise(id, question) {
+            if (!confirm(`Are you sure you want to delete this exercise?\n\nQuestion: "${question}"`)) return;
+            try {
+                const response = await fetch(`${API_BASE_URL}/v1/exercises/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Failed to delete exercise');
+                }
+                showAlert('Exercise deleted successfully', 'success');
+                loadAllExercises();
+                loadAllLessons(); // Refresh to update exercise counts
+            } catch (error) {
+                console.error('Error deleting exercise:', error);
+                showAlert(error.message, 'error');
+            }
+        }
+
+        // -------------------
+        // GENERAL & UTILS
+        // -------------------
+
+        function showAlert(message, type) {
+            const container = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            container.appendChild(alert);
+            setTimeout(() => { alert.remove(); }, 5000);
+        }
+
+        function logout() {
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminUser');
+            window.location.href = '/info-panel/login.html';
+        }
+
+        // Close modals on outside click
+        document.getElementById('categoryModal').addEventListener('click', (e) => {
+            if (e.target.id === 'categoryModal') closeCategoryModal();
+        });
+        document.getElementById('lessonModal').addEventListener('click', (e) => {
+            if (e.target.id === 'lessonModal') closeLessonModal();
+        });
+        document.getElementById('exerciseModal').addEventListener('click', (e) => {
+            if (e.target.id === 'exerciseModal') closeExerciseModal();
+        });
+    </script>
+</body>
+</html>

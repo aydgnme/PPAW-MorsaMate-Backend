@@ -1,10 +1,8 @@
 package me.aydgn.MorseMate.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.aydgn.MorseMate.dto.response.ApiRootResponse;
-import me.aydgn.MorseMate.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -12,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -31,11 +28,8 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping
-@RequiredArgsConstructor
 @Slf4j
 public class ApiRootController {
-
-    private final JwtUtil jwtUtil;
 
     @Value("${app.version:1.0.0}")
     private String version;

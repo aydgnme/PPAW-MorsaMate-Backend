@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
@@ -28,6 +29,8 @@ import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -35,8 +38,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         excludeAutoConfiguration = {
                 org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration.class,
                 org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration.class,
-                org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class,
-                org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration.class,
                 org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration.class
         },
         excludeFilters = @org.springframework.context.annotation.ComponentScan.Filter(
@@ -47,7 +48,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
                         me.aydgn.MorseMate.config.JpaConfig.class
                 }
         ))
-@Import(GlobalExceptionHandler.class)
+@Import({GlobalExceptionHandler.class, TestSecurityConfig.class})
+@WithMockUser(username = "1")
 @DisplayName("ExerciseAttemptController Integration Tests")
 class ExerciseAttemptControllerTest {
 
@@ -132,7 +134,8 @@ class ExerciseAttemptControllerTest {
         List<ExerciseAttemptResponse> attempts = Arrays.asList(attempt1, attempt2);
         when(exerciseAttemptService.getUserAttempts(1L)).thenReturn(attempts);
 
-        mockMvc.perform(get("/v1/attempts/me"))
+        mockMvc.perform(get("/v1/attempts/me")
+                        )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].id", is(1)))
@@ -148,7 +151,8 @@ class ExerciseAttemptControllerTest {
         when(exerciseAttemptService.getUserAttemptsPaged(eq(1L), any()))
                 .thenReturn(page);
 
-        mockMvc.perform(get("/v1/attempts/me/paged"))
+        mockMvc.perform(get("/v1/attempts/me/paged")
+                        )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(2)))
                 .andExpect(jsonPath("$.content[0].id", is(1)));
@@ -162,7 +166,8 @@ class ExerciseAttemptControllerTest {
         when(exerciseAttemptService.getUserExerciseHistory(1L, 1L))
                 .thenReturn(Arrays.asList(attempt1));
 
-        mockMvc.perform(get("/v1/attempts/me/exercises/{exerciseId}", 1L))
+        mockMvc.perform(get("/v1/attempts/me/exercises/{exerciseId}", 1L)
+                        )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].exerciseId", is(1)));
@@ -175,7 +180,8 @@ class ExerciseAttemptControllerTest {
     void getMyLastAttempt_Success() throws Exception {
         when(exerciseAttemptService.getLastAttempt(1L, 1L)).thenReturn(attempt1);
 
-        mockMvc.perform(get("/v1/attempts/me/exercises/{exerciseId}/last", 1L))
+        mockMvc.perform(get("/v1/attempts/me/exercises/{exerciseId}/last", 1L)
+                        )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(1)))
                 .andExpect(jsonPath("$.exerciseId", is(1)));
@@ -189,7 +195,8 @@ class ExerciseAttemptControllerTest {
         when(exerciseAttemptService.getLastAttempt(1L, 999L))
                 .thenThrow(new ResourceNotFoundException("ExerciseAttempt", "exerciseId", 999L));
 
-        mockMvc.perform(get("/v1/attempts/me/exercises/{exerciseId}/last", 999L))
+        mockMvc.perform(get("/v1/attempts/me/exercises/{exerciseId}/last", 999L)
+                        )
                 .andExpect(status().isNotFound());
     }
 
@@ -204,7 +211,8 @@ class ExerciseAttemptControllerTest {
 
         when(exerciseAttemptService.getUserExerciseStatistics(1L, 1L)).thenReturn(stats);
 
-        mockMvc.perform(get("/v1/attempts/me/exercises/{exerciseId}/statistics", 1L))
+        mockMvc.perform(get("/v1/attempts/me/exercises/{exerciseId}/statistics", 1L)
+                        )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalAttempts", is(10)))
                 .andExpect(jsonPath("$.correctAttempts", is(7)))
@@ -223,7 +231,8 @@ class ExerciseAttemptControllerTest {
 
         when(exerciseAttemptService.getUserStatistics(1L)).thenReturn(stats);
 
-        mockMvc.perform(get("/v1/attempts/me/statistics"))
+        mockMvc.perform(get("/v1/attempts/me/statistics")
+                        )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalAttempts", is(50)))
                 .andExpect(jsonPath("$.correctAttempts", is(35)))
@@ -239,6 +248,7 @@ class ExerciseAttemptControllerTest {
                 .thenReturn(Arrays.asList(attempt1, attempt2));
 
         mockMvc.perform(get("/v1/attempts/me/range")
+                        
                         .param("from", "2025-01-01T00:00:00")
                         .param("to", "2025-12-31T23:59:59"))
                 .andExpect(status().isOk())
@@ -255,6 +265,7 @@ class ExerciseAttemptControllerTest {
                 .thenReturn(75.5);
 
         mockMvc.perform(get("/v1/attempts/me/correctness-rate")
+                        
                         .param("from", "2025-01-01T00:00:00")
                         .param("to", "2025-12-31T23:59:59"))
                 .andExpect(status().isOk())

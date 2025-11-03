@@ -1,0 +1,1782 @@
+{
+	"info": {
+		"_postman_id": "morsemate-complete-api-v2",
+		"name": "MorseMate API - Complete Collection",
+		"description": "Complete API collection for MorseMate application with all 87 endpoints.\n\n**Base URL:** http://localhost:8080\n**API Version:** v1 (for most endpoints)\n\n## Authentication\nMost endpoints require JWT authentication. After login/register, the token is automatically saved.\n\n**How it works:**\n- Register or Login → JWT token auto-saved to `jwt_token` variable\n- Token automatically used in authenticated requests: `Authorization: Bearer {{jwt_token}}`\n\n## Important Notes\n- **Most endpoints** use `/v1` prefix (e.g., `/v1/categories`)\n- **Health & System endpoints** use `/api` prefix (e.g., `/api/health`, `/api/ping`)\n- **Auth endpoints** use no version prefix (e.g., `/auth/login`)\n\n## Collections Overview\n1. **Authentication (4)** - Register, Login, Current User, Health\n2. **Users (14)** - Profile, Statistics, Hearts, Points, Account Management  \n3. **Categories (6)** - Full CRUD with Admin controls\n4. **Lessons (8)** - CRUD, Search, Ordering\n5. **Exercises (8)** - CRUD, Filtering, Random selection\n6. **Achievements (14)** - Management, User tracking, Awards\n7. **Gems (11)** - Balance, Transactions, Admin operations\n8. **PowerUps (11)** - Purchase, Activation, Management\n9. **Leaderboard (10)** - Rankings and user statistics\n10. **Health & System (4)** - API root, Health check, System info, Ping\n\n**Total: 87 Endpoints**",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "morsemate-2025"
+	},
+	"item": [
+		{
+			"name": "1. Authentication",
+			"item": [
+				{
+					"name": "Register",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set('jwt_token', jsonData.accessToken);",
+									"    pm.environment.set('user_id', jsonData.user.id);",
+									"    console.log('✅ Registration successful!');",
+									"    console.log('Token saved:', jsonData.accessToken.substring(0, 20) + '...');",
+									"    console.log('User ID:', jsonData.user.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"testuser\",\n  \"email\": \"test@example.com\",\n  \"password\": \"Password123\",\n  \"fullName\": \"Test User\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/auth/register",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "auth", "register"]
+						},
+						"description": "Register a new user account.\n\n**Request Body:**\n- `username` (required): 3-50 chars, alphanumeric, underscore, hyphen\n- `email` (required): Valid email format\n- `password` (required): Min 8 chars, must contain uppercase, lowercase, and digit\n- `fullName` (optional): 2-100 chars\n\n**Response:** JWT token + user data"
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set('jwt_token', jsonData.accessToken);",
+									"    pm.environment.set('user_id', jsonData.user.id);",
+									"    console.log('✅ Login successful!');",
+									"    console.log('Token saved:', jsonData.accessToken.substring(0, 20) + '...');",
+									"    console.log('User ID:', jsonData.user.id);",
+									"    console.log('Role:', jsonData.user.role);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"identifier\": \"test@example.com\",\n  \"password\": \"Password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "auth", "login"]
+						},
+						"description": "Authenticate user and get JWT token.\n\n**Request Body:**\n- `identifier` (required): Email OR username\n- `password` (required): User password\n- `rememberMe` (optional): Boolean for extended session\n\n**Response:** JWT token + user data\n\n**Note:** Server automatically detects if identifier is email (contains @) or username"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Current User",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/auth/me",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "auth", "me"]
+						},
+						"description": "Get currently authenticated user's information.\n\n**Requires:** JWT token in Authorization header\n\n**Response:** User profile data"
+					},
+					"response": []
+				},
+				{
+					"name": "Auth Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/auth/health",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "auth", "health"]
+						},
+						"description": "Check if authentication service is running.\n\n**Access:** Public"
+					},
+					"response": []
+				}
+			],
+			"description": "Authentication endpoints for user registration, login, and session management."
+		},
+		{
+			"name": "2. Users",
+			"item": [
+				{
+					"name": "Get My Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/users/me",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "users", "me"]
+						},
+						"description": "Get authenticated user's profile."
+					},
+					"response": []
+				},
+				{
+					"name": "Update My Profile",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"fullName\": \"Updated Name\",\n  \"profilePictureUrl\": \"https://example.com/avatar.jpg\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/users/me",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "users", "me"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/users/:id",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "users", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "User ID"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User by Username",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/users/username/:username",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "users", "username", ":username"],
+							"variable": [
+								{
+									"key": "username",
+									"value": "testuser"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Users (Paginated)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/users?page=0&size=20",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "users"],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "20"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Statistics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/users/me/statistics",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "users", "me", "statistics"]
+						},
+						"description": "Get detailed statistics for authenticated user."
+					},
+					"response": []
+				},
+				{
+					"name": "Use Heart",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/users/me/hearts/use",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "users", "me", "hearts", "use"]
+						},
+						"description": "Consume one heart (required to start an exercise)."
+					},
+					"response": []
+				},
+				{
+					"name": "Refill Hearts",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/users/me/hearts/refill",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "users", "me", "hearts", "refill"]
+						},
+						"description": "Manually refill hearts (premium feature or after cooldown)."
+					},
+					"response": []
+				},
+				{
+					"name": "Add Points to User (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/users/:id/points?points=50",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "users", ":id", "points"],
+							"query": [
+								{
+									"key": "points",
+									"value": "50"
+								}
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Deactivate Account",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/users/:id/deactivate",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "users", ":id", "deactivate"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Activate Account",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/users/:id/activate",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "users", ":id", "activate"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Email",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/users/:id/verify-email",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "users", ":id", "verify-email"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete My Account",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/users/me",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "users", "me"]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "User management endpoints including profile, statistics, hearts, and account settings."
+		},
+		{
+			"name": "3. Categories",
+			"item": [
+				{
+					"name": "Get All Categories",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/categories",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "categories"]
+						},
+						"description": "Get all active categories. Public endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Category by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/categories/:id",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "categories", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Category (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Basic Alphabet\",\n  \"description\": \"Learn the morse code alphabet\",\n  \"displayOrder\": 1,\n  \"iconUrl\": \"https://example.com/alphabet.png\",\n  \"isActive\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/categories",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "categories"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Category (Admin)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Category\",\n  \"description\": \"Updated description\",\n  \"displayOrder\": 2,\n  \"isActive\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/categories/:id",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "categories", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Category (Admin - Soft Delete)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/categories/:id",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "categories", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Soft delete category (sets deleted_at timestamp)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Categories (Admin - Including Deleted)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/categories/admin/all",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "categories", "admin", "all"]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Category management with full CRUD operations. Includes soft delete functionality."
+		},
+		{
+			"name": "4. Lessons",
+			"item": [
+				{
+					"name": "Get Lesson by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/lessons/:id?includeExercises=true",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "lessons", ":id"],
+							"query": [
+								{
+									"key": "includeExercises",
+									"value": "true",
+									"description": "Include exercises in response"
+								}
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Lessons by Category",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/lessons?categoryId=1",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "lessons"],
+							"query": [
+								{
+									"key": "categoryId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search Lessons",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/lessons/search?title=morse&page=0&size=20",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "lessons", "search"],
+							"query": [
+								{
+									"key": "title",
+									"value": "morse"
+								},
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "20"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Lesson (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"categoryId\": 1,\n  \"title\": \"Learn Letters A-E\",\n  \"description\": \"Introduction to morse code letters\",\n  \"difficulty\": \"BEGINNER\",\n  \"content\": \"Lesson content...\",\n  \"orderIndex\": 1,\n  \"pointsReward\": 10,\n  \"estimatedDuration\": 15\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/lessons",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "lessons"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Lesson (Admin)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Updated Lesson\",\n  \"description\": \"Updated description\",\n  \"difficulty\": \"INTERMEDIATE\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/lessons/:id",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "lessons", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Lesson (Admin - Soft Delete)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/lessons/:id",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "lessons", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Exercise Count",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/lessons/:id/exercise-count",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "lessons", ":id", "exercise-count"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Lesson Order (Admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/lessons/:id/order?orderIndex=3",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "lessons", ":id", "order"],
+							"query": [
+								{
+									"key": "orderIndex",
+									"value": "3"
+								}
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "5. Exercises",
+			"item": [
+				{
+					"name": "Get Exercise by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/exercises/:id",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "exercises", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Exercises by Lesson",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/exercises?lessonId=1",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "exercises"],
+							"query": [
+								{
+									"key": "lessonId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Random Exercise",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/exercises/random?lessonId=1",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "exercises", "random"],
+							"query": [
+								{
+									"key": "lessonId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search Exercises (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/exercises/search?question=morse",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "exercises", "search"],
+							"query": [
+								{
+									"key": "question",
+									"value": "morse"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Exercise (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"lessonId\": 1,\n  \"type\": \"LISTENING\",\n  \"difficulty\": \"BEGINNER\",\n  \"question\": \"What letter is this?\",\n  \"correctAnswer\": \"A\",\n  \"morseCode\": \".-\",\n  \"points\": 10\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/exercises",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "exercises"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Exercise (Admin)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"question\": \"Updated question\",\n  \"points\": 15\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/exercises/:id",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "exercises", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Exercise (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/exercises/:id",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "exercises", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Exercise Count",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/exercises/count?lessonId=1",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "exercises", "count"],
+							"query": [
+								{
+									"key": "lessonId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "6. Achievements",
+			"item": [
+				{
+					"name": "Get All Achievements",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/achievements",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "achievements"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Achievement by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/achievements/:id",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "achievements", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Achievements",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/achievements/me",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "achievements", "me"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Achievement Count",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/achievements/me/count",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "achievements", "me", "count"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check Achievement Earned",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/achievements/:id/earned",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "achievements", ":id", "earned"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check My Achievements",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/achievements/me/check",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "achievements", "me", "check"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Achievement (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"First Steps\",\n  \"description\": \"Complete your first lesson\",\n  \"pointsReward\": 50,\n  \"condition\": \"LESSONS_COMPLETED\",\n  \"targetValue\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/achievements",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "achievements"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Achievement (Admin)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Achievement\",\n  \"pointsReward\": 100\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/achievements/:id",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "achievements", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Achievement (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/achievements/:id",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "achievements", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Award Achievement (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/achievements/:achievementId/award/:userId",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "achievements", ":achievementId", "award", ":userId"],
+							"variable": [
+								{
+									"key": "achievementId",
+									"value": "1"
+								},
+								{
+									"key": "userId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "7. Gems",
+			"item": [
+				{
+					"name": "Get My Gems",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/gems/me",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "gems", "me"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Spend My Gems",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"amount\": 50,\n  \"source\": \"POWER_UP_PURCHASE\",\n  \"description\": \"Purchased hint\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/gems/me/spend",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "gems", "me", "spend"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Transactions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/gems/me/transactions",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "gems", "me", "transactions"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Gem Statistics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/gems/me/statistics",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "gems", "me", "statistics"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check Gem Balance",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/gems/me/check/:amount",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "gems", "me", "check", ":amount"],
+							"variable": [
+								{
+									"key": "amount",
+									"value": "100"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Gems to User (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"amount\": 100,\n  \"source\": \"ADMIN_GRANT\",\n  \"description\": \"Admin bonus\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/gems/users/:userId/add",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "gems", "users", ":userId", "add"],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "8. PowerUps",
+			"item": [
+				{
+					"name": "Get My PowerUps",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/powerups/me",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "powerups", "me"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Active PowerUps",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/powerups/me/active",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "powerups", "me", "active"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Purchase PowerUp",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/powerups/me/purchase/:powerUpId",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "powerups", "me", "purchase", ":powerUpId"],
+							"variable": [
+								{
+									"key": "powerUpId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Activate PowerUp",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/powerups/me/activate/:userPowerUpId",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "powerups", "me", "activate", ":userPowerUpId"],
+							"variable": [
+								{
+									"key": "userPowerUpId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All PowerUps (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/powerups",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "powerups"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create PowerUp (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Hint PowerUp\",\n  \"description\": \"Get hints\",\n  \"type\": \"HINT\",\n  \"cost\": 50,\n  \"durationMinutes\": 60,\n  \"isActive\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/powerups",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "powerups"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "9. Leaderboard",
+			"item": [
+				{
+					"name": "Top Users by Points",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/leaderboard/points?limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "leaderboard", "points"],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Top Users by Level",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/leaderboard/level?limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "leaderboard", "level"],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Top Users by Streak",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/leaderboard/streak?limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "leaderboard", "streak"],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Top Users by Achievements",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/leaderboard/achievements?limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "leaderboard", "achievements"],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Leaderboard Position",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/leaderboard/me",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "leaderboard", "me"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Rank by Points",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{api_version}}/leaderboard/me/rank/points",
+							"host": ["{{base_url}}"],
+							"path": ["{{api_version}}", "leaderboard", "me", "rank", "points"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "10. Health & System",
+			"item": [
+				{
+					"name": "API Root",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api",
+							"host": ["{{base_url}}"],
+							"path": ["api"]
+						},
+						"description": "GET /api - API root endpoint with available endpoints.\n\n**Access:** Authenticated (redirects to aydgn.me if not authenticated)\n**Controller:** ApiRootController"
+					},
+					"response": []
+				},
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/health",
+							"host": ["{{base_url}}"],
+							"path": ["api", "health"]
+						},
+						"description": "GET /api/health - Basic health check endpoint.\n\n**Response:**\n```json\n{\n  \"status\": \"UP\",\n  \"timestamp\": \"2025-11-02T10:00:00\",\n  \"service\": \"MorseMate API\"\n}\n```\n\n**Access:** Public\n**Controller:** HealthController"
+					},
+					"response": []
+				},
+				{
+					"name": "System Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/info",
+							"host": ["{{base_url}}"],
+							"path": ["api", "info"]
+						},
+						"description": "GET /api/info - Get system information and version details.\n\n**Response:**\n```json\n{\n  \"applicationName\": \"MorseMate\",\n  \"version\": \"1.0.0\",\n  \"environment\": \"default\",\n  \"serverTime\": \"2025-11-02T10:00:00\",\n  \"javaVersion\": \"17.0.8\",\n  \"springBootVersion\": \"3.5.6\"\n}\n```\n\n**Access:** Public\n**Controller:** SystemInfoController"
+					},
+					"response": []
+				},
+				{
+					"name": "Ping",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/ping",
+							"host": ["{{base_url}}"],
+							"path": ["api", "ping"]
+						},
+						"description": "GET /api/ping - Simple ping endpoint.\n\n**Response:**\n```json\n{\n  \"message\": \"pong\"\n}\n```\n\n**Access:** Public\n**Controller:** HealthController"
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "api_version",
+			"value": "v1",
+			"type": "string"
+		},
+		{
+			"key": "jwt_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user_id",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

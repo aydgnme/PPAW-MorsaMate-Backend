@@ -28,6 +28,10 @@ public class ExerciseAttemptService {
     private final ExerciseAttemptRepository exerciseAttemptRepository;
     private final ExerciseService exerciseService;
     private final UserService userService;
+    private final GemService gemService;
+    private final AchievementService achievementService;
+    private final PowerUpService powerUpService;
+    private final me.aydgn.MorseMate.repository.UserRepository userRepository;
 
     /**
      * Record an exercise attempt
@@ -45,6 +49,7 @@ public class ExerciseAttemptService {
 
         // Calculate points earned
         int pointsEarned = 0;
+        int gemsEarned = 0;
         if (isCorrect) {
             pointsEarned = exercise.getPoints();
             // Bonus points for fast completion within time limit
@@ -54,6 +59,16 @@ public class ExerciseAttemptService {
                     pointsEarned += timeBonus;
                 }
             }
+
+            // Check for XP_BOOST power-up
+            if (powerUpService.hasActivePowerUp(userId, me.aydgn.MorseMate.entity.PowerUp.Type.XP_BOOST)) {
+                int xpBoost = (int) (pointsEarned * 0.5); // 50% XP boost
+                pointsEarned += xpBoost;
+                log.info("XP_BOOST applied: +{} bonus points", xpBoost);
+            }
+
+            // Award gems for correct answers (10% of points as gems)
+            gemsEarned = Math.max(1, pointsEarned / 10);
         }
 
         // Create attempt record
@@ -69,6 +84,38 @@ public class ExerciseAttemptService {
         attempt = exerciseAttemptRepository.save(attempt);
         log.info("Exercise attempt recorded with id: {} (correct: {}, points: {})",
                 attempt.getId(), isCorrect, pointsEarned);
+
+        // Apply gamification rewards if correct
+        if (isCorrect) {
+            // Add points to user and update level atomically
+            int rowsUpdated = userRepository.addPointsAndRelevel(userId, pointsEarned);
+            if (rowsUpdated > 0) {
+                log.info("Awarded {} points to user {}", pointsEarned, userId);
+            }
+
+            // Award gems
+            if (gemsEarned > 0) {
+                try {
+                    String exerciseDesc = exercise.getQuestion() != null && exercise.getQuestion().length() > 0
+                        ? exercise.getQuestion().substring(0, Math.min(50, exercise.getQuestion().length()))
+                        : "Exercise #" + exercise.getId();
+                    gemService.addGems(userId, gemsEarned,
+                        "Exercise Completion",
+                        "Completed exercise: " + exerciseDesc);
+                    log.info("Awarded {} gems to user {}", gemsEarned, userId);
+                } catch (Exception e) {
+                    log.warn("Failed to award gems to user {}: {}", userId, e.getMessage());
+                }
+            }
+
+            // Check and award achievements
+            try {
+                achievementService.checkAndAwardAchievements(userId);
+                log.debug("Checked achievements for user {}", userId);
+            } catch (Exception e) {
+                log.warn("Failed to check achievements for user {}: {}", userId, e.getMessage());
+            }
+        }
 
         return ExerciseAttemptResponse.from(attempt);
     }

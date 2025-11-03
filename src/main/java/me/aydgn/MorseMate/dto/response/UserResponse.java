@@ -16,6 +16,7 @@ public class UserResponse {
     private String email;
     private String fullName;
     private String profilePictureUrl;
+    private String role;  // USER, ADMIN, PREMIUM
 
     // gamification
     private Integer level;
@@ -40,6 +41,7 @@ public class UserResponse {
                 .email(u.getEmail())
                 .fullName(u.getFullName())
                 .profilePictureUrl(u.getProfilePictureUrl())
+                .role(u.getRole() != null ? u.getRole().name() : null)  // Convert enum to string
                 .level(u.getLevel())
                 .totalPoints(u.getTotalPoints())
                 .currentStreak(u.getCurrentStreak())

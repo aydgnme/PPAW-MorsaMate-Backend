@@ -1,6 +1,8 @@
 package me.aydgn.MorseMate.repository;
 
 import me.aydgn.MorseMate.entity.UserAchievement;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -18,6 +20,7 @@ public interface UserAchievementRepository extends JpaRepository<UserAchievement
 
     // Listings
     List<UserAchievement> findByUserIdOrderByEarnedAtDesc(Long userId);
+    Page<UserAchievement> findByUserId(Long userId, Pageable pageable);
     List<UserAchievement> findByAchievementId(Long achievementId);
 
     long countByUserId(Long userId);

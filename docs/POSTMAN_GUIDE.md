@@ -2,12 +2,11 @@
 
 ## 📦 Files Overview
 
-This directory contains comprehensive Postman collections and environments for testing the MorseMate API:
+Postman files are located in `/postman` directory (project root):
 
-1. **MorseMate_Postman_Collection.json** - Main API collection with all endpoints
-2. **MorseMate_Test_Flows.json** - Complete test flows with automated scripts
-3. **MorseMate_Local_Environment.json** - Local development environment variables
-4. **MorseMate_Production_Environment.json** - Production environment variables
+1. **MorseMate_Complete_API_Collection.json** - Complete API collection with 87 endpoints
+2. **MorseMate-Local.postman_environment.json** - Local development environment variables
+3. **README.md** - Detailed usage guide and setup instructions
 
 ---
 
@@ -17,20 +16,24 @@ This directory contains comprehensive Postman collections and environments for t
 
 1. Open Postman
 2. Click **Import** button (top left)
-3. Drag and drop all 4 JSON files or click "Upload Files"
-4. Click **Import**
+3. Navigate to `/postman` directory in the project
+4. Import these files:
+   - `MorseMate_Complete_API_Collection.json`
+   - `MorseMate-Local.postman_environment.json`
+5. Click **Import**
 
 ### Step 2: Select Environment
 
 1. Click the environment dropdown (top right)
-2. Select **"MorseMate - Local Development"**
+2. Select **"MorseMate - Local"**
+3. Ensure `base_url` is set to `http://localhost:8080`
 
 ### Step 3: Start Testing
 
-1. Open the **MorseMate API Collection**
-2. Navigate to **Authentication** folder
-3. Run **"Register New User"** or **"Login"**
-4. JWT token will be automatically saved
+1. Open the **MorseMate API - Complete Collection**
+2. Navigate to **1. Authentication** folder
+3. Run **"Register"** or **"Login"**
+4. JWT token will be automatically saved to environment
 5. Now you can run any authenticated endpoint!
 
 ---
