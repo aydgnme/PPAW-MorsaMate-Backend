@@ -21,11 +21,15 @@ import java.util.Optional;
 /**
  * Generic admin controller for CRUD operations on any entity.
  * Inspired by Django Admin - provides automatic CRUD interface for all entities.
+ *
+ * Note: Uses reflection and raw types for generic entity handling.
+ * Suppressing unchecked warnings as type safety is validated at runtime.
  */
 @Controller
 @RequestMapping("/admin/entity")
 @RequiredArgsConstructor
 @Slf4j
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class GenericAdminController {
 
     private final EntityMetadataService metadataService;
