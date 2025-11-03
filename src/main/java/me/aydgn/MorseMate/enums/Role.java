@@ -16,6 +16,12 @@ public enum Role {
     USER,
 
     /**
+     * Premium user with enhanced features.
+     * Has active subscription, increased hearts, and access to premium content.
+     */
+    PREMIUM,
+
+    /**
      * Administrator with elevated privileges.
      * Can manage categories, view all users, and access administrative endpoints.
      */
