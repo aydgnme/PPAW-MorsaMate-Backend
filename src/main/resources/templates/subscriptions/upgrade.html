@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upgrade Subscription - MorseMate</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            font-size: 1.1em;
+        }
+
+        .current-plan {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .current-plan h2 {
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+
+        .current-plan-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .current-detail {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .current-detail-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-bottom: 8px;
+        }
+
+        .current-detail-value {
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        .plans-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .plan-card {
+            background: white;
+            border: 3px solid #e5e7eb;
+            border-radius: 20px;
+            padding: 35px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .plan-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .plan-card:hover {
+            border-color: #667eea;
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.3);
+        }
+
+        .plan-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .plan-card.recommended {
+            border-color: #10b981;
+            border-width: 4px;
+        }
+
+        .plan-card.recommended::before {
+            background: #10b981;
+            transform: scaleX(1);
+        }
+
+        .recommended-badge {
+            position: absolute;
+            top: 20px;
+            right: -35px;
+            background: #10b981;
+            color: white;
+            padding: 8px 40px;
+            transform: rotate(45deg);
+            font-weight: bold;
+            font-size: 0.85em;
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+        }
+
+        .plan-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+
+        .plan-name {
+            font-size: 1.8em;
+            color: #1f2937;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .plan-price {
+            font-size: 3em;
+            color: #667eea;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .plan-price .currency {
+            font-size: 0.5em;
+            color: #6b7280;
+        }
+
+        .plan-price .period {
+            font-size: 0.4em;
+            color: #6b7280;
+            display: block;
+        }
+
+        .savings {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .plan-features {
+            list-style: none;
+            text-align: left;
+            margin: 25px 0;
+        }
+
+        .plan-features li {
+            padding: 12px 0;
+            border-bottom: 1px solid #e5e7eb;
+            color: #4b5563;
+            display: flex;
+            align-items: center;
+        }
+
+        .plan-features li:last-child {
+            border-bottom: none;
+        }
+
+        .plan-features li::before {
+            content: "✓";
+            color: #10b981;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .upgrade-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .upgrade-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .upgrade-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .upgrade-btn.current {
+            background: #6b7280;
+        }
+
+        .comparison-table {
+            margin-top: 40px;
+            overflow-x: auto;
+        }
+
+        .comparison-title {
+            text-align: center;
+            font-size: 2em;
+            color: #667eea;
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: left;
+            font-size: 1.1em;
+        }
+
+        td {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        tr:hover {
+            background: #f9fafb;
+        }
+
+        .check {
+            color: #10b981;
+            font-size: 1.2em;
+        }
+
+        .cross {
+            color: #ef4444;
+            font-size: 1.2em;
+        }
+
+        .btn-back {
+            display: inline-block;
+            padding: 12px 30px;
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-weight: bold;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            margin-top: 30px;
+        }
+
+        .btn-back:hover {
+            background: #667eea;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⬆️ Upgrade Your Subscription</h1>
+            <p class="subtitle">Choose a plan that fits your learning journey</p>
+        </div>
+
+        <!-- Current Plan -->
+        <div class="current-plan" th:if="${currentSubscription != null}">
+            <h2>📱 Your Current Plan</h2>
+            <div class="current-plan-details">
+                <div class="current-detail">
+                    <div class="current-detail-label">Plan</div>
+                    <div class="current-detail-value" th:text="${currentSubscription.plan.name}">Premium Monthly</div>
+                </div>
+                <div class="current-detail">
+                    <div class="current-detail-label">Price</div>
+                    <div class="current-detail-value" th:text="${currentSubscription.plan.price} + ' RON'">9.99 RON</div>
+                </div>
+                <div class="current-detail">
+                    <div class="current-detail-label">Hearts</div>
+                    <div class="current-detail-value" th:text="${currentSubscription.plan.maxHearts}">10</div>
+                </div>
+                <div class="current-detail">
+                    <div class="current-detail-label">Ends</div>
+                    <div class="current-detail-value" th:text="${#temporals.format(currentSubscription.endDate, 'dd MMM')}">01 Feb</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Available Plans -->
+        <div class="plans-grid">
+            <!-- Monthly Plan -->
+            <div class="plan-card">
+                <div class="plan-icon">🌟</div>
+                <div class="plan-name">Premium Monthly</div>
+                <div class="plan-price">
+                    9.99 <span class="currency">RON</span>
+                    <span class="period">/month</span>
+                </div>
+                <p>Perfect for trying premium features</p>
+                <ul class="plan-features">
+                    <li>10 Hearts per day</li>
+                    <li>Unlimited Practice Sessions</li>
+                    <li>Ad-Free Experience</li>
+                    <li>Basic Statistics</li>
+                    <li>Email Support</li>
+                    <li>Mobile App Access</li>
+                </ul>
+                <button class="upgrade-btn"
+                        th:if="${currentSubscription == null or currentSubscription.plan.billingPeriod != 'MONTHLY'}"
+                        onclick="upgradePlan(1)">
+                    Upgrade to Monthly
+                </button>
+                <button class="upgrade-btn current" disabled
+                        th:if="${currentSubscription != null and currentSubscription.plan.billingPeriod == 'MONTHLY'}">
+                    Current Plan
+                </button>
+            </div>
+
+            <!-- Yearly Plan (Recommended) -->
+            <div class="plan-card recommended">
+                <div class="recommended-badge">BEST VALUE</div>
+                <div class="plan-icon">🚀</div>
+                <div class="plan-name">Premium Yearly</div>
+                <div class="plan-price">
+                    99.99 <span class="currency">RON</span>
+                    <span class="period">/year</span>
+                </div>
+                <div class="savings">💰 Save 17% annually</div>
+                <p>Most popular choice for serious learners</p>
+                <ul class="plan-features">
+                    <li>15 Hearts per day</li>
+                    <li>Unlimited Practice Sessions</li>
+                    <li>Ad-Free Experience</li>
+                    <li>Advanced Statistics & Analytics</li>
+                    <li>Priority Support (24/7)</li>
+                    <li>Mobile + Desktop Access</li>
+                    <li>Exclusive Content</li>
+                    <li>Progress Reports</li>
+                </ul>
+                <button class="upgrade-btn"
+                        th:if="${currentSubscription == null or currentSubscription.plan.billingPeriod != 'YEARLY'}"
+                        onclick="upgradePlan(2)">
+                    Upgrade to Yearly
+                </button>
+                <button class="upgrade-btn current" disabled
+                        th:if="${currentSubscription != null and currentSubscription.plan.billingPeriod == 'YEARLY'}">
+                    Current Plan
+                </button>
+            </div>
+
+            <!-- Lifetime Plan -->
+            <div class="plan-card">
+                <div class="plan-icon">👑</div>
+                <div class="plan-name">Premium Lifetime</div>
+                <div class="plan-price">
+                    299.99 <span class="currency">RON</span>
+                    <span class="period">one-time</span>
+                </div>
+                <div class="savings">♾️ Forever Access</div>
+                <p>One payment, lifetime benefits</p>
+                <ul class="plan-features">
+                    <li>20 Hearts per day</li>
+                    <li>Unlimited Everything</li>
+                    <li>Ad-Free Experience</li>
+                    <li>Premium Statistics Dashboard</li>
+                    <li>VIP Support</li>
+                    <li>All Platforms Access</li>
+                    <li>All Current & Future Content</li>
+                    <li>Beta Features Access</li>
+                    <li>Personal Learning Coach</li>
+                    <li>Certificate of Completion</li>
+                </ul>
+                <button class="upgrade-btn"
+                        th:if="${currentSubscription == null or currentSubscription.plan.billingPeriod != 'LIFETIME'}"
+                        onclick="upgradePlan(3)">
+                    Get Lifetime Access
+                </button>
+                <button class="upgrade-btn current" disabled
+                        th:if="${currentSubscription != null and currentSubscription.plan.billingPeriod == 'LIFETIME'}">
+                    Current Plan
+                </button>
+            </div>
+        </div>
+
+        <!-- Comparison Table -->
+        <div class="comparison-table">
+            <h2 class="comparison-title">📊 Detailed Comparison</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>Monthly</th>
+                        <th>Yearly</th>
+                        <th>Lifetime</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Daily Hearts</strong></td>
+                        <td>10 <span class="check">✓</span></td>
+                        <td>15 <span class="check">✓</span></td>
+                        <td>20 <span class="check">✓</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Unlimited Practice</strong></td>
+                        <td><span class="check">✓</span></td>
+                        <td><span class="check">✓</span></td>
+                        <td><span class="check">✓</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Ad-Free</strong></td>
+                        <td><span class="check">✓</span></td>
+                        <td><span class="check">✓</span></td>
+                        <td><span class="check">✓</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Advanced Statistics</strong></td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="check">✓</span></td>
+                        <td><span class="check">✓</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Priority Support</strong></td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="check">✓</span></td>
+                        <td><span class="check">✓ VIP</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Exclusive Content</strong></td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="check">✓</span></td>
+                        <td><span class="check">✓</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Progress Reports</strong></td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="check">✓</span></td>
+                        <td><span class="check">✓</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Learning Coach</strong></td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="check">✓</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Beta Features</strong></td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="check">✓</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Certificate</strong></td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="check">✓</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div style="text-align: center;">
+            <a href="/v1/subscriptions/my" class="btn-back">← Back to My Subscriptions</a>
+        </div>
+    </div>
+
+    <script>
+        function upgradePlan(planId) {
+            if (confirm('Are you sure you want to upgrade to this plan?')) {
+                fetch(`/v1/subscriptions/upgrade?newPlanId=${planId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('jwt_token')
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert('Plan upgraded successfully!');
+                    window.location.href = '/v1/subscriptions/my';
+                })
+                .catch(error => {
+                    alert('Error: ' + error.message);
+                });
+            }
+        }
+    </script>
+</body>
+</html>
