@@ -70,7 +70,7 @@ public class UserProgressController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserProgressResponse> getMyLessonProgress(
             Authentication authentication,
-            @PathVariable Long lessonId) {
+            @PathVariable("lessonId") Long lessonId) {
         Long userId = Long.parseLong(authentication.getName());
         log.debug("GET /v1/progress/me/lessons/{} - Fetching progress for user id: {}", lessonId, userId);
 
@@ -100,7 +100,7 @@ public class UserProgressController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserProgressResponse> incrementAttempts(
             Authentication authentication,
-            @PathVariable Long lessonId) {
+            @PathVariable("lessonId") Long lessonId) {
         Long userId = Long.parseLong(authentication.getName());
         log.info("POST /v1/progress/me/lessons/{}/increment - Incrementing attempts for user id: {}", lessonId, userId);
 
@@ -116,7 +116,7 @@ public class UserProgressController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserProgressResponse> markLessonCompleted(
             Authentication authentication,
-            @PathVariable Long lessonId,
+            @PathVariable("lessonId") Long lessonId,
             @Valid @RequestBody MarkLessonCompletedRequest request) {
         Long userId = Long.parseLong(authentication.getName());
         log.info("POST /v1/progress/me/lessons/{}/complete - Marking completed for user id: {}", lessonId, userId);
@@ -135,7 +135,7 @@ public class UserProgressController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserProgressResponse> resetLessonCompletion(
             Authentication authentication,
-            @PathVariable Long lessonId) {
+            @PathVariable("lessonId") Long lessonId) {
         Long userId = Long.parseLong(authentication.getName());
         log.info("POST /v1/progress/me/lessons/{}/reset - Resetting completion for user id: {}", lessonId, userId);
 
@@ -151,7 +151,7 @@ public class UserProgressController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Map<String, Boolean>> hasCompletedLesson(
             Authentication authentication,
-            @PathVariable Long lessonId) {
+            @PathVariable("lessonId") Long lessonId) {
         Long userId = Long.parseLong(authentication.getName());
         log.debug("GET /v1/progress/me/lessons/{}/completed - Checking completion for user id: {}", lessonId, userId);
 
@@ -181,7 +181,7 @@ public class UserProgressController {
      */
     @GetMapping("/users/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<UserProgressResponse>> getUserProgress(@PathVariable Long userId) {
+    public ResponseEntity<List<UserProgressResponse>> getUserProgress(@PathVariable("userId") Long userId) {
         log.debug("GET /v1/progress/users/{} - Admin fetching progress", userId);
 
         List<UserProgressResponse> progress = userProgressService.getAllUserProgress(userId);
@@ -194,7 +194,7 @@ public class UserProgressController {
      */
     @GetMapping("/lessons/{lessonId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<UserProgressResponse>> getLessonProgress(@PathVariable Long lessonId) {
+    public ResponseEntity<List<UserProgressResponse>> getLessonProgress(@PathVariable("lessonId") Long lessonId) {
         log.debug("GET /v1/progress/lessons/{} - Admin fetching lesson progress", lessonId);
 
         List<UserProgressResponse> progress = userProgressService.getLessonProgress(lessonId);
@@ -207,7 +207,7 @@ public class UserProgressController {
      */
     @GetMapping("/lessons/{lessonId}/statistics")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, Object>> getLessonStatistics(@PathVariable Long lessonId) {
+    public ResponseEntity<Map<String, Object>> getLessonStatistics(@PathVariable("lessonId") Long lessonId) {
         log.debug("GET /v1/progress/lessons/{}/statistics - Admin fetching lesson statistics", lessonId);
 
         Map<String, Object> stats = userProgressService.getLessonStatistics(lessonId);

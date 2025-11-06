@@ -83,7 +83,7 @@ public class PowerUpController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserPowerUpResponse> purchasePowerUp(
             Authentication authentication,
-            @PathVariable Long powerUpId) {
+            @PathVariable("powerUpId") Long powerUpId) {
         Long userId = Long.parseLong(authentication.getName());
         log.info("POST /v1/powerups/me/purchase/{} - User {} purchasing", powerUpId, userId);
         UserPowerUpResponse userPowerUp = powerUpService.purchasePowerUp(userId, powerUpId);
@@ -98,7 +98,7 @@ public class PowerUpController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserPowerUpResponse> activatePowerUp(
             Authentication authentication,
-            @PathVariable Long userPowerUpId) {
+            @PathVariable("userPowerUpId") Long userPowerUpId) {
         Long userId = Long.parseLong(authentication.getName());
         log.info("POST /v1/powerups/me/activate/{} - User {} activating", userPowerUpId, userId);
         UserPowerUpResponse userPowerUp = powerUpService.activatePowerUp(userId, userPowerUpId);
@@ -113,7 +113,7 @@ public class PowerUpController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Map<String, Boolean>> checkActivePowerUp(
             Authentication authentication,
-            @PathVariable String type) {
+            @PathVariable("type") String type) {
         Long userId = Long.parseLong(authentication.getName());
         log.debug("GET /v1/powerups/me/check/{} - Checking for user id: {}", type, userId);
 
@@ -167,7 +167,7 @@ public class PowerUpController {
      */
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<PowerUpResponse> getPowerUpById(@PathVariable Long id) {
+    public ResponseEntity<PowerUpResponse> getPowerUpById(@PathVariable("id") Long id) {
         log.debug("GET /v1/powerups/{} - Admin fetching power-up", id);
         PowerUpResponse powerUp = powerUpService.getPowerUpById(id);
         return ResponseEntity.ok(powerUp);
@@ -179,7 +179,7 @@ public class PowerUpController {
      */
     @GetMapping("/type/{type}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<PowerUpResponse>> getPowerUpsByType(@PathVariable String type) {
+    public ResponseEntity<List<PowerUpResponse>> getPowerUpsByType(@PathVariable("type") String type) {
         log.debug("GET /v1/powerups/type/{} - Admin fetching", type);
         PowerUp.Type powerUpType = PowerUp.Type.valueOf(type.toUpperCase());
         List<PowerUpResponse> powerUps = powerUpService.getPowerUpsByType(powerUpType);
@@ -205,7 +205,7 @@ public class PowerUpController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PowerUpResponse> updatePowerUp(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Valid @RequestBody UpdatePowerUpRequest request) {
         log.info("PUT /v1/powerups/{} - Admin updating power-up", id);
         PowerUpResponse powerUp = powerUpService.updatePowerUp(id, request);
@@ -218,7 +218,7 @@ public class PowerUpController {
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiMessage> deletePowerUp(@PathVariable Long id) {
+    public ResponseEntity<ApiMessage> deletePowerUp(@PathVariable("id") Long id) {
         log.info("DELETE /v1/powerups/{} - Admin deleting power-up", id);
         powerUpService.deletePowerUp(id);
         return ResponseEntity.ok(new ApiMessage("PowerUp deleted successfully"));

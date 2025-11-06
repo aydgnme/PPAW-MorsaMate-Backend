@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MorseMate API Documentation</title>
+    <script type="module" src="https://unpkg.com/rapidoc/dist/rapidoc-min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        .header {
+            padding: 1.5rem 2rem;
+            background: linear-gradient(135deg, #0c4b33 0%, #0e6240 100%);
+            box-shadow: 0 4px 12px rgba(12, 75, 51, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .brand-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            font-size: 1.3rem;
+        }
+
+        .header-title {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header h1 {
+            font-size: 1.6rem;
+            letter-spacing: 0.02em;
+            margin: 0;
+        }
+
+        .header p {
+            font-size: 0.85rem;
+            opacity: 0.8;
+            margin: 0.25rem 0 0 0;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+            font-weight: 500;
+        }
+
+        .back-link:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .version-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-left: 0.5rem;
+            font-weight: 600;
+        }
+
+        rapidoc {
+            height: calc(100vh - 110px);
+            width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.3rem;
+            }
+
+            .header p {
+                display: none;
+            }
+
+            .brand-icon {
+                width: 35px;
+                height: 35px;
+                font-size: 1.1rem;
+            }
+
+            .back-link {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <span class="brand-icon">📚</span>
+                <div class="header-title">
+                    <h1>
+                        <span th:text="${documentation.title}">MorseMate API</span>
+                        <span class="version-badge" th:text="'v' + ${documentation.version}">v1.0.0</span>
+                    </h1>
+                    <p th:text="${documentation.description}">Interactive API for learning Morse code</p>
+                </div>
+            </div>
+            <a href="/admin" class="back-link">← Back to Admin</a>
+        </div>
+    </div>
+
+    <rapidoc
+            id="api-explorer"
+            spec-url="/api/openapi.json"
+            th:attr="spec-url=${openApiDocsPath}"
+            render-style="read"
+            theme="dark"
+            bg-color="#0f172a"
+            text-color="#e2e8f0"
+            primary-color="#10b981"
+            nav-bg-color="#1e293b"
+            nav-text-color="#94a3b8"
+            nav-hover-bg-color="#0c4b33"
+            nav-hover-text-color="#f8fafc"
+            nav-accent-color="#10b981"
+            show-header="false"
+            allow-spec-url-load="false"
+            allow-spec-file-load="false"
+            allow-server-selection="true"
+            allow-authentication="true"
+            allow-try="true"
+            schema-style="table"
+            schema-expand-level="1"
+            schema-description-expanded="true"
+            default-schema-tab="model"
+            response-area-height="300px"
+            show-method-in-nav-bar="as-colored-text"
+            use-path-in-nav-bar="true"
+            nav-item-spacing="relaxed"
+            font-size="default"
+            regular-font="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif"
+            mono-font="'Courier New', Courier, monospace"
+            load-fonts="true">
+    </rapidoc>
+
+    <script>
+        // Wait for RapiDoc to load
+        document.addEventListener('DOMContentLoaded', function() {
+            const rapidoc = document.getElementById('api-explorer');
+
+            rapidoc.addEventListener('spec-loaded', function() {
+                console.log('✅ OpenAPI specification loaded successfully');
+            });
+
+            rapidoc.addEventListener('spec-error', function(e) {
+                console.error('❌ Failed to load OpenAPI specification:', e.detail);
+            });
+
+            // Add custom styling after load
+            rapidoc.addEventListener('before-try', function(e) {
+                console.log('🚀 Testing endpoint:', e.detail.method, e.detail.path);
+            });
+
+            rapidoc.addEventListener('after-try', function(e) {
+                console.log('✅ Response received:', e.detail.responseStatus);
+            });
+        });
+
+        // Add JWT token persistence
+        window.addEventListener('load', function() {
+            const rapidoc = document.getElementById('api-explorer');
+
+            // Load saved JWT token from localStorage
+            const savedToken = localStorage.getItem('morsemate_jwt_token');
+            if (savedToken) {
+                setTimeout(function() {
+                    rapidoc.setAttribute('api-key-value', savedToken);
+                }, 1000);
+            }
+
+            // Listen for authentication updates
+            rapidoc.addEventListener('before-try', function(e) {
+                const authHeader = e.detail.request.headers.Authorization;
+                if (authHeader && authHeader.startsWith('Bearer ')) {
+                    const token = authHeader.replace('Bearer ', '');
+                    localStorage.setItem('morsemate_jwt_token', token);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title layout:fragment="title">MorseMate Administration | Power-ups</title>
+</head>
+<body>
+<main class="admin-content" layout:fragment="content">
+    <div class="breadcrumbs">
+                    <span>Home</span>
+                    <span>›</span>
+                    <span>Gamification</span>
+                    <span>›</span>
+                    <span>Power-ups</span>
+                </div>
+
+                <div class="page-header">
+                    <div>
+                        <h2>Power-ups</h2>
+                        <div class="meta" th:text="${#lists.size(powerups)} + ' objects total'">0 objects total</div>
+                    </div>
+                    <a class="primary-action" href="#create-form">＋ Add power-up</a>
+                </div>
+
+                <div th:if="${successMessage}" class="flash success" th:text="${successMessage}">
+                    Power-up saved.
+                </div>
+                <div th:if="${errorMessage}" class="flash error" th:text="${errorMessage}">
+                    Please fix the form errors below.
+                </div>
+
+                <section class="content-card" th:if="${!#lists.isEmpty(powerups)}">
+                    <header>
+                        <h3>Power-up changelist</h3>
+                    </header>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Power-up</th>
+                                <th>Type</th>
+                                <th>Cost (gems)</th>
+                                <th>Duration (hours)</th>
+                                <th>Icon</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="powerup : ${powerups}">
+                                <td th:text="${powerup.id}">1</td>
+                                <td>
+                                    <strong th:text="${powerup.name}">Double XP</strong>
+                                    <small th:text="${powerup.description}">Earn 2x experience points</small>
+                                </td>
+                                <td th:text="${powerup.type}">XP_BOOST</td>
+                                <td th:text="${powerup.costGems}">50</td>
+                                <td th:text="${powerup.durationHours != null ? powerup.durationHours + ' hrs' : 'Instant'}">2 hrs</td>
+                                <td th:text="${powerup.icon ?: '—'}">⚡</td>
+                                <td>
+                                    <span class="status"
+                                          th:classappend="${powerup.isActive} ? ' active' : ' inactive'"
+                                          th:text="${powerup.isActive} ? 'Active' : 'Inactive'">Active</span>
+                                </td>
+                                <td th:text="${powerup.createdAt != null ? #temporals.format(powerup.createdAt, 'dd MMM yyyy') : '—'}">01 Jan 2024</td>
+                                <td>
+                                    <div class="changelist-actions">
+                                        <a class="action-edit"
+                                           th:href="@{'/admin/powerups'(editId=${powerup.id})}">Change</a>
+                                        <form th:action="@{'/admin/powerups/' + ${powerup.id} + '/delete'}"
+                                              method="post">
+                                            <button type="submit" class="action-delete"
+                                                    onclick="return confirm('Delete this power-up? This cannot be undone.');">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <div class="form-grid">
+                    <form id="create-form"
+                          class="admin-form"
+                          th:action="@{/admin/powerups}"
+                          method="post"
+                          th:object="${powerupForm}">
+                        <h3>Add power-up</h3>
+                        <div class="form-row">
+                            <label for="name">Name</label>
+                            <input id="name" type="text" th:field="*{name}" placeholder="e.g. Double XP">
+                            <div class="form-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Name error</div>
+                        </div>
+                        <div class="form-row">
+                            <label for="description">Description</label>
+                            <textarea id="description" th:field="*{description}" placeholder="What does this power-up do?"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <label for="type">Type</label>
+                            <select id="type" th:field="*{type}">
+                                <option value="">Select type...</option>
+                                <option value="XP_BOOST">XP Boost</option>
+                                <option value="HEART_REFILL">Heart Refill</option>
+                                <option value="STREAK_FREEZE">Streak Freeze</option>
+                                <option value="UNLIMITED_HEARTS">Unlimited Hearts</option>
+                            </select>
+                            <div class="form-error" th:if="${#fields.hasErrors('type')}" th:errors="*{type}">Type error</div>
+                        </div>
+                        <div class="form-row">
+                            <label for="costGems">Cost (gems)</label>
+                            <input id="costGems" type="number" min="0" th:field="*{costGems}" placeholder="50">
+                            <div class="form-error" th:if="${#fields.hasErrors('costGems')}" th:errors="*{costGems}">Cost error</div>
+                        </div>
+                        <div class="form-row">
+                            <label for="durationHours">Duration (hours - optional)</label>
+                            <input id="durationHours" type="number" min="1" th:field="*{durationHours}" placeholder="2">
+                            <span class="form-help">Leave empty for instant power-ups.</span>
+                        </div>
+                        <div class="form-row">
+                            <label for="icon">Icon (emoji)</label>
+                            <input id="icon" type="text" th:field="*{icon}" placeholder="⚡" maxlength="10">
+                        </div>
+                        <div class="form-row">
+                            <label for="isActive">Status</label>
+                            <select id="isActive" th:field="*{isActive}">
+                                <option th:value="true">Active</option>
+                                <option th:value="false">Inactive</option>
+                            </select>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="button-primary">Save</button>
+                        </div>
+                    </form>
+
+                    <form th:if="${editingId != null}"
+                          class="admin-form"
+                          th:action="@{'/admin/powerups/' + ${editingId} + '/update'}"
+                          method="post"
+                          th:object="${editForm}">
+                        <h3 th:text="'Change power-up #' + ${editingId}">Change power-up</h3>
+                        <div class="form-row">
+                            <label for="edit-name">Name</label>
+                            <input id="edit-name" type="text" th:field="*{name}">
+                            <div class="form-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Name error</div>
+                        </div>
+                        <div class="form-row">
+                            <label for="edit-description">Description</label>
+                            <textarea id="edit-description" th:field="*{description}"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <label for="edit-type">Type</label>
+                            <select id="edit-type" th:field="*{type}">
+                                <option value="">Select type...</option>
+                                <option value="XP_BOOST">XP Boost</option>
+                                <option value="HEART_REFILL">Heart Refill</option>
+                                <option value="STREAK_FREEZE">Streak Freeze</option>
+                                <option value="UNLIMITED_HEARTS">Unlimited Hearts</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <label for="edit-costGems">Cost (gems)</label>
+                            <input id="edit-costGems" type="number" min="0" th:field="*{costGems}">
+                        </div>
+                        <div class="form-row">
+                            <label for="edit-durationHours">Duration (hours - optional)</label>
+                            <input id="edit-durationHours" type="number" min="1" th:field="*{durationHours}">
+                        </div>
+                        <div class="form-row">
+                            <label for="edit-icon">Icon (emoji)</label>
+                            <input id="edit-icon" type="text" th:field="*{icon}" maxlength="10">
+                        </div>
+                        <div class="form-row">
+                            <label for="edit-isActive">Status</label>
+                            <select id="edit-isActive" th:field="*{isActive}">
+                                <option th:value="true">Active</option>
+                                <option th:value="false">Inactive</option>
+                            </select>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="button-primary">Save changes</button>
+                            <a class="button-secondary" th:href="@{/admin/powerups}">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<aside class="admin-sidebar"
+       xmlns:th="http://www.thymeleaf.org"
+       th:fragment="adminSidebar(activePage)">
+    <div class="sidebar-section">
+        <h2>Site administration</h2>
+        <div class="sidebar-links">
+            <a th:classappend="${activePage == 'dashboard'} ? ' active'" href="/admin">Dashboard</a>
+            <a th:classappend="${activePage == 'categories'} ? ' active'" href="/admin/categories">Categories</a>
+            <a th:classappend="${activePage == 'lessons'} ? ' active'" href="/admin/lessons">Lessons</a>
+            <a th:classappend="${activePage == 'exercises'} ? ' active'" href="/admin/exercises">Exercises</a>
+            <a th:classappend="${activePage == 'users'} ? ' active'" href="/admin/users">Users</a>
+            <a th:classappend="${activePage == 'subscriptions'} ? ' active'" href="/admin/subscriptions">Subscriptions</a>
+        </div>
+    </div>
+    <div class="sidebar-section">
+        <h2>Gamification</h2>
+        <div class="sidebar-links">
+            <a th:classappend="${activePage == 'achievements'} ? ' active'" href="/admin/achievements">Achievements</a>
+            <a th:classappend="${activePage == 'gems'} ? ' active'" href="/admin/gems">Gems</a>
+            <a th:classappend="${activePage == 'powerups'} ? ' active'" href="/admin/powerups">Power-ups</a>
+            <a th:classappend="${activePage == 'leaderboard'} ? ' active'" href="/admin/leaderboard">Leaderboard</a>
+        </div>
+    </div>
+    <div class="sidebar-section">
+        <h2>Utilities</h2>
+        <div class="sidebar-links">
+            <a href="/api/docs">API documentation</a>
+            <a href="/api/openapi.json">OpenAPI schema</a>
+        </div>
+    </div>
+</aside>

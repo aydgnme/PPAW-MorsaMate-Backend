@@ -37,7 +37,7 @@ public class UserController {
      * GET /users/{id}
      */
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
+    public ResponseEntity<UserResponse> getUserById(@PathVariable("id") Long id) {
         UserResponse user = userService.getUserResponseById(id);
         return ResponseEntity.ok(user);
     }
@@ -47,7 +47,7 @@ public class UserController {
      * GET /users/username/{username}
      */
     @GetMapping("/username/{username}")
-    public ResponseEntity<UserResponse> getUserByUsername(@PathVariable String username) {
+    public ResponseEntity<UserResponse> getUserByUsername(@PathVariable("username") String username) {
         var user = userService.getUserByUsername(username);
         return ResponseEntity.ok(UserResponse.from(user));
     }
@@ -117,7 +117,7 @@ public class UserController {
      */
     @PostMapping("/{id}/points")
     public ResponseEntity<MessageResponse> addPoints(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @RequestParam int points) {
         userService.addPoints(id, points);
         return ResponseEntity.ok(new MessageResponse("Points added successfully"));
@@ -128,7 +128,7 @@ public class UserController {
      * POST /users/{id}/deactivate
      */
     @PostMapping("/{id}/deactivate")
-    public ResponseEntity<MessageResponse> deactivateAccount(@PathVariable Long id) {
+    public ResponseEntity<MessageResponse> deactivateAccount(@PathVariable("id") Long id) {
         userService.deactivateAccount(id);
         return ResponseEntity.ok(new MessageResponse("Account deactivated successfully"));
     }
@@ -138,7 +138,7 @@ public class UserController {
      * POST /users/{id}/activate
      */
     @PostMapping("/{id}/activate")
-    public ResponseEntity<MessageResponse> activateAccount(@PathVariable Long id) {
+    public ResponseEntity<MessageResponse> activateAccount(@PathVariable("id") Long id) {
         userService.activateAccount(id);
         return ResponseEntity.ok(new MessageResponse("Account activated successfully"));
     }
@@ -148,7 +148,7 @@ public class UserController {
      * POST /users/{id}/verify-email
      */
     @PostMapping("/{id}/verify-email")
-    public ResponseEntity<MessageResponse> verifyEmail(@PathVariable Long id) {
+    public ResponseEntity<MessageResponse> verifyEmail(@PathVariable("id") Long id) {
         userService.verifyEmail(id);
         return ResponseEntity.ok(new MessageResponse("Email verified successfully"));
     }

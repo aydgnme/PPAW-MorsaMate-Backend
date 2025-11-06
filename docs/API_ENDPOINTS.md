@@ -45,7 +45,7 @@ Content-Type: application/json
 **Request Body:**
 ```json
 {
-  "username": "john_doe",
+  "identifier": "john_doe",
   "email": "john@example.com",
   "password": "SecurePass123",
   "fullName": "John Doe"
@@ -59,7 +59,7 @@ Content-Type: application/json
   "expiresIn": 86400,
   "user": {
     "id": 1,
-    "username": "john_doe",
+    "identifier": "john_doe",
     "email": "john@example.com",
     "fullName": "John Doe",
     "level": 1,
@@ -111,7 +111,7 @@ Authorization: Bearer {token}
 ```json
 {
   "id": 1,
-  "username": "john_doe",
+  "identifier": "john_doe",
   "email": "john@example.com",
   "fullName": "John Doe",
   "profilePictureUrl": null,
@@ -1225,10 +1225,159 @@ Authorization: Bearer {token}
 
 ---
 
-### Get Payment History
+## Payment Management (Simulated)
+
+> **Note:** Payment endpoints are currently in SIMULATION MODE. All payments are mock transactions for testing purposes. Real Stripe integration will be added in future iterations.
+
+### Create Payment (Simulated)
 ```http
-GET /v1/payments?page=0&size=10
+POST /v1/payments/create
 Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "subscriptionId": 1,
+  "amount": 9.99,
+  "currency": "USD",
+  "paymentMethod": "credit_card",
+  "simulateFailure": false,
+  "metadata": {
+    "description": "Premium subscription payment"
+  }
+}
+```
+
+**Response (201 Created):**
+```json
+{
+  "id": 1,
+  "userId": 1,
+  "username": "john_doe",
+  "subscriptionId": 1,
+  "amount": 9.99,
+  "currency": "USD",
+  "status": "COMPLETED",
+  "paymentMethod": "credit_card",
+  "stripePaymentId": "sim_abc123456",
+  "transactionDate": "2025-01-20T10:00:00",
+  "metadata": {
+    "simulated": true,
+    "simulation_timestamp": "2025-01-20T10:00:00",
+    "description": "Premium subscription payment"
+  },
+  "simulated": true
+}
+```
+
+---
+
+### Get My Payments
+```http
+GET /v1/payments/my
+Authorization: Bearer {token}
+```
+
+**Response (200 OK):**
+```json
+[
+  {
+    "id": 1,
+    "userId": 1,
+    "username": "john_doe",
+    "subscriptionId": 1,
+    "amount": 9.99,
+    "currency": "USD",
+    "status": "COMPLETED",
+    "paymentMethod": "credit_card",
+    "stripePaymentId": "sim_abc123456",
+    "transactionDate": "2025-01-20T10:00:00",
+    "simulated": true
+  }
+]
+```
+
+---
+
+### Get My Payment Statistics
+```http
+GET /v1/payments/my/stats
+Authorization: Bearer {token}
+```
+
+**Response (200 OK):**
+```json
+{
+  "totalPayments": 5,
+  "completedPayments": 4,
+  "failedPayments": 1,
+  "refundedPayments": 0,
+  "totalSpent": 39.96,
+  "totalRefunded": 0,
+  "netSpent": 39.96
+}
+```
+
+---
+
+### Get Payment by ID
+```http
+GET /v1/payments/{id}
+Authorization: Bearer {token}
+```
+
+**Response (200 OK):**
+```json
+{
+  "id": 1,
+  "userId": 1,
+  "username": "john_doe",
+  "subscriptionId": 1,
+  "amount": 9.99,
+  "currency": "USD",
+  "status": "COMPLETED",
+  "paymentMethod": "credit_card",
+  "stripePaymentId": "sim_abc123456",
+  "transactionDate": "2025-01-20T10:00:00",
+  "simulated": true
+}
+```
+
+---
+
+### Get Subscription Payments
+```http
+GET /v1/payments/subscriptions/{subscriptionId}
+Authorization: Bearer {token}
+```
+
+**Response (200 OK):**
+```json
+[
+  {
+    "id": 1,
+    "userId": 1,
+    "username": "john_doe",
+    "subscriptionId": 1,
+    "amount": 9.99,
+    "currency": "USD",
+    "status": "COMPLETED",
+    "transactionDate": "2025-01-20T10:00:00",
+    "simulated": true
+  }
+]
+```
+
+---
+
+## Admin Payment Endpoints
+
+### Get All Payments (Admin)
+```http
+GET /v1/payments?page=0&size=20&sortBy=id&sortDir=DESC
+Authorization: Bearer {admin_token}
 ```
 
 **Response (200 OK):**
@@ -1237,25 +1386,87 @@ Authorization: Bearer {token}
   "content": [
     {
       "id": 1,
+      "userId": 1,
+      "username": "john_doe",
       "amount": 9.99,
       "currency": "USD",
       "status": "COMPLETED",
-      "paymentMethod": "CARD",
-      "description": "Premium Monthly Subscription",
-      "createdAt": "2025-01-01T10:00:00",
-      "receiptUrl": "https://example.com/receipts/123"
+      "transactionDate": "2025-01-20T10:00:00",
+      "simulated": true
     }
   ],
-  "totalElements": 5,
-  "totalPages": 1
+  "totalElements": 50,
+  "totalPages": 3,
+  "number": 0,
+  "size": 20
 }
 ```
 
 ---
 
-### Create Payment Intent (Stripe)
+### Get User Payments (Admin)
 ```http
-POST /v1/payments/create-intent
+GET /v1/payments/users/{userId}
+Authorization: Bearer {admin_token}
+```
+
+---
+
+### Get User Payment Statistics (Admin)
+```http
+GET /v1/payments/users/{userId}/stats
+Authorization: Bearer {admin_token}
+```
+
+---
+
+### Refund Payment (Admin, Simulated)
+```http
+POST /v1/payments/{id}/refund
+Authorization: Bearer {admin_token}
+Content-Type: application/json
+```
+
+**Request Body (optional):**
+```json
+{
+  "amount": 9.99,
+  "reason": "Customer request"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "id": 1,
+  "userId": 1,
+  "username": "john_doe",
+  "amount": 9.99,
+  "currency": "USD",
+  "status": "REFUNDED",
+  "transactionDate": "2025-01-20T10:00:00",
+  "metadata": {
+    "simulated": true,
+    "refund_amount": "9.99",
+    "refund_date": "2025-01-20T11:00:00",
+    "refund_reason": "Customer request",
+    "refund_simulated": true
+  },
+  "simulated": true
+}
+```
+
+---
+
+---
+
+## Stripe Integration (Simulated)
+
+> **Note:** Stripe endpoints are currently in SIMULATION MODE. All Stripe API operations are mocked for testing purposes. Real Stripe integration will be added in future iterations.
+
+### Create Payment Intent (Simulated)
+```http
+POST /v1/stripe/create-payment-intent
 Authorization: Bearer {token}
 Content-Type: application/json
 ```
@@ -1263,28 +1474,228 @@ Content-Type: application/json
 **Request Body:**
 ```json
 {
-  "planId": 2,
-  "promoCode": "WELCOME20"
+  "amount": 9.99,
+  "currency": "usd",
+  "planId": 1,
+  "promoCode": "WELCOME20",
+  "paymentMethodTypes": ["card"],
+  "simulateFailure": false
+}
+```
+
+**Response (201 Created):**
+```json
+{
+  "id": "pi_sim_abc123456",
+  "clientSecret": "pi_sim_abc123456_secret_xyz",
+  "amount": 999,
+  "amountDecimal": 9.99,
+  "currency": "usd",
+  "status": "requires_confirmation",
+  "paymentMethodTypes": ["card"],
+  "metadata": {
+    "user_id": "1",
+    "plan_id": "1",
+    "simulated": "true"
+  },
+  "simulated": true,
+  "created": 1705924800
+}
+```
+
+**Usage:**
+Use the `clientSecret` to confirm the payment on the frontend (simulated).
+
+---
+
+### Confirm Payment Intent (Simulated)
+```http
+POST /v1/stripe/confirm-payment-intent/{id}
+Authorization: Bearer {token}
+```
+
+**Response (200 OK):**
+```json
+{
+  "id": "pi_sim_abc123456",
+  "clientSecret": "pi_sim_abc123456_secret_xyz",
+  "amount": 999,
+  "amountDecimal": 9.99,
+  "currency": "usd",
+  "status": "succeeded",
+  "simulated": true
+}
+```
+
+---
+
+### Cancel Payment Intent (Simulated)
+```http
+POST /v1/stripe/cancel-payment-intent/{id}
+Authorization: Bearer {token}
+```
+
+**Response (200 OK):**
+```json
+{
+  "id": "pi_sim_abc123456",
+  "status": "canceled",
+  "simulated": true
+}
+```
+
+---
+
+### Get Payment Intent (Simulated)
+```http
+GET /v1/stripe/payment-intent/{id}
+Authorization: Bearer {token}
+```
+
+**Response (200 OK):**
+```json
+{
+  "id": "pi_sim_abc123456",
+  "clientSecret": "pi_sim_abc123456_secret_xyz",
+  "amount": 999,
+  "currency": "usd",
+  "status": "succeeded",
+  "simulated": true
+}
+```
+
+---
+
+### Get Stripe Customer (Simulated)
+```http
+GET /v1/stripe/customer
+Authorization: Bearer {token}
+```
+
+**Response (200 OK):**
+```json
+{
+  "id": "cus_sim_abc123",
+  "email": "user@example.com",
+  "name": "John Doe",
+  "userId": 1,
+  "simulated": true,
+  "created": 1705924800
+}
+```
+
+---
+
+### Stripe Webhook Handler (Simulated)
+```http
+POST /v1/stripe/webhook
+Content-Type: application/json
+```
+
+**Supported Event Types:**
+- `payment_intent.succeeded` - Payment completed successfully
+- `payment_intent.payment_failed` - Payment failed
+- `payment_intent.canceled` - Payment canceled
+- `customer.created` - Customer created
+- `charge.refunded` - Payment refunded
+
+**Example Webhook Payload:**
+```json
+{
+  "id": "evt_sim_123",
+  "type": "payment_intent.succeeded",
+  "created": 1705924800,
+  "livemode": false,
+  "simulated": true,
+  "data": {
+    "object": {
+      "id": "pi_sim_abc123456",
+      "amount": 999,
+      "currency": "usd",
+      "status": "succeeded"
+    }
+  }
 }
 ```
 
 **Response (200 OK):**
 ```json
 {
-  "clientSecret": "pi_1234567890_secret_abcdef",
-  "amount": 799,
-  "currency": "usd"
+  "message": "Webhook processed successfully"
 }
 ```
 
 ---
 
-### Webhook Handler (Stripe)
+### Simulate Webhook Event (Testing)
 ```http
-POST /v1/payments/webhook
-Stripe-Signature: {stripe_signature}
-Content-Type: application/json
+POST /v1/stripe/simulate-webhook
+Authorization: Bearer {token}
 ```
+
+**Query Parameters:**
+- `eventType` - Event type (e.g., payment_intent.succeeded)
+- `paymentIntentId` - Payment Intent ID
+
+**Example:**
+```
+POST /v1/stripe/simulate-webhook?eventType=payment_intent.succeeded&paymentIntentId=pi_sim_abc123
+```
+
+---
+
+## Admin Stripe Endpoints (Simulated)
+
+### Get Stripe Simulation Statistics (Admin)
+```http
+GET /v1/stripe/stats
+Authorization: Bearer {admin_token}
+```
+
+**Response (200 OK):**
+```json
+{
+  "totalPaymentIntents": 50,
+  "totalCustomers": 25,
+  "succeededPayments": 40,
+  "failedPayments": 5,
+  "canceledPayments": 5
+}
+```
+
+---
+
+### Refund Payment Intent (Admin, Simulated)
+```http
+POST /v1/stripe/refund/{id}
+Authorization: Bearer {admin_token}
+```
+
+**Query Parameters:**
+- `amount` - Refund amount (optional, full refund if not specified)
+- `reason` - Refund reason (optional)
+
+**Example:**
+```
+POST /v1/stripe/refund/pi_sim_abc123?amount=9.99&reason=Customer request
+```
+
+---
+
+### Clear Simulated Data (Admin)
+```http
+DELETE /v1/stripe/clear
+Authorization: Bearer {admin_token}
+```
+
+**Response (200 OK):**
+```json
+{
+  "message": "All simulated Stripe data cleared"
+}
+```
+
+> **Warning:** This removes all simulated Payment Intents and Customers. Use with caution in testing environments.
 
 ---
 
@@ -1678,7 +2089,7 @@ Authorization: Bearer {token}
   "content": [
     {
       "id": 1,
-      "username": "john_doe",
+      "identifier": "john_doe",
       "fullName": "John Doe",
       "profilePictureUrl": "https://example.com/avatars/1.jpg",
       "level": 5,

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.UUID;
 
 @Component
 @Slf4j
@@ -22,6 +23,8 @@ public class JwtUtil {
     private Long jwtExpiration;
 
     private static final int MIN_KEY_LENGTH = 32; // 256 bits minimum
+
+    private SecretKey signingKey;
 
     /**
      * Validate JWT secret key on application startup
@@ -40,11 +43,17 @@ public class JwtUtil {
             );
         }
 
-        log.info("JWT secret key validated successfully ({} bytes)", keyBytes.length);
+        String runtimeSecret = jwtSecret + ":" + UUID.randomUUID();
+        signingKey = Keys.hmacShaKeyFor(runtimeSecret.getBytes(StandardCharsets.UTF_8));
+
+        log.info("JWT secret key validated successfully ({} bytes base, instance salt applied)", keyBytes.length);
     }
 
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+        if (signingKey == null) {
+            throw new IllegalStateException("Signing key not initialized. validateSecretKey() should have run at startup.");
+        }
+        return signingKey;
     }
 
     /**

@@ -224,10 +224,17 @@ MorseMate/
 │   │   │   │   └── JwtAuthenticationFilter.java
 │   │   │   └── exception/       # Custom Exception Handlers
 │   │   └── resources/
-│   │       ├── application.properties
-│   │       └── application-prod.properties
+│   │       ├── application.properties         # Primary Spring Boot config
+│   │       ├── META-INF/
+│   │       │   └── spring.factories           # Additional auto-configuration
+│   │       ├── db/
+│   │       │   └── migration/                 # Flyway database migrations
+│   │       ├── static/                        # Static assets served by MVC
+│   │       └── templates/                     # Thymeleaf error views
 │   └── test/
-│       └── java/me/aydgn/MorseMate/
+│       ├── java/me/aydgn/MorseMate/
+│       └── resources/
+│           └── application-test.properties
 ├── .github/
 │   ├── workflows/
 │   │   ├── ci.yml              # CI/CD Pipeline

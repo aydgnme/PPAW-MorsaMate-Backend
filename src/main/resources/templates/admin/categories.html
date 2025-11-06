@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title layout:fragment="title">MorseMate Administration | Categories</title>
+</head>
+<body>
+<main class="admin-content" layout:fragment="content">
+    <div class="breadcrumbs">
+                    <span>Home</span>
+                    <span>›</span>
+                    <span>Categories</span>
+                </div>
+
+                <div class="page-header">
+                    <div>
+                        <h2>Categories</h2>
+                        <div class="meta" th:text="${#lists.size(categories)} + ' objects total'">0 objects total</div>
+                    </div>
+                    <a class="primary-action" href="#create-form">＋ Add category</a>
+                </div>
+
+                <div th:if="${successMessage}" class="flash success" th:text="${successMessage}">
+                    Category saved.
+                </div>
+                <div th:if="${errorMessage}" class="flash error" th:text="${errorMessage}">
+                    Please fix the form errors below.
+                </div>
+
+                <section class="content-card" th:if="${!#lists.isEmpty(categories)}">
+                    <header>
+                        <h3>Category changelist</h3>
+                    </header>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Category</th>
+                                <th>Status</th>
+                                <th>Display order</th>
+                                <th>Lessons</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="category : ${categories}">
+                                <td th:text="${category.id}">1</td>
+                                <td>
+                                    <strong th:text="${category.name}">Morse basics</strong>
+                                    <small th:text="${category.description}">Foundational content</small>
+                                    <small th:if="${category.iconUrl}" th:text="${category.iconUrl}">https://example</small>
+                                </td>
+                                <td>
+                                    <span class="status"
+                                          th:classappend="${category.isActive} ? ' active' : ' inactive'"
+                                          th:text="${category.isActive} ? 'Active' : 'Inactive'">Active</span>
+                                </td>
+                                <td th:text="${category.displayOrder != null ? category.displayOrder : '—'}">1</td>
+                                <td th:text="${category.lessonCount != null ? category.lessonCount : 0}">0</td>
+                                <td th:text="${category.createdAt != null ? #temporals.format(category.createdAt, 'dd MMM yyyy HH:mm') : '—'}">01 Jan 2024</td>
+                                <td>
+                                    <div class="changelist-actions">
+                                        <a class="action-edit"
+                                           th:href="@{'/admin/categories'(editId=${category.id})}">Change</a>
+                                        <form th:action="@{'/admin/categories/' + ${category.id} + '/delete'}"
+                                              method="post">
+                                            <button type="submit" class="action-delete"
+                                                    onclick="return confirm('Delete this category? This cannot be undone.');">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <div class="form-grid">
+                    <form id="create-form"
+                          class="admin-form"
+                          th:action="@{/admin/categories}"
+                          method="post"
+                          th:object="${categoryForm}">
+                        <h3>Add category</h3>
+                        <div class="form-row">
+                            <label for="name">Name</label>
+                            <input id="name" type="text" th:field="*{name}" placeholder="e.g. Morse basics">
+                            <div class="form-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Name error</div>
+                        </div>
+                        <div class="form-row">
+                            <label for="description">Description</label>
+                            <textarea id="description" th:field="*{description}" placeholder="Short summary"></textarea>
+                            <div class="form-error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}">Description error</div>
+                        </div>
+                        <div class="form-row">
+                            <label for="displayOrder">Display order</label>
+                            <input id="displayOrder" type="number" min="0" th:field="*{displayOrder}" placeholder="0">
+                            <span class="form-help">Lower numbers appear first in lesson listings.</span>
+                        </div>
+                        <div class="form-row">
+                            <label for="iconUrl">Icon URL</label>
+                            <input id="iconUrl" type="url" th:field="*{iconUrl}" placeholder="https://...">
+                            <div class="form-error" th:if="${#fields.hasErrors('iconUrl')}" th:errors="*{iconUrl}">Icon URL error</div>
+                        </div>
+                        <div class="form-row">
+                            <label for="isActive">Status</label>
+                            <select id="isActive" th:field="*{isActive}">
+                                <option th:value="true">Active</option>
+                                <option th:value="false">Inactive</option>
+                            </select>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="button-primary">Save</button>
+                        </div>
+                    </form>
+
+                    <form th:if="${editingId != null}"
+                          class="admin-form"
+                          th:action="@{'/admin/categories/' + ${editingId} + '/update'}"
+                          method="post"
+                          th:object="${editForm}">
+                        <h3 th:text="'Change category #' + ${editingId}">Change category</h3>
+                        <div class="form-row">
+                            <label for="edit-name">Name</label>
+                            <input id="edit-name" type="text" th:field="*{name}" placeholder="Category name">
+                            <div class="form-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Name error</div>
+                        </div>
+                        <div class="form-row">
+                            <label for="edit-description">Description</label>
+                            <textarea id="edit-description" th:field="*{description}" placeholder="Short summary"></textarea>
+                            <div class="form-error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}">Description error</div>
+                        </div>
+                        <div class="form-row">
+                            <label for="edit-displayOrder">Display order</label>
+                            <input id="edit-displayOrder" type="number" min="0" th:field="*{displayOrder}">
+                        </div>
+                        <div class="form-row">
+                            <label for="edit-iconUrl">Icon URL</label>
+                            <input id="edit-iconUrl" type="url" th:field="*{iconUrl}">
+                            <div class="form-error" th:if="${#fields.hasErrors('iconUrl')}" th:errors="*{iconUrl}">Icon URL error</div>
+                        </div>
+                        <div class="form-row">
+                            <label for="edit-isActive">Status</label>
+                            <select id="edit-isActive" th:field="*{isActive}">
+                                <option th:value="true">Active</option>
+                                <option th:value="false">Inactive</option>
+                            </select>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="button-primary">Save changes</button>
+                            <a class="button-secondary" th:href="@{/admin/categories}">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+</main>
+</body>
+</html>

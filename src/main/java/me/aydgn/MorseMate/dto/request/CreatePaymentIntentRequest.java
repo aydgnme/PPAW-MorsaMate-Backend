@@ -1,0 +1,62 @@
+package me.aydgn.MorseMate.dto.request;
+
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
+import java.util.Map;
+
+/**
+ * Request DTO for creating a Stripe Payment Intent (simulated).
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class CreatePaymentIntentRequest {
+
+    /**
+     * Amount to charge (in the currency's smallest unit, e.g., cents for USD).
+     */
+    @NotNull(message = "Amount is required")
+    @DecimalMin(value = "0.01", message = "Amount must be greater than 0")
+    private BigDecimal amount;
+
+    /**
+     * Three-letter ISO currency code (USD, EUR, etc.).
+     */
+    @NotNull(message = "Currency is required")
+    @Builder.Default
+    private String currency = "usd";
+
+    /**
+     * Subscription plan ID (optional, for tracking).
+     */
+    private Long planId;
+
+    /**
+     * Promo code (optional).
+     */
+    private String promoCode;
+
+    /**
+     * Payment method types accepted.
+     */
+    @Builder.Default
+    private String[] paymentMethodTypes = new String[]{"card"};
+
+    /**
+     * Additional metadata.
+     */
+    private Map<String, String> metadata;
+
+    /**
+     * Simulate failure for testing.
+     */
+    @Builder.Default
+    private Boolean simulateFailure = false;
+}

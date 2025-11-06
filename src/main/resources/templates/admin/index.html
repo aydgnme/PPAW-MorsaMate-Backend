@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title layout:fragment="title">MorseMate Administration | Home</title>
+</head>
+<body>
+<main class="admin-content" layout:fragment="content">
+    <div class="breadcrumbs">
+        <span>Home</span>
+    </div>
+
+    <div class="page-header">
+        <div>
+            <h2>Site administration</h2>
+            <div class="meta">Manage content, monitor users, and configure gamification.</div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(12, 75, 51, 0.12);">
+                <span style="color: #0c4b33;">📚</span>
+            </div>
+            <div>
+                <div class="stat-value" th:text="${stats.totalCategories}">0</div>
+                <div class="stat-label">Categories</div>
+            </div>
+            <a href="/admin/categories" class="stat-link">View →</a>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(29, 78, 216, 0.12);">
+                <span style="color: #1d4ed8;">📖</span>
+            </div>
+            <div>
+                <div class="stat-value" th:text="${stats.totalLessons}">0</div>
+                <div class="stat-label">Lessons</div>
+            </div>
+            <a href="/admin/lessons" class="stat-link">View →</a>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(94, 234, 212, 0.12);">
+                <span style="color: #0f766e;">🧩</span>
+            </div>
+            <div>
+                <div class="stat-value" th:text="${stats.totalExercises}">0</div>
+                <div class="stat-label">Exercises</div>
+            </div>
+            <a href="/admin/exercises" class="stat-link">View →</a>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(147, 51, 234, 0.12);">
+                <span style="color: #9333ea;">👥</span>
+            </div>
+            <div>
+                <div class="stat-value" th:text="${stats.totalUsers}">0</div>
+                <div class="stat-label">Users</div>
+            </div>
+            <a href="/admin/users" class="stat-link">View →</a>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(234, 179, 8, 0.12);">
+                <span style="color: #ca8a04;">🏆</span>
+            </div>
+            <div>
+                <div class="stat-value" th:text="${stats.totalAchievements}">0</div>
+                <div class="stat-label">Achievements</div>
+            </div>
+            <a href="/admin/achievements" class="stat-link">View →</a>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <section class="content-card">
+        <header>
+            <h3>Recent activity</h3>
+        </header>
+        <div class="activity-list">
+            <div class="activity-item"
+                 th:each="activity : ${recentActivity}"
+                 th:if="${recentActivity != null}">
+                <div class="activity-icon" th:text="${activity.icon}">📝</div>
+                <div class="activity-details">
+                    <strong th:text="${activity.title}">New user registered</strong>
+                    <small th:text="${activity.description}">john@example.com joined the platform</small>
+                </div>
+                <div class="activity-time" th:text="${activity.timeAgo}">2 minutes ago</div>
+            </div>
+            <div th:if="${recentActivity == null or #lists.isEmpty(recentActivity)}"
+                 style="padding: 24px; text-align: center; color: #6b7280;">
+                No recent activity
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Actions -->
+    <section class="content-card">
+        <header>
+            <h3>Quick actions</h3>
+        </header>
+        <div style="padding:24px;display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));">
+            <a class="quick-action-btn" href="/admin/categories">
+                <span>📚</span>
+                <span>Add category</span>
+            </a>
+            <a class="quick-action-btn" href="/admin/lessons">
+                <span>📖</span>
+                <span>Add lesson</span>
+            </a>
+            <a class="quick-action-btn" href="/admin/achievements">
+                <span>🏆</span>
+                <span>Add achievement</span>
+            </a>
+            <a class="quick-action-btn" href="/admin/gems">
+                <span>💎</span>
+                <span>Manage gems</span>
+            </a>
+            <a class="quick-action-btn" href="/admin/users">
+                <span>👥</span>
+                <span>View users</span>
+            </a>
+            <a class="quick-action-btn" href="/api/docs">
+                <span>📄</span>
+                <span>View REST API docs</span>
+            </a>
+        </div>
+    </section>
+</main>
+</body>
+</html>

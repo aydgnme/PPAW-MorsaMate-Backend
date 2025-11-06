@@ -43,4 +43,10 @@ public interface PaymentRepository extends JpaRepository<Payment, Long>, JpaSpec
             order by p.transactionDate desc
            """)
     List<Payment> findRecentCompletedPayments(@Param("userId") Long userId, Pageable pageable);
+
+    // Find all payments by user ID
+    List<Payment> findByUserId(Long userId);
+
+    // Find all payments by subscription ID
+    List<Payment> findBySubscriptionId(Long subscriptionId);
 }

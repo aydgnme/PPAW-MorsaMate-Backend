@@ -1,0 +1,84 @@
+spring:
+  application:
+    name: ${SPRING_APPLICATION_NAME:MorseMate}
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+    time-zone: UTC
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: false
+
+server:
+  port: ${SERVER_PORT:8080}
+
+api:
+  version: ${API_VERSION:v1}
+
+app:
+  name: ${APP_NAME:MorseMate}
+  version: ${APP_VERSION:1.0.0}
+  redirect-url: ${APP_REDIRECT_URL:https://aydgn.me}
+  admin-panel-url: ${APP_ADMIN_PANEL_URL:/admin/users}
+
+jwt:
+  expiration: ${JWT_EXPIRATION:86400000}
+  secret: ${JWT_SECRET:CHANGE-ME-TO-A-SECURE-256-BIT-VALUE-FOR-NON-DEV-ENVIRONMENTS}
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+  allowed-methods: GET,POST,PUT,DELETE,PATCH,OPTIONS
+  allowed-headers: "*"
+  allow-credentials: true
+
+logging:
+  level:
+    root: INFO
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /api/openapi.json
+  packages-to-scan: me.aydgn.MorseMate.controller
+  show-actuator: false
+  swagger-ui:
+    enabled: false
+    operationsSorter: method
+    tagsSorter: alpha
+
+# Payment Configuration
+payment:
+  simulation-mode: ${PAYMENT_SIMULATION_MODE:true}
+  default-currency: ${PAYMENT_DEFAULT_CURRENCY:USD}
+  supported-currencies: ${PAYMENT_SUPPORTED_CURRENCIES:USD,EUR,TRY,GBP}
+  min-amount: ${PAYMENT_MIN_AMOUNT:0.50}
+  max-amount: ${PAYMENT_MAX_AMOUNT:10000.00}
+
+# Stripe Configuration (Simulated)
+stripe:
+  api-key: ${STRIPE_API_KEY:sk_test_simulated}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_simulated}
+  simulation-mode: ${STRIPE_SIMULATION_MODE:true}
+  api-version: ${STRIPE_API_VERSION:2024-11-20.acacia}
+  currency: ${STRIPE_DEFAULT_CURRENCY:usd}
+  payment-methods: ${STRIPE_PAYMENT_METHODS:card,bank_transfer}
+  success-url: ${STRIPE_SUCCESS_URL:http://localhost:8080/payment/success}
+  cancel-url: ${STRIPE_CANCEL_URL:http://localhost:8080/payment/cancel}

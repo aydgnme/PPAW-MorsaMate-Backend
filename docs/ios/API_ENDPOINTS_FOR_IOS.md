@@ -92,7 +92,7 @@ struct AuthResponse: Codable {
   "expiresIn": 86400,
   "user": {
     "id": 1,
-    "username": "john_doe",
+    "identifier": "john_doe",
     "email": "john@example.com",
     "fullName": "John Doe",
     "level": 1,
@@ -179,7 +179,7 @@ let user = try await api.getCurrentUser()
 ```json
 {
   "id": 1,
-  "username": "john_doe",
+  "identifier": "john_doe",
   "email": "john@example.com",
   "fullName": "John Doe",
   "profilePictureUrl": null,

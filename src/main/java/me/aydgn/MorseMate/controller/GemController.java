@@ -104,7 +104,7 @@ public class GemController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<GemTransactionResponse>> getMyTransactionsByType(
             Authentication authentication,
-            @PathVariable String type) {
+            @PathVariable("type") String type) {
         Long userId = Long.parseLong(authentication.getName());
         log.debug("GET /v1/gems/me/transactions/type/{} - Fetching for user id: {}", type, userId);
 
@@ -151,7 +151,7 @@ public class GemController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Map<String, Boolean>> checkMyBalance(
             Authentication authentication,
-            @PathVariable @Min(1) Integer amount) {
+            @PathVariable("amount") @Min(1) Integer amount) {
         Long userId = Long.parseLong(authentication.getName());
         log.debug("GET /v1/gems/me/check/{} - Checking for user id: {}", amount, userId);
         boolean hasEnough = gemService.hasEnoughGems(userId, amount);
@@ -197,7 +197,7 @@ public class GemController {
     @PostMapping("/users/{userId}/add")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserGemsResponse> addGemsToUser(
-            @PathVariable Long userId,
+            @PathVariable("userId") Long userId,
             @Valid @RequestBody AddGemsRequest request) {
         log.info("POST /v1/gems/users/{}/add - Admin adding {} gems", userId, request.getAmount());
 
@@ -213,7 +213,7 @@ public class GemController {
     @PostMapping("/users/{userId}/spend")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserGemsResponse> spendGemsForUser(
-            @PathVariable Long userId,
+            @PathVariable("userId") Long userId,
             @Valid @RequestBody SpendGemsRequest request) {
         log.info("POST /v1/gems/users/{}/spend - Admin spending {} gems", userId, request.getAmount());
 
@@ -229,7 +229,7 @@ public class GemController {
     @PostMapping("/users/{userId}/bonus")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserGemsResponse> awardBonusToUser(
-            @PathVariable Long userId,
+            @PathVariable("userId") Long userId,
             @Valid @RequestBody AddGemsRequest request) {
         log.info("POST /v1/gems/users/{}/bonus - Admin awarding {} bonus gems", userId, request.getAmount());
 
@@ -244,7 +244,7 @@ public class GemController {
      */
     @GetMapping("/users/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserGemsResponse> getUserGems(@PathVariable Long userId) {
+    public ResponseEntity<UserGemsResponse> getUserGems(@PathVariable("userId") Long userId) {
         log.debug("GET /v1/gems/users/{} - Admin fetching gems", userId);
         UserGemsResponse gems = gemService.getUserGems(userId);
         return ResponseEntity.ok(gems);
@@ -256,7 +256,7 @@ public class GemController {
      */
     @GetMapping("/users/{userId}/transactions")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<GemTransactionResponse>> getUserTransactions(@PathVariable Long userId) {
+    public ResponseEntity<List<GemTransactionResponse>> getUserTransactions(@PathVariable("userId") Long userId) {
         log.debug("GET /v1/gems/users/{}/transactions - Admin fetching", userId);
         List<GemTransactionResponse> transactions = gemService.getUserTransactions(userId);
         return ResponseEntity.ok(transactions);
@@ -268,7 +268,7 @@ public class GemController {
      */
     @GetMapping("/users/{userId}/statistics")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, Object>> getUserStatistics(@PathVariable Long userId) {
+    public ResponseEntity<Map<String, Object>> getUserStatistics(@PathVariable("userId") Long userId) {
         log.debug("GET /v1/gems/users/{}/statistics - Admin fetching", userId);
         Map<String, Object> stats = gemService.getUserTransactionStatistics(userId);
         return ResponseEntity.ok(stats);

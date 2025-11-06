@@ -45,7 +45,7 @@ public class CategoryController {
      * Public endpoint - no authentication required
      */
     @GetMapping("/{id}")
-    public ResponseEntity<CategoryResponse> getCategoryById(@PathVariable Long id) {
+    public ResponseEntity<CategoryResponse> getCategoryById(@PathVariable("id") Long id) {
         log.debug("GET /v1/categories/{} - Fetching category", id);
         CategoryResponse category = categoryService.getCategoryById(id);
         return ResponseEntity.ok(category);
@@ -72,7 +72,7 @@ public class CategoryController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoryResponse> updateCategory(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Valid @RequestBody UpdateCategoryRequest request) {
         log.info("PUT /v1/categories/{} - Updating category", id);
         CategoryResponse updated = categoryService.updateCategory(id, request);
@@ -86,7 +86,7 @@ public class CategoryController {
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiMessage> deleteCategory(@PathVariable Long id) {
+    public ResponseEntity<ApiMessage> deleteCategory(@PathVariable("id") Long id) {
         log.info("DELETE /v1/categories/{} - Deleting category", id);
         categoryService.deleteCategory(id);
         return ResponseEntity.ok(new ApiMessage("Category deleted successfully"));

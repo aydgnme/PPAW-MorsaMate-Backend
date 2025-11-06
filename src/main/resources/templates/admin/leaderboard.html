@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title layout:fragment="title">MorseMate Administration | Leaderboard</title>
+</head>
+<body>
+<main class="admin-content" layout:fragment="content">
+    <div class="breadcrumbs">
+                    <span>Home</span>
+                    <span>›</span>
+                    <span>Gamification</span>
+                    <span>›</span>
+                    <span>Leaderboard</span>
+                </div>
+
+                <div class="page-header">
+                    <div>
+                        <h2>Leaderboard</h2>
+                        <div class="meta">Top learners by XP, gems, and achievements</div>
+                    </div>
+                </div>
+
+                <!-- Leaderboard Tabs -->
+                <div style="display: flex; gap: 12px; margin-bottom: 24px;">
+                    <a class="button-secondary"
+                       th:classappend="${leaderboardType == 'xp' or leaderboardType == null} ? ' active' : ''"
+                       style="background: rgba(12, 75, 51, 0.08); border: 1px solid rgba(12, 75, 51, 0.2);"
+                       href="/admin/leaderboard?type=xp">📊 By XP</a>
+                    <a class="button-secondary"
+                       th:classappend="${leaderboardType == 'gems'} ? ' active' : ''"
+                       style="background: rgba(234, 179, 8, 0.08); border: 1px solid rgba(234, 179, 8, 0.2);"
+                       href="/admin/leaderboard?type=gems">💎 By Gems</a>
+                    <a class="button-secondary"
+                       th:classappend="${leaderboardType == 'achievements'} ? ' active' : ''"
+                       style="background: rgba(147, 51, 234, 0.08); border: 1px solid rgba(147, 51, 234, 0.2);"
+                       href="/admin/leaderboard?type=achievements">🏆 By Achievements</a>
+                    <a class="button-secondary"
+                       th:classappend="${leaderboardType == 'streak'} ? ' active' : ''"
+                       style="background: rgba(249, 115, 22, 0.08); border: 1px solid rgba(249, 115, 22, 0.2);"
+                       href="/admin/leaderboard?type=streak">🔥 By Streak</a>
+                </div>
+
+                <!-- Statistics Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: rgba(12, 75, 51, 0.12);">
+                            <span style="color: #0c4b33;">📊</span>
+                        </div>
+                        <div>
+                            <div class="stat-value" th:text="${stats?.totalXP ?: 0}">0</div>
+                            <div class="stat-label">Total XP</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: rgba(234, 179, 8, 0.12);">
+                            <span style="color: #ca8a04;">💎</span>
+                        </div>
+                        <div>
+                            <div class="stat-value" th:text="${stats?.totalGems ?: 0}">0</div>
+                            <div class="stat-label">Total Gems</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: rgba(147, 51, 234, 0.12);">
+                            <span style="color: #9333ea;">🏆</span>
+                        </div>
+                        <div>
+                            <div class="stat-value" th:text="${stats?.totalAchievements ?: 0}">0</div>
+                            <div class="stat-label">Achievements Unlocked</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: rgba(249, 115, 22, 0.12);">
+                            <span style="color: #ea580c;">🔥</span>
+                        </div>
+                        <div>
+                            <div class="stat-value" th:text="${stats?.longestStreak ?: 0}">0</div>
+                            <div class="stat-label">Longest Streak</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Leaderboard Table -->
+                <section class="content-card" th:if="${!#lists.isEmpty(leaderboard)}">
+                    <header>
+                        <h3 th:text="'Leaderboard - ' + ${leaderboardTitle ?: 'By XP'}">Leaderboard - By XP</h3>
+                    </header>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>User</th>
+                                <th th:if="${leaderboardType == 'xp' or leaderboardType == null}">XP</th>
+                                <th th:if="${leaderboardType == 'xp' or leaderboardType == null}">Level</th>
+                                <th th:if="${leaderboardType == 'gems'}">Gems</th>
+                                <th th:if="${leaderboardType == 'achievements'}">Achievements</th>
+                                <th th:if="${leaderboardType == 'streak'}">Streak</th>
+                                <th>Last active</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="entry, iterStat : ${leaderboard}">
+                                <td>
+                                    <strong th:text="${entry.rank ?: (iterStat.count)}"
+                                            th:style="${entry.rank == 1} ? 'color: #ca8a04; font-size: 1.2rem;' : ${entry.rank == 2} ? 'color: #9ca3af; font-size: 1.1rem;' : ${entry.rank == 3} ? 'color: #d97706; font-size: 1.1rem;' : ''">#1</strong>
+                                </td>
+                                <td>
+                                    <strong th:text="${entry.username}">john_doe</strong>
+                                    <small th:text="${entry.fullName}">John Doe</small>
+                                </td>
+                                <td th:if="${leaderboardType == 'xp' or leaderboardType == null}" th:text="${entry.totalXP ?: 0}">1250</td>
+                                <td th:if="${leaderboardType == 'xp' or leaderboardType == null}" th:text="${entry.level ?: 1}">5</td>
+                                <td th:if="${leaderboardType == 'gems'}" th:text="${entry.gemBalance ?: 0}">350</td>
+                                <td th:if="${leaderboardType == 'achievements'}" th:text="${entry.achievementCount ?: 0}">12</td>
+                                <td th:if="${leaderboardType == 'streak'}">
+                                    <span style="display: inline-flex; align-items: center; gap: 6px;">
+                                        <span th:text="${entry.streakDays ?: 0}">7</span>
+                                        <span style="font-size: 1.2rem;">🔥</span>
+                                    </span>
+                                </td>
+                                <td th:text="${entry.lastActive != null ? #temporals.format(entry.lastActive, 'dd MMM yyyy') : '—'}">01 Jan 2024</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <div class="empty-state" th:if="${#lists.isEmpty(leaderboard)}">
+                    <strong>No leaderboard data yet</strong>
+                    <span>User rankings will appear here once they start earning points.</span>
+                </div>
+</main>
+</body>
+</html>

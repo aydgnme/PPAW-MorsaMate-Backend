@@ -38,7 +38,7 @@ public class LessonController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<LessonResponse> getLessonById(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @RequestParam(defaultValue = "false") boolean includeExercises) {
         log.debug("GET /v1/lessons/{} - Fetching lesson (includeExercises: {})", id, includeExercises);
         LessonResponse lesson = lessonService.getLessonById(id, includeExercises);
@@ -93,7 +93,7 @@ public class LessonController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<LessonResponse> updateLesson(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Valid @RequestBody UpdateLessonRequest request) {
         log.info("PUT /v1/lessons/{} - Updating lesson", id);
         LessonResponse updated = lessonService.updateLesson(id, request);
@@ -107,7 +107,7 @@ public class LessonController {
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiMessage> deleteLesson(@PathVariable Long id) {
+    public ResponseEntity<ApiMessage> deleteLesson(@PathVariable("id") Long id) {
         log.info("DELETE /v1/lessons/{} - Deleting lesson", id);
         lessonService.deleteLesson(id);
         return ResponseEntity.ok(new ApiMessage("Lesson deleted successfully"));
@@ -119,7 +119,7 @@ public class LessonController {
      * Public endpoint - no authentication required
      */
     @GetMapping("/{id}/exercise-count")
-    public ResponseEntity<Long> getExerciseCount(@PathVariable Long id) {
+    public ResponseEntity<Long> getExerciseCount(@PathVariable("id") Long id) {
         log.debug("GET /v1/lessons/{}/exercise-count - Counting exercises", id);
         long count = lessonService.getExerciseCount(id);
         return ResponseEntity.ok(count);
@@ -133,7 +133,7 @@ public class LessonController {
     @PatchMapping("/{id}/order")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiMessage> updateLessonOrder(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @RequestParam int orderIndex) {
         log.info("PATCH /v1/lessons/{}/order - Updating order to {}", id, orderIndex);
         lessonService.updateLessonOrder(id, orderIndex);

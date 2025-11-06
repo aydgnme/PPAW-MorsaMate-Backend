@@ -3,109 +3,167 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Error - MorseMate</title>
+    <title>MorseMate Administration | Error</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        body.error-page {
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 24px;
+            background: #f3f4f6;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         }
 
-        .error-container {
-            background: white;
-            border-radius: 20px;
-            padding: 60px 40px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            text-align: center;
-            max-width: 600px;
+        .brand-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            font-size: 1.2rem;
+        }
+
+        .error-card {
+            background: #ffffff;
+            border-radius: 18px;
+            box-shadow: 0 20px 60px rgba(15, 23, 42, 0.18);
+            padding: 44px 36px;
             width: 100%;
+            max-width: 520px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
         }
 
-        .error-icon {
-            font-size: 5em;
-            margin-bottom: 20px;
+        .error-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
 
-        h1 {
-            color: #ef4444;
-            font-size: 2.5em;
-            margin-bottom: 15px;
+        .error-meta__item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(12, 75, 51, 0.12);
+            background: #ffffff;
         }
 
-        p {
+        .error-meta__item.-status {
+            background: rgba(12, 75, 51, 0.05);
+        }
+
+        .error-meta__item span:first-child {
+            color: #4b5563;
+            font-weight: 600;
+        }
+
+        .error-meta__item span:last-child {
+            color: #111827;
+            font-weight: 600;
+            word-break: break-all;
+            text-align: right;
+        }
+
+        .error-brand-icon {
+            background: rgba(248, 113, 113, 0.18);
+            color: #b91c1c;
+            font-size: 1.3rem;
+        }
+
+        .error-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        .error-actions a {
+            flex: 1;
+            text-align: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+
+        .error-support {
+            font-size: 0.85rem;
             color: #6b7280;
-            font-size: 1.1em;
-            margin-bottom: 30px;
+            text-align: center;
             line-height: 1.6;
         }
 
-        .error-details {
-            background: #f3f4f6;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            text-align: left;
-        }
-
-        .error-details strong {
-            color: #1f2937;
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 15px 40px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+        .error-support a {
+            color: #0c4b33;
+            font-weight: 600;
             text-decoration: none;
-            border-radius: 10px;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            margin: 5px;
         }
 
-        .btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-secondary {
-            background: white;
-            color: #667eea;
-            border: 2px solid #667eea;
-        }
-
-        .btn-secondary:hover {
-            background: #667eea;
-            color: white;
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
         }
     </style>
 </head>
-<body>
-    <div class="error-container">
-        <div class="error-icon">❌</div>
-        <h1>Oops! Something went wrong</h1>
-        <p th:if="${error}" th:text="${error}">An unexpected error occurred while processing your request.</p>
-        <p th:unless="${error}">An unexpected error occurred while processing your request.</p>
+<body class="error-page">
+<div class="admin-shell" style="width:100%;display:flex;align-items:center;justify-content:center;">
+    <div class="error-card">
+        <header style="display:flex;align-items:center;gap:14px;">
+            <span class="brand-icon error-brand-icon" aria-hidden="true">⚠️</span>
+            <span class="sr-only">Warning</span>
+            <div>
+                <h1 style="margin:0;font-size:1.6rem;color:#0c4b33;">Something went wrong</h1>
+                <p style="margin:4px 0 0;color:#6b7280;font-size:0.95rem;">
+                    We ran into a problem while processing your request.
+                </p>
+            </div>
+        </header>
 
-        <div class="error-details" th:if="${status}">
-            <strong>Error Code:</strong> <span th:text="${status}">500</span><br>
-            <strong>Message:</strong> <span th:text="${message}">Internal Server Error</span>
+        <div class="flash error" th:if="${message != null}" th:text="${message}">
+            An unexpected error occurred. Please try again.
+        </div>
+        <div class="flash error" th:if="${message == null}" th:text="${error != null} ? error : 'An unexpected error occurred. Please try again.'">
+            An unexpected error occurred. Please try again.
         </div>
 
-        <div>
-            <a href="javascript:history.back()" class="btn btn-secondary">← Go Back</a>
-            <a href="/subscriptions/list" class="btn">🏠 Home</a>
+        <section class="error-meta">
+            <div class="error-meta__item -status" th:if="${status}">
+                <span>Status</span>
+                <span style="color:#0c4b33;" th:text="${status}">500</span>
+            </div>
+            <div class="error-meta__item" th:if="${path}">
+                <span>Request path</span>
+                <span th:text="${path}">/current/path</span>
+            </div>
+            <div class="error-meta__item" th:if="${timestamp}">
+                <span>Timestamp</span>
+                <span th:text="${timestamp}">2024-01-01T00:00:00Z</span>
+            </div>
+        </section>
+
+        <div class="error-actions">
+            <a class="button-secondary" href="javascript:history.back()">Go back</a>
+            <a class="button-primary" style="display:inline-flex;justify-content:center;align-items:center;" href="/">Return home</a>
+        </div>
+
+        <div class="error-support">
+            Need help? Reach us at
+            <a href="mailto:support@morsemate.app">support@morsemate.app</a>
+            and we will get you back on track.
         </div>
     </div>
+</div>
 </body>
 </html>

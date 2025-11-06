@@ -38,7 +38,7 @@ public class ExerciseController {
      */
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ExerciseResponse> getExerciseById(@PathVariable Long id) {
+    public ResponseEntity<ExerciseResponse> getExerciseById(@PathVariable("id") Long id) {
         log.debug("GET /v1/exercises/{} - Fetching exercise", id);
         ExerciseResponse exercise = exerciseService.getExerciseById(id);
         return ResponseEntity.ok(exercise);
@@ -132,7 +132,7 @@ public class ExerciseController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ExerciseResponse> updateExercise(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Valid @RequestBody UpdateExerciseRequest request) {
         log.info("PUT /v1/exercises/{} - Updating exercise", id);
         ExerciseResponse updated = exerciseService.updateExercise(id, request);
@@ -146,7 +146,7 @@ public class ExerciseController {
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiMessage> deleteExercise(@PathVariable Long id) {
+    public ResponseEntity<ApiMessage> deleteExercise(@PathVariable("id") Long id) {
         log.info("DELETE /v1/exercises/{} - Deleting exercise", id);
         exerciseService.deleteExercise(id);
         return ResponseEntity.ok(new ApiMessage("Exercise deleted successfully"));

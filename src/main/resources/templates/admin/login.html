@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MorseMate Administration | Sign In</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+<div class="admin-shell" style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f3f4f6;padding:24px;">
+    <div style="background:white;border-radius:18px;box-shadow:0 20px 60px rgba(15,23,42,0.18);padding:44px 36px;width:100%;max-width:460px;display:flex;flex-direction:column;gap:24px;">
+        <header style="display:flex;align-items:center;gap:14px;">
+            <span class="brand-icon" style="background:#0c4b33;color:white;font-size:1.3rem;">⚡</span>
+            <div>
+                <h1 style="margin:0;font-size:1.6rem;color:#0c4b33;">MorseMate administration</h1>
+                <p style="margin:4px 0 0;color:#6b7280;font-size:0.95rem;">Sign in with your admin credentials to continue.</p>
+            </div>
+        </header>
+
+        <div th:if="${loginError}" class="flash error" th:text="${loginError}">Invalid credentials.</div>
+        <div th:if="${logoutMessage}" class="flash success" th:text="${logoutMessage}">You have been signed out.</div>
+
+        <form method="post" action="/admin/login" style="display:flex;flex-direction:column;gap:16px;">
+            <div class="form-row">
+                <label for="identifier">Username or email</label>
+                <input id="identifier"
+                       name="identifier"
+                       type="text"
+                       placeholder="admin@example.com"
+                       th:value="${identifier != null} ? identifier : ''"
+                       required>
+            </div>
+            <div class="form-row">
+                <label for="password">Password</label>
+                <input id="password"
+                       name="password"
+                       type="password"
+                       placeholder="••••••••"
+                       required>
+            </div>
+            <label style="display:flex;align-items:center;gap:8px;color:#4b5563;font-size:0.9rem;">
+                <input type="checkbox" name="rememberMe" value="true" style="width:16px;height:16px;"> Stay signed in for 7 days
+            </label>
+
+            <div class="form-actions" style="margin-top:8px;">
+                <button type="submit" class="button-primary" style="width:100%;justify-content:center;">Sign in</button>
+            </div>
+        </form>
+
+        <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:space-between;">
+            <a class="button-secondary" style="text-decoration:none;flex:1;text-align:center;" href="/info-panel/login.html">Back to app</a>
+            <a class="button-secondary" style="text-decoration:none;flex:1;text-align:center;" href="/api/docs">API docs</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

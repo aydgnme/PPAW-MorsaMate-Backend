@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment History - MorseMate</title>
+    <link rel="stylesheet" href="/css/payment.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f3f4f6;
+            margin: 0;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .header h1 {
+            margin: 0;
+            color: #1f2937;
+        }
+    </style>
+</head>
+<body>
+    <div class="payment-container">
+        <div class="header">
+            <h1>Payment History</h1>
+            <a href="/pages/payment/checkout.html" class="btn btn-primary">New Payment</a>
+        </div>
+
+        <!-- Payment Statistics -->
+        <div id="payment-stats" style="margin-bottom: 32px;"></div>
+
+        <!-- Payment List -->
+        <div class="payment-form">
+            <h2>Your Payments</h2>
+            <div id="payment-list"></div>
+        </div>
+    </div>
+
+    <script src="/js/payment.js"></script>
+    <script>
+        // Load payment statistics
+        async function loadStats() {
+            try {
+                const stats = await window.paymentClient.getPaymentStats();
+                window.paymentUI.renderPaymentStats(stats, 'payment-stats');
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+                document.getElementById('payment-stats').innerHTML = `
+                    <div class="alert alert-error">
+                        <span>✗</span>
+                        Failed to load payment statistics. Please try again.
+                    </div>
+                `;
+            }
+        }
+
+        // Load payment history
+        async function loadPayments() {
+            const listContainer = document.getElementById('payment-list');
+            listContainer.innerHTML = '<div class="loading">Loading payments...</div>';
+
+            try {
+                const payments = await window.paymentClient.getMyPayments();
+                window.paymentUI.renderPaymentHistory(payments, 'payment-list');
+            } catch (error) {
+                console.error('Failed to load payments:', error);
+                listContainer.innerHTML = `
+                    <div class="alert alert-error">
+                        <span>✗</span>
+                        Failed to load payment history. Please try again.
+                    </div>
+                `;
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check if user is logged in
+            if (!window.paymentClient.token) {
+                alert('Please log in to view payment history');
+                window.location.href = '/login.html';
+                return;
+            }
+
+            loadStats();
+            loadPayments();
+        });
+
+        // Refresh button
+        const refreshBtn = document.createElement('button');
+        refreshBtn.className = 'btn btn-secondary';
+        refreshBtn.textContent = '↻ Refresh';
+        refreshBtn.style.marginLeft = '12px';
+        refreshBtn.onclick = () => {
+            loadStats();
+            loadPayments();
+        };
+        document.querySelector('.header').appendChild(refreshBtn);
+    </script>
+</body>
+</html>

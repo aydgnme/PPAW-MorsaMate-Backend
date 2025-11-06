@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title layout:fragment="title">MorseMate Administration | Lessons</title>
+</head>
+<body>
+<main class="admin-content" layout:fragment="content">
+    <div class="breadcrumbs">
+                    <span>Home</span>
+                    <span>›</span>
+                    <span>Lessons</span>
+                </div>
+
+                <div class="page-header">
+                    <div>
+                        <h2>Lessons</h2>
+                        <div class="meta" th:text="${#lists.size(lessons)} + ' objects total'">0 objects total</div>
+                    </div>
+                    <a class="primary-action" href="#create-form">＋ Add lesson</a>
+                </div>
+
+                <div th:if="${successMessage}" class="flash success" th:text="${successMessage}">
+                    Lesson saved.
+                </div>
+                <div th:if="${errorMessage}" class="flash error" th:text="${errorMessage}">
+                    Please fix the form errors below.
+                </div>
+
+                <section class="content-card" th:if="${!#lists.isEmpty(lessons)}">
+                    <header>
+                        <h3>Lesson changelist</h3>
+                    </header>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Lesson</th>
+                                <th>Category</th>
+                                <th>Difficulty</th>
+                                <th>Order</th>
+                                <th>Points</th>
+                                <th>Duration (min)</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="lesson : ${lessons}">
+                                <td th:text="${lesson.id}">1</td>
+                                <td>
+                                    <strong th:text="${lesson.title}">Learn A</strong>
+                                    <small th:text="${lesson.description}">Introduction to letter A</small>
+                                </td>
+                                <td th:text="${lesson.categoryName ?: '—'}">Basics</td>
+                                <td th:text="${lesson.difficulty ?: '—'}">BEGINNER</td>
+                                <td th:text="${lesson.orderIndex != null ? lesson.orderIndex : '—'}">1</td>
+                                <td th:text="${lesson.pointsReward ?: 10}">10</td>
+                                <td th:text="${lesson.estimatedDuration ?: '—'}">5</td>
+                                <td th:text="${lesson.createdAt != null ? #temporals.format(lesson.createdAt, 'dd MMM yyyy') : '—'}">01 Jan 2024</td>
+                                <td>
+                                    <div class="changelist-actions">
+                                        <a class="action-edit"
+                                           th:href="@{'/admin/lessons'(editId=${lesson.id})}">Change</a>
+                                        <form th:action="@{'/admin/lessons/' + ${lesson.id} + '/delete'}"
+                                              method="post">
+                                            <button type="submit" class="action-delete"
+                                                    onclick="return confirm('Delete this lesson? This cannot be undone.');">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <div class="form-grid">
+                    <form id="create-form"
+                          class="admin-form"
+                          th:action="@{/admin/lessons}"
+                          method="post"
+                          th:object="${lessonForm}">
+                        <h3>Add lesson</h3>
+                        <div class="form-row">
+                            <label for="title">Title</label>
+                            <input id="title" type="text" th:field="*{title}" placeholder="e.g. Learn letter A">
+                            <div class="form-error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}">Title error</div>
+                        </div>
+                        <div class="form-row">
+                            <label for="description">Description</label>
+                            <textarea id="description" th:field="*{description}" placeholder="Short summary"></textarea>
+                            <div class="form-error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}">Description error</div>
+                        </div>
+                        <div class="form-row">
+                            <label for="categoryId">Category</label>
+                            <select id="categoryId" th:field="*{categoryId}">
+                                <option value="">Select category...</option>
+                                <option th:each="category : ${categories}"
+                                        th:value="${category.id}"
+                                        th:text="${category.name}">Category name</option>
+                            </select>
+                            <div class="form-error" th:if="${#fields.hasErrors('categoryId')}" th:errors="*{categoryId}">Category error</div>
+                        </div>
+                        <div class="form-row">
+                            <label for="difficulty">Difficulty</label>
+                            <select id="difficulty" th:field="*{difficulty}">
+                                <option value="">Select difficulty...</option>
+                                <option value="BEGINNER">Beginner</option>
+                                <option value="INTERMEDIATE">Intermediate</option>
+                                <option value="ADVANCED">Advanced</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <label for="orderIndex">Display order</label>
+                            <input id="orderIndex" type="number" min="0" th:field="*{orderIndex}" placeholder="0">
+                        </div>
+                        <div class="form-row">
+                            <label for="pointsReward">Points reward</label>
+                            <input id="pointsReward" type="number" min="0" th:field="*{pointsReward}" placeholder="10">
+                        </div>
+                        <div class="form-row">
+                            <label for="estimatedDuration">Est. duration (minutes)</label>
+                            <input id="estimatedDuration" type="number" min="1" th:field="*{estimatedDuration}" placeholder="5">
+                        </div>
+                        <div class="form-row">
+                            <label for="content">Content (JSON)</label>
+                            <textarea id="content" th:field="*{content}" placeholder='{"steps": []}'></textarea>
+                            <span class="form-help">JSON object containing lesson content structure.</span>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="button-primary">Save</button>
+                        </div>
+                    </form>
+
+                    <form th:if="${editingId != null}"
+                          class="admin-form"
+                          th:action="@{'/admin/lessons/' + ${editingId} + '/update'}"
+                          method="post"
+                          th:object="${editForm}">
+                        <h3 th:text="'Change lesson #' + ${editingId}">Change lesson</h3>
+                        <div class="form-row">
+                            <label for="edit-title">Title</label>
+                            <input id="edit-title" type="text" th:field="*{title}">
+                            <div class="form-error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}">Title error</div>
+                        </div>
+                        <div class="form-row">
+                            <label for="edit-description">Description</label>
+                            <textarea id="edit-description" th:field="*{description}"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <label for="edit-categoryId">Category</label>
+                            <select id="edit-categoryId" th:field="*{categoryId}">
+                                <option value="">Select category...</option>
+                                <option th:each="category : ${categories}"
+                                        th:value="${category.id}"
+                                        th:text="${category.name}">Category name</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <label for="edit-difficulty">Difficulty</label>
+                            <select id="edit-difficulty" th:field="*{difficulty}">
+                                <option value="">Select difficulty...</option>
+                                <option value="BEGINNER">Beginner</option>
+                                <option value="INTERMEDIATE">Intermediate</option>
+                                <option value="ADVANCED">Advanced</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <label for="edit-orderIndex">Display order</label>
+                            <input id="edit-orderIndex" type="number" min="0" th:field="*{orderIndex}">
+                        </div>
+                        <div class="form-row">
+                            <label for="edit-pointsReward">Points reward</label>
+                            <input id="edit-pointsReward" type="number" min="0" th:field="*{pointsReward}">
+                        </div>
+                        <div class="form-row">
+                            <label for="edit-estimatedDuration">Est. duration (minutes)</label>
+                            <input id="edit-estimatedDuration" type="number" min="1" th:field="*{estimatedDuration}">
+                        </div>
+                        <div class="form-row">
+                            <label for="edit-content">Content (JSON)</label>
+                            <textarea id="edit-content" th:field="*{content}"></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="button-primary">Save changes</button>
+                            <a class="button-secondary" th:href="@{/admin/lessons}">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+</main>
+</body>
+</html>

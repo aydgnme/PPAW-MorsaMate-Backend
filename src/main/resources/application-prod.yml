@@ -1,0 +1,13 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+logging:
+  level:
+    me.aydgn: INFO
+    org.springframework.web: INFO
+    org.hibernate.SQL: WARN
+
+jwt:
+  secret: ${JWT_SECRET:?JWT_SECRET must be provided for the prod profile}

@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title layout:fragment="title">MorseMate Administration | Payments</title>
+</head>
+<body>
+<main class="admin-content" layout:fragment="content">
+    <div class="breadcrumbs">
+        <a href="/admin">Home</a>
+        <span>›</span>
+        <span>Payments</span>
+    </div>
+
+    <div class="page-header">
+        <div>
+            <h2>Payment Management</h2>
+            <div class="meta">Monitor and manage payment transactions</div>
+        </div>
+    </div>
+
+    <!-- Simulation Notice -->
+    <div class="notice notice-warning" style="margin-bottom: 24px;">
+        <strong>⚠️ Simulation Mode</strong>
+        <p>All payments shown here are simulated transactions. No real money has been charged.</p>
+    </div>
+
+    <!-- Payment Statistics -->
+    <div class="stats-grid" style="margin-bottom: 32px;">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(34, 197, 94, 0.12);">
+                <span style="color: #16a34a;">✓</span>
+            </div>
+            <div>
+                <div class="stat-value" id="total-completed">0</div>
+                <div class="stat-label">Completed Payments</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(239, 68, 68, 0.12);">
+                <span style="color: #dc2626;">✗</span>
+            </div>
+            <div>
+                <div class="stat-value" id="total-failed">0</div>
+                <div class="stat-label">Failed Payments</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(59, 130, 246, 0.12);">
+                <span style="color: #2563eb;">↻</span>
+            </div>
+            <div>
+                <div class="stat-value" id="total-refunded">0</div>
+                <div class="stat-label">Refunded</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(168, 85, 247, 0.12);">
+                <span style="color: #9333ea;">$</span>
+            </div>
+            <div>
+                <div class="stat-value" id="total-revenue">$0.00</div>
+                <div class="stat-label">Total Revenue</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <section class="content-card" style="margin-bottom: 24px;">
+        <header>
+            <h3>Filters</h3>
+        </header>
+        <div style="padding: 24px;">
+            <div class="filter-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                <div class="form-group">
+                    <label for="status-filter">Status</label>
+                    <select id="status-filter" class="form-control">
+                        <option value="">All</option>
+                        <option value="COMPLETED">Completed</option>
+                        <option value="PENDING">Pending</option>
+                        <option value="FAILED">Failed</option>
+                        <option value="REFUNDED">Refunded</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="user-filter">User ID</label>
+                    <input type="number" id="user-filter" class="form-control" placeholder="Filter by user ID">
+                </div>
+                <div class="form-group">
+                    <label for="date-from">Date From</label>
+                    <input type="date" id="date-from" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="date-to">Date To</label>
+                    <input type="date" id="date-to" class="form-control">
+                </div>
+            </div>
+            <div style="margin-top: 16px;">
+                <button onclick="loadPayments()" class="btn btn-primary">Apply Filters</button>
+                <button onclick="resetFilters()" class="btn btn-secondary">Reset</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Payments Table -->
+    <section class="content-card">
+        <header style="display: flex; justify-content: space-between; align-items: center;">
+            <h3>All Payments</h3>
+            <button onclick="loadPayments()" class="btn btn-secondary">
+                <span>↻</span> Refresh
+            </button>
+        </header>
+        <div id="payments-container" style="padding: 24px;">
+            <div class="loading">Loading payments...</div>
+        </div>
+    </section>
+
+    <!-- Refund Modal -->
+    <div id="refund-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3>Refund Payment</h3>
+            <form id="refund-form">
+                <input type="hidden" id="refund-payment-id">
+                <div class="form-group">
+                    <label for="refund-amount">Refund Amount</label>
+                    <input type="number" id="refund-amount" class="form-control" step="0.01" required>
+                    <small>Leave empty for full refund</small>
+                </div>
+                <div class="form-group">
+                    <label for="refund-reason">Reason</label>
+                    <textarea id="refund-reason" class="form-control" rows="3" required></textarea>
+                </div>
+                <div style="display: flex; gap: 12px; margin-top: 24px;">
+                    <button type="submit" class="btn btn-primary">Process Refund</button>
+                    <button type="button" onclick="closeRefundModal()" class="btn btn-secondary">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</main>
+
+<script layout:fragment="scripts">
+    let currentPage = 0;
+    const pageSize = 20;
+
+    async function loadPayments() {
+        const container = document.getElementById('payments-container');
+        container.innerHTML = '<div class="loading">Loading payments...</div>';
+
+        try {
+            const token = getAdminToken();
+            const response = await fetch(`/v1/payments?page=${currentPage}&size=${pageSize}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch payments');
+            }
+
+            const data = await response.json();
+            renderPayments(data.content);
+            updateStatistics();
+        } catch (error) {
+            console.error('Error loading payments:', error);
+            container.innerHTML = '<div class="alert alert-error">Failed to load payments</div>';
+        }
+    }
+
+    function renderPayments(payments) {
+        const container = document.getElementById('payments-container');
+
+        if (!payments || payments.length === 0) {
+            container.innerHTML = '<p style="text-align: center; color: #6b7280;">No payments found</p>';
+            return;
+        }
+
+        const table = `
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Method</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${payments.map(payment => `
+                        <tr>
+                            <td>${payment.id}</td>
+                            <td>
+                                <div>${payment.username}</div>
+                                <small style="color: #6b7280;">ID: ${payment.userId}</small>
+                            </td>
+                            <td><strong>${formatAmount(payment.amount, payment.currency)}</strong></td>
+                            <td><span class="badge badge-${payment.status.toLowerCase()}">${payment.status}</span></td>
+                            <td>${payment.paymentMethod}</td>
+                            <td>${formatDate(payment.transactionDate)}</td>
+                            <td>
+                                ${payment.status === 'COMPLETED' ? `
+                                    <button onclick="showRefundModal(${payment.id}, ${payment.amount}, '${payment.currency}')"
+                                            class="btn btn-sm btn-danger">
+                                        Refund
+                                    </button>
+                                ` : '-'}
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+
+        container.innerHTML = table;
+    }
+
+    async function updateStatistics() {
+        try {
+            const token = getAdminToken();
+            const response = await fetch('/v1/stripe/stats', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const stats = await response.json();
+                document.getElementById('total-completed').textContent = stats.succeededPayments || 0;
+                document.getElementById('total-failed').textContent = stats.failedPayments || 0;
+                document.getElementById('total-refunded').textContent = stats.refundedPayments || 0;
+                // Revenue calculation would be done on backend
+            }
+        } catch (error) {
+            console.error('Error loading statistics:', error);
+        }
+    }
+
+    function showRefundModal(paymentId, amount, currency) {
+        document.getElementById('refund-payment-id').value = paymentId;
+        document.getElementById('refund-amount').value = amount;
+        document.getElementById('refund-amount').placeholder = `Full refund: ${formatAmount(amount, currency)}`;
+        document.getElementById('refund-modal').style.display = 'flex';
+    }
+
+    function closeRefundModal() {
+        document.getElementById('refund-modal').style.display = 'none';
+        document.getElementById('refund-form').reset();
+    }
+
+    document.getElementById('refund-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const paymentId = document.getElementById('refund-payment-id').value;
+        const amount = document.getElementById('refund-amount').value;
+        const reason = document.getElementById('refund-reason').value;
+
+        try {
+            const token = getAdminToken();
+            const response = await fetch(`/v1/payments/${paymentId}/refund`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    amount: amount ? parseFloat(amount) : null,
+                    reason: reason
+                })
+            });
+
+            if (response.ok) {
+                alert('Refund processed successfully');
+                closeRefundModal();
+                loadPayments();
+            } else {
+                alert('Failed to process refund');
+            }
+        } catch (error) {
+            console.error('Refund error:', error);
+            alert('Error processing refund');
+        }
+    });
+
+    function resetFilters() {
+        document.getElementById('status-filter').value = '';
+        document.getElementById('user-filter').value = '';
+        document.getElementById('date-from').value = '';
+        document.getElementById('date-to').value = '';
+        loadPayments();
+    }
+
+    function formatAmount(amount, currency) {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: currency || 'USD'
+        }).format(amount);
+    }
+
+    function formatDate(dateString) {
+        return new Date(dateString).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    function getAdminToken() {
+        // Get token from cookie or localStorage
+        return document.cookie.split('; ')
+            .find(row => row.startsWith('ADMIN_TOKEN='))
+            ?.split('=')[1] || '';
+    }
+
+    // Load payments on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        loadPayments();
+    });
+</script>
+
+<style layout:fragment="styles">
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .modal-content {
+        background: white;
+        padding: 32px;
+        border-radius: 12px;
+        max-width: 500px;
+        width: 90%;
+    }
+
+    .badge {
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .badge-completed { background: #d1fae5; color: #065f46; }
+    .badge-pending { background: #fef3c7; color: #92400e; }
+    .badge-failed { background: #fee2e2; color: #991b1b; }
+    .badge-refunded { background: #e0e7ff; color: #3730a3; }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .data-table th {
+        font-weight: 600;
+        color: #374151;
+        background: #f9fafb;
+    }
+
+    .data-table tr:hover {
+        background: #f9fafb;
+    }
+
+    .notice {
+        padding: 16px 20px;
+        border-radius: 8px;
+        border-left: 4px solid;
+    }
+
+    .notice-warning {
+        background: #fef3c7;
+        border-color: #f59e0b;
+        color: #78350f;
+    }
+</style>
+</body>
+</html>

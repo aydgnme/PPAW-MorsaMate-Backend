@@ -148,6 +148,27 @@ public class ExerciseService {
     }
 
     /**
+     * Get exercise details including the correct answer (admin usage).
+     */
+    @Transactional(readOnly = true)
+    public ExerciseResponse getExerciseDetails(Long id) {
+        log.debug("Fetching exercise details (with answer) for id: {}", id);
+        Exercise exercise = findExerciseById(id);
+        return ExerciseResponse.from(exercise, true);
+    }
+
+    /**
+     * Paginated exercise list for admin UI.
+     */
+    @Transactional(readOnly = true)
+    public Page<ExerciseResponse> getExercisePage(Long lessonId, Pageable pageable) {
+        Page<Exercise> page = lessonId != null
+                ? exerciseRepository.findByLessonId(lessonId, pageable)
+                : exerciseRepository.findAll(pageable);
+        return page.map(ex -> ExerciseResponse.from(ex, true));
+    }
+
+    /**
      * Get exercise entity by ID (internal use)
      */
     @Transactional(readOnly = true)

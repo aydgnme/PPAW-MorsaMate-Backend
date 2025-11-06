@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Cancelled - MorseMate</title>
+    <link rel="stylesheet" href="/css/payment.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f3f4f6;
+            margin: 0;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="payment-container">
+        <div class="payment-result cancel">
+            <div class="icon">✗</div>
+            <h1>Payment Cancelled</h1>
+            <p>Your payment was not completed.</p>
+
+            <div class="alert alert-info" style="max-width: 500px; margin: 0 auto 32px;">
+                <span>ℹ️</span>
+                <div>
+                    <strong>What happened?</strong><br>
+                    The payment was cancelled or failed. No charges were made.
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+                <a href="/pages/payment/checkout.html" class="btn btn-primary">Try Again</a>
+                <a href="/" class="btn btn-secondary">Go Home</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auto-redirect after 15 seconds
+        setTimeout(() => {
+            if (confirm('Redirect to payment page?')) {
+                window.location.href = '/pages/payment/checkout.html';
+            }
+        }, 15000);
+    </script>
+</body>
+</html>

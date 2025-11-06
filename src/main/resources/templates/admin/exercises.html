@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title layout:fragment="title">MorseMate Administration | Exercises</title>
+</head>
+<body>
+<main class="admin-content" layout:fragment="content">
+    <div class="breadcrumbs">
+        <span>Home</span>
+        <span>›</span>
+        <span>Exercises</span>
+    </div>
+
+    <div class="page-header">
+        <div>
+            <h2>Exercises</h2>
+            <div class="meta">
+                <span th:text="${exercisePage.totalElements}">0</span>
+                <span> exercises across lessons</span>
+            </div>
+        </div>
+        <form method="get" class="form-inline" style="display:flex;gap:12px;align-items:center;">
+            <label for="lesson-filter" style="font-size:0.9rem;color:#4b5563;">Filter by lesson</label>
+            <select id="lesson-filter" name="lessonId" onchange="this.form.submit()">
+                <option value="" th:selected="${lessonFilter == null}">All lessons</option>
+                <option th:each="lesson : ${lessons}"
+                        th:value="${lesson.id}"
+                        th:selected="${lessonFilter != null and lesson.id == lessonFilter}"
+                        th:text="${lesson.title}">
+                    Lesson title
+                </option>
+            </select>
+            <input type="hidden" name="size" th:value="${pageSize}">
+        </form>
+    </div>
+
+    <div th:if="${successMessage}" class="flash success" th:text="${successMessage}">
+        Exercise saved.
+    </div>
+    <div th:if="${errorMessage}" class="flash error" th:text="${errorMessage}">
+        Please fix the form errors below.
+    </div>
+    <div th:if="${loadError}" class="flash error" th:text="${loadError}">
+        Unable to load exercises.
+    </div>
+
+    <section class="content-card" th:if="${!#lists.isEmpty(exercises)}">
+        <header>
+            <h3>Exercise changelist</h3>
+        </header>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Lesson</th>
+                    <th>Question</th>
+                    <th>Type</th>
+                    <th>Difficulty</th>
+                    <th>Points</th>
+                    <th>Time limit</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="exercise : ${exercises}">
+                    <td th:text="${exercise.id}">1</td>
+                    <td>
+                        <strong th:text="${exercise.lessonTitle ?: '—'}">Lesson</strong>
+                        <small th:text="${exercise.lessonId}">0</small>
+                    </td>
+                    <td>
+                        <div class="text-ellipsis" style="max-width:260px;" th:text="${exercise.question}">Morse example</div>
+                        <small th:text="'Answer: ' + (exercise.correctAnswer ?: '—')">Answer: SOS</small>
+                    </td>
+                    <td th:text="${exercise.type}">ENCODE</td>
+                    <td th:text="${exercise.difficulty}">EASY</td>
+                    <td th:text="${exercise.points ?: 0}">5</td>
+                    <td th:text="${exercise.timeLimit != null ? exercise.timeLimit + 's' : '—'}">30s</td>
+                    <td th:text="${exercise.createdAt != null ? #temporals.format(exercise.createdAt, 'dd MMM yyyy HH:mm') : '—'}">01 Jan 2024</td>
+                    <td>
+                        <div class="changelist-actions">
+                            <a class="action-edit"
+                               th:href="@{'/admin/exercises'(editId=${exercise.id}, lessonId=${lessonFilter}, page=${currentPage}, size=${pageSize})}">Change</a>
+                            <form th:action="@{'/admin/exercises/' + ${exercise.id} + '/delete'}"
+                                  method="post">
+                                <button type="submit" class="action-delete"
+                                        onclick="return confirm('Delete this exercise? This cannot be undone.');">
+                                    Delete
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination" th:if="${totalPages > 1}">
+            <a th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}"
+               th:classappend="${pageNum == currentPage} ? ' active'"
+               th:href="@{'/admin/exercises'(page=${pageNum}, size=${pageSize}, lessonId=${lessonFilter})}"
+               th:text="${pageNum + 1}">
+                1
+            </a>
+        </div>
+    </section>
+
+    <section class="content-card">
+        <header>
+            <h3>Create exercise</h3>
+        </header>
+        <form th:object="${exerciseForm}"
+              th:action="@{/admin/exercises}"
+              method="post"
+              class="admin-form">
+            <div class="form-row">
+                <label for="lessonId">Lesson</label>
+                <select id="lessonId" th:field="*{lessonId}">
+                    <option value="" disabled selected>Select lesson</option>
+                    <option th:each="lesson : ${lessons}"
+                            th:value="${lesson.id}"
+                            th:text="${lesson.title}">Lesson</option>
+                </select>
+                <div class="form-error" th:if="${#fields.hasErrors('lessonId')}" th:errors="*{lessonId}">Lesson error</div>
+            </div>
+
+            <div class="form-row">
+                <label for="type">Type</label>
+                <select id="type" th:field="*{type}">
+                    <option value="" disabled selected>Select type</option>
+                    <option th:each="typeOption : ${exerciseTypes}"
+                            th:value="${typeOption}"
+                            th:text="${typeOption}">ENCODE</option>
+                </select>
+                <div class="form-error" th:if="${#fields.hasErrors('type')}" th:errors="*{type}">Type error</div>
+            </div>
+
+            <div class="form-row">
+                <label for="difficulty">Difficulty</label>
+                <select id="difficulty" th:field="*{difficulty}">
+                    <option value="" disabled selected>Select difficulty</option>
+                    <option th:each="difficultyOption : ${exerciseDifficulties}"
+                            th:value="${difficultyOption}"
+                            th:text="${difficultyOption}">EASY</option>
+                </select>
+                <div class="form-error" th:if="${#fields.hasErrors('difficulty')}" th:errors="*{difficulty}">Difficulty error</div>
+            </div>
+
+            <div class="form-row">
+                <label for="question">Question</label>
+                <textarea id="question" th:field="*{question}" rows="3" placeholder="Enter the exercise prompt"></textarea>
+                <div class="form-error" th:if="${#fields.hasErrors('question')}" th:errors="*{question}">Question error</div>
+            </div>
+
+            <div class="form-row">
+                <label for="correctAnswer">Correct answer</label>
+                <input id="correctAnswer" type="text" th:field="*{correctAnswer}" placeholder="Expected response">
+                <div class="form-error" th:if="${#fields.hasErrors('correctAnswer')}" th:errors="*{correctAnswer}">Answer error</div>
+            </div>
+
+            <div class="form-row">
+                <label for="optionsRaw">Options (one per line)</label>
+                <textarea id="optionsRaw" th:field="*{optionsRaw}" rows="3"
+                          placeholder="Option A&#10;Option B&#10;Option C"></textarea>
+            </div>
+
+            <div class="form-row">
+                <label for="points">Points</label>
+                <input id="points" type="number" min="0" th:field="*{points}" placeholder="Defaults to 5">
+                <div class="form-error" th:if="${#fields.hasErrors('points')}" th:errors="*{points}">Points error</div>
+            </div>
+
+            <div class="form-row">
+                <label for="timeLimit">Time limit (seconds)</label>
+                <input id="timeLimit" type="number" min="0" th:field="*{timeLimit}" placeholder="Optional">
+                <div class="form-error" th:if="${#fields.hasErrors('timeLimit')}" th:errors="*{timeLimit}">Time limit error</div>
+            </div>
+
+            <div class="form-row">
+                <label for="hint">Hint</label>
+                <textarea id="hint" th:field="*{hint}" rows="2" placeholder="Helpful hint (optional)"></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="button-primary">Create exercise</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="content-card" th:if="${editingId != null}">
+        <header>
+            <h3 th:text="'Edit exercise #' + ${editingId}">Edit exercise</h3>
+        </header>
+        <form th:object="${editForm}"
+              th:action="@{'/admin/exercises/' + ${editingId} + '/update'}"
+              method="post"
+              class="admin-form">
+            <div class="form-row">
+                <label for="edit-lesson">Lesson</label>
+                <select id="edit-lesson" th:field="*{lessonId}">
+                    <option value="" disabled>Select lesson</option>
+                    <option th:each="lesson : ${lessons}"
+                            th:value="${lesson.id}"
+                            th:text="${lesson.title}">Lesson</option>
+                </select>
+                <div class="form-error" th:if="${#fields.hasErrors('lessonId')}" th:errors="*{lessonId}">Lesson error</div>
+            </div>
+
+            <div class="form-row">
+                <label for="edit-type">Type</label>
+                <select id="edit-type" th:field="*{type}">
+                    <option th:each="typeOption : ${exerciseTypes}"
+                            th:value="${typeOption}"
+                            th:text="${typeOption}">ENCODE</option>
+                </select>
+                <div class="form-error" th:if="${#fields.hasErrors('type')}" th:errors="*{type}">Type error</div>
+            </div>
+
+            <div class="form-row">
+                <label for="edit-difficulty">Difficulty</label>
+                <select id="edit-difficulty" th:field="*{difficulty}">
+                    <option th:each="difficultyOption : ${exerciseDifficulties}"
+                            th:value="${difficultyOption}"
+                            th:text="${difficultyOption}">EASY</option>
+                </select>
+                <div class="form-error" th:if="${#fields.hasErrors('difficulty')}" th:errors="*{difficulty}">Difficulty error</div>
+            </div>
+
+            <div class="form-row">
+                <label for="edit-question">Question</label>
+                <textarea id="edit-question" th:field="*{question}" rows="3"></textarea>
+                <div class="form-error" th:if="${#fields.hasErrors('question')}" th:errors="*{question}">Question error</div>
+            </div>
+
+            <div class="form-row">
+                <label for="edit-correctAnswer">Correct answer</label>
+                <input id="edit-correctAnswer" type="text" th:field="*{correctAnswer}">
+                <div class="form-error" th:if="${#fields.hasErrors('correctAnswer')}" th:errors="*{correctAnswer}">Answer error</div>
+            </div>
+
+            <div class="form-row">
+                <label for="edit-optionsRaw">Options (one per line)</label>
+                <textarea id="edit-optionsRaw" th:field="*{optionsRaw}" rows="3"></textarea>
+            </div>
+
+            <div class="form-row">
+                <label for="edit-points">Points</label>
+                <input id="edit-points" type="number" min="0" th:field="*{points}">
+                <div class="form-error" th:if="${#fields.hasErrors('points')}" th:errors="*{points}">Points error</div>
+            </div>
+
+            <div class="form-row">
+                <label for="edit-timeLimit">Time limit (seconds)</label>
+                <input id="edit-timeLimit" type="number" min="0" th:field="*{timeLimit}">
+                <div class="form-error" th:if="${#fields.hasErrors('timeLimit')}" th:errors="*{timeLimit}">Time limit error</div>
+            </div>
+
+            <div class="form-row">
+                <label for="edit-hint">Hint</label>
+                <textarea id="edit-hint" th:field="*{hint}" rows="2"></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="button-primary">Save changes</button>
+                <a class="button-secondary" th:href="@{/admin/exercises}">Cancel</a>
+            </div>
+        </form>
+    </section>
+</main>
+</body>
+</html>

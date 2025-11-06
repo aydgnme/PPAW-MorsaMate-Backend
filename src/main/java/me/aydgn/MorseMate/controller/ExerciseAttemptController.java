@@ -88,7 +88,7 @@ public class ExerciseAttemptController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<ExerciseAttemptResponse>> getMyExerciseHistory(
             Authentication authentication,
-            @PathVariable Long exerciseId) {
+            @PathVariable("exerciseId") Long exerciseId) {
         Long userId = Long.parseLong(authentication.getName());
         log.debug("GET /v1/attempts/me/exercises/{} - Fetching history for user id: {}", exerciseId, userId);
 
@@ -104,7 +104,7 @@ public class ExerciseAttemptController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ExerciseAttemptResponse> getMyLastAttempt(
             Authentication authentication,
-            @PathVariable Long exerciseId) {
+            @PathVariable("exerciseId") Long exerciseId) {
         Long userId = Long.parseLong(authentication.getName());
         log.debug("GET /v1/attempts/me/exercises/{}/last - Fetching last attempt for user id: {}", exerciseId, userId);
 
@@ -120,7 +120,7 @@ public class ExerciseAttemptController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Map<String, Object>> getMyExerciseStatistics(
             Authentication authentication,
-            @PathVariable Long exerciseId) {
+            @PathVariable("exerciseId") Long exerciseId) {
         Long userId = Long.parseLong(authentication.getName());
         log.debug("GET /v1/attempts/me/exercises/{}/statistics - Fetching stats for user id: {}", exerciseId, userId);
 
@@ -185,7 +185,7 @@ public class ExerciseAttemptController {
      */
     @GetMapping("/users/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<ExerciseAttemptResponse>> getUserAttempts(@PathVariable Long userId) {
+    public ResponseEntity<List<ExerciseAttemptResponse>> getUserAttempts(@PathVariable("userId") Long userId) {
         log.debug("GET /v1/attempts/users/{} - Admin fetching attempts", userId);
 
         List<ExerciseAttemptResponse> attempts = exerciseAttemptService.getUserAttempts(userId);
@@ -198,7 +198,7 @@ public class ExerciseAttemptController {
      */
     @GetMapping("/users/{userId}/statistics")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, Object>> getUserStatistics(@PathVariable Long userId) {
+    public ResponseEntity<Map<String, Object>> getUserStatistics(@PathVariable("userId") Long userId) {
         log.debug("GET /v1/attempts/users/{}/statistics - Admin fetching user stats", userId);
 
         Map<String, Object> stats = exerciseAttemptService.getUserStatistics(userId);

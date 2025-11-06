@@ -14,6 +14,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +28,17 @@ public class LessonService {
 
     private final LessonRepository lessonRepository;
     private final CategoryService categoryService;
+
+    /**
+     * Get all lessons ordered by title (admin usage).
+     */
+    @Transactional(readOnly = true)
+    public List<LessonResponse> getAllLessons() {
+        log.debug("Fetching full lesson list");
+        return lessonRepository.findAll(Sort.by(Sort.Direction.ASC, "title")).stream()
+                .map(lesson -> LessonResponse.from(lesson, false))
+                .collect(Collectors.toList());
+    }
 
     /**
      * Get all lessons for a specific category ordered by orderIndex

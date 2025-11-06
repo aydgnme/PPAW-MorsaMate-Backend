@@ -1,0 +1,15 @@
+<header class="admin-header"
+        xmlns:th="http://www.thymeleaf.org"
+        th:fragment="adminHeader(activePage)">
+    <div class="header-brand">
+        <span class="brand-icon">⚡</span>
+        <div>
+            <h1>MorseMate administration</h1>
+            <div style="font-size:0.85rem;opacity:0.8;">Signed in as Admin</div>
+        </div>
+    </div>
+    <nav class="header-actions">
+        <a th:classappend="${activePage == 'dashboard'} ? ' active'" href="/admin">Dashboard</a>
+        <a class="header-logout" href="/admin/logout">Sign out</a>
+    </nav>
+</header>

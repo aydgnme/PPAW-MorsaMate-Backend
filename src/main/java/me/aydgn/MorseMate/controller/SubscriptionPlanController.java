@@ -59,7 +59,7 @@ public class SubscriptionPlanController {
      * @return Subscription plan details
      */
     @GetMapping("/{id}")
-    public ResponseEntity<SubscriptionPlanResponse> getPlanById(@PathVariable Long id) {
+    public ResponseEntity<SubscriptionPlanResponse> getPlanById(@PathVariable("id") Long id) {
         log.debug("GET /v1/subscriptions/plans/{} - Fetching plan", id);
         SubscriptionPlanResponse plan = subscriptionPlanService.getPlanById(id);
         return ResponseEntity.ok(plan);
@@ -75,7 +75,7 @@ public class SubscriptionPlanController {
      */
     @GetMapping("/period/{period}")
     public ResponseEntity<List<SubscriptionPlanResponse>> getPlansByBillingPeriod(
-            @PathVariable SubscriptionPlan.BillingPeriod period) {
+            @PathVariable("period") SubscriptionPlan.BillingPeriod period) {
         log.debug("GET /v1/subscriptions/plans/period/{} - Fetching plans by billing period", period);
         List<SubscriptionPlanResponse> plans = subscriptionPlanService.getPlansByBillingPeriod(period);
         return ResponseEntity.ok(plans);
@@ -110,7 +110,7 @@ public class SubscriptionPlanController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<SubscriptionPlanResponse> updatePlan(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Valid @RequestBody SubscriptionPlanRequest request) {
         log.info("PUT /v1/subscriptions/plans/{} - Updating plan", id);
         SubscriptionPlanResponse updated = subscriptionPlanService.updatePlan(id, request);
@@ -127,7 +127,7 @@ public class SubscriptionPlanController {
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiMessage> deletePlan(@PathVariable Long id) {
+    public ResponseEntity<ApiMessage> deletePlan(@PathVariable("id") Long id) {
         log.info("DELETE /v1/subscriptions/plans/{} - Soft deleting plan", id);
         subscriptionPlanService.deletePlan(id);
         return ResponseEntity.ok(new ApiMessage("Subscription plan deleted successfully"));

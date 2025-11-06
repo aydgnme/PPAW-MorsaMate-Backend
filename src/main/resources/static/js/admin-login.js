@@ -6,7 +6,7 @@ const API_VERSION = 'v1';
 
 // DOM Elements
 const loginForm = document.getElementById('loginForm');
-const usernameInput = document.getElementById('username');
+const identifierInput = document.getElementById('identifier');
 const passwordInput = document.getElementById('password');
 const loginButton = document.getElementById('loginButton');
 const loginText = document.getElementById('loginText');
@@ -105,13 +105,13 @@ loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     hideMessages();
 
-    const username = usernameInput.value.trim();
+    const identifier = identifierInput.value.trim();
     const password = passwordInput.value;
     const rememberMe = document.getElementById('rememberMe').checked;
 
     // Validation
-    if (!username || !password) {
-        showError('Please enter both username and password');
+    if (!identifier || !password) {
+        showError('Please enter both identifier and password');
         return;
     }
 
@@ -125,7 +125,7 @@ loginForm.addEventListener('submit', async (e) => {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                identifier: username,  // Backend expects 'identifier' (username or email)
+                identifier: identifier,  // Backend expects 'identifier' (username or email)
                 password: password
             })
         });
@@ -163,7 +163,7 @@ loginForm.addEventListener('submit', async (e) => {
 
         } else {
             // Login failed
-            let errorMsg = 'Invalid username or password';
+            let errorMsg = 'Invalid identifier or password';
 
             if (data.message) {
                 errorMsg = data.message;
@@ -187,7 +187,7 @@ loginForm.addEventListener('submit', async (e) => {
 });
 
 // Input validation feedback
-usernameInput.addEventListener('input', () => {
+identifierInput.addEventListener('input', () => {
     if (errorMessage.style.display === 'flex') {
         hideMessages();
     }
@@ -205,8 +205,8 @@ document.querySelector('.forgot-password')?.addEventListener('click', (e) => {
     alert('Password reset functionality coming soon! Please contact system administrator.');
 });
 
-// Enter key in username field should focus password
-usernameInput.addEventListener('keypress', (e) => {
+// Enter key in identifier field should focus password
+identifierInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
         e.preventDefault();
         passwordInput.focus();

@@ -61,7 +61,7 @@ public class AchievementController {
      * Get achievement by ID
      */
     @GetMapping("/{id}")
-    public ResponseEntity<AchievementResponse> getAchievementById(@PathVariable Long id) {
+    public ResponseEntity<AchievementResponse> getAchievementById(@PathVariable("id") Long id) {
         log.debug("GET /v1/achievements/{} - Fetching achievement", id);
         AchievementResponse achievement = achievementService.getAchievementById(id);
         return ResponseEntity.ok(achievement);
@@ -72,7 +72,7 @@ public class AchievementController {
      * Get achievement by name
      */
     @GetMapping("/name/{name}")
-    public ResponseEntity<AchievementResponse> getAchievementByName(@PathVariable String name) {
+    public ResponseEntity<AchievementResponse> getAchievementByName(@PathVariable("name") String name) {
         log.debug("GET /v1/achievements/name/{} - Fetching achievement", name);
         AchievementResponse achievement = achievementService.getAchievementByName(name);
         return ResponseEntity.ok(achievement);
@@ -98,7 +98,7 @@ public class AchievementController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AchievementResponse> updateAchievement(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Valid @RequestBody UpdateAchievementRequest request) {
         log.info("PUT /v1/achievements/{} - Updating achievement", id);
         AchievementResponse updated = achievementService.updateAchievement(id, request);
@@ -111,7 +111,7 @@ public class AchievementController {
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiMessage> deleteAchievement(@PathVariable Long id) {
+    public ResponseEntity<ApiMessage> deleteAchievement(@PathVariable("id") Long id) {
         log.info("DELETE /v1/achievements/{} - Deleting achievement", id);
         achievementService.deleteAchievement(id);
         return ResponseEntity.ok(new ApiMessage("Achievement deleted successfully"));
@@ -179,7 +179,7 @@ public class AchievementController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Map<String, Boolean>> hasEarnedAchievement(
             Authentication authentication,
-            @PathVariable Long id) {
+            @PathVariable("id") Long id) {
         Long userId = Long.parseLong(authentication.getName());
         log.debug("GET /v1/achievements/{}/earned - Checking for user id: {}", id, userId);
         boolean earned = achievementService.hasUserEarnedAchievement(userId, id);
@@ -193,8 +193,8 @@ public class AchievementController {
     @PostMapping("/{achievementId}/award/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiMessage> awardAchievementToUser(
-            @PathVariable Long achievementId,
-            @PathVariable Long userId) {
+            @PathVariable("achievementId") Long achievementId,
+            @PathVariable("userId") Long userId) {
         log.info("POST /v1/achievements/{}/award/{} - Awarding achievement", achievementId, userId);
         achievementService.awardAchievementToUser(userId, achievementId);
         return ResponseEntity.ok(new ApiMessage("Achievement awarded successfully"));
@@ -221,7 +221,7 @@ public class AchievementController {
      */
     @GetMapping("/users/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<AchievementResponse>> getUserAchievements(@PathVariable Long userId) {
+    public ResponseEntity<List<AchievementResponse>> getUserAchievements(@PathVariable("userId") Long userId) {
         log.debug("GET /v1/achievements/users/{} - Admin fetching user achievements", userId);
         List<AchievementResponse> achievements = achievementService.getUserAchievements(userId);
         return ResponseEntity.ok(achievements);
@@ -233,7 +233,7 @@ public class AchievementController {
      */
     @GetMapping("/users/{userId}/count")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, Long>> getUserAchievementCount(@PathVariable Long userId) {
+    public ResponseEntity<Map<String, Long>> getUserAchievementCount(@PathVariable("userId") Long userId) {
         log.debug("GET /v1/achievements/users/{}/count - Admin counting user achievements", userId);
         long count = achievementService.getUserAchievementCount(userId);
         return ResponseEntity.ok(Map.of("achievementCount", count));

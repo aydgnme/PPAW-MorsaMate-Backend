@@ -123,7 +123,7 @@ public class UserSubscriptionController {
      */
     @PostMapping("/renew/{subscriptionId}")
     public ResponseEntity<UserSubscriptionResponse> renewSubscription(
-            @PathVariable Long subscriptionId) {
+            @PathVariable("subscriptionId") Long subscriptionId) {
 
         log.info("Renewing subscription ID: {}", subscriptionId);
 
@@ -155,7 +155,7 @@ public class UserSubscriptionController {
      */
     @GetMapping("/users/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserSubscriptionResponse> getUserSubscription(@PathVariable Long userId) {
+    public ResponseEntity<UserSubscriptionResponse> getUserSubscription(@PathVariable("userId") Long userId) {
         log.debug("Admin fetching subscription for user ID: {}", userId);
 
         UserSubscriptionResponse subscription = subscriptionService.getUserSubscription(userId);
@@ -175,7 +175,7 @@ public class UserSubscriptionController {
      */
     @DeleteMapping("/users/{userId}/cancel")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiMessage> cancelUserSubscription(@PathVariable Long userId) {
+    public ResponseEntity<ApiMessage> cancelUserSubscription(@PathVariable("userId") Long userId) {
         log.info("Admin cancelling subscription for user ID: {}", userId);
 
         subscriptionService.cancelSubscription(userId);
@@ -194,7 +194,7 @@ public class UserSubscriptionController {
     @PostMapping("/users/{userId}/subscribe")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserSubscriptionResponse> subscribeUser(
-            @PathVariable Long userId,
+            @PathVariable("userId") Long userId,
             @Valid @RequestBody UserSubscriptionRequest request) {
 
         log.info("Admin subscribing user ID: {} to plan ID: {}", userId, request.getPlanId());

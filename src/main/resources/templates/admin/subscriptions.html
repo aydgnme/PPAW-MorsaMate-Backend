@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title layout:fragment="title">MorseMate Administration | Subscription Plans</title>
+</head>
+<body>
+<main class="admin-content" layout:fragment="content">
+    <div class="breadcrumbs">
+                    <span>Home</span>
+                    <span>›</span>
+                    <span>Subscription Plans</span>
+                </div>
+
+                <div class="page-header">
+                    <div>
+                        <h2>Subscription Plans</h2>
+                        <div class="meta" th:text="${#lists.size(plans)} + ' plans total'">0 plans total</div>
+                    </div>
+                </div>
+
+                <section class="content-card" th:if="${!#lists.isEmpty(plans)}">
+                    <header>
+                        <h3>Subscription plan list</h3>
+                    </header>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Plan</th>
+                                <th>Price</th>
+                                <th>Billing</th>
+                                <th>Max hearts</th>
+                                <th>Daily limit</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="plan : ${plans}">
+                                <td th:text="${plan.id}">1</td>
+                                <td>
+                                    <strong th:text="${plan.name}">Premium</strong>
+                                    <small th:text="${plan.description}">Unlimited access</small>
+                                </td>
+                                <td th:text="'$' + ${plan.price}">$9.99</td>
+                                <td th:text="${plan.billingPeriod}">MONTHLY</td>
+                                <td th:text="${plan.maxHearts}">10</td>
+                                <td th:text="${plan.dailyPracticeLimit ?: 'Unlimited'}">100</td>
+                                <td>
+                                    <span class="status"
+                                          th:classappend="${plan.isActive} ? ' active' : ' inactive'"
+                                          th:text="${plan.isActive} ? 'Active' : 'Inactive'">Active</span>
+                                </td>
+                                <td th:text="${plan.createdAt != null ? #temporals.format(plan.createdAt, 'dd MMM yyyy') : '—'}">01 Jan 2024</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <div class="empty-state" th:if="${#lists.isEmpty(plans)}">
+                    <strong>No subscription plans yet</strong>
+                    <span>Subscription plans will appear here once created via API.</span>
+                </div>
+</main>
+</body>
+</html>

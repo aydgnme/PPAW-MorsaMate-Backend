@@ -6,11 +6,6 @@ plugins {
     id 'jacoco'
 }
 
-// JoinFaces BOM for JSF integration
-ext {
-    joinfacesVersion = '5.2.4'
-}
-
 group = 'me.aydgn'
 version = '0.0.1-SNAPSHOT'
 description = 'Morse Code Learning Platform - Backend API'
@@ -31,23 +26,15 @@ repositories {
     mavenCentral()
 }
 
-dependencyManagement {
-    imports {
-        mavenBom "org.joinfaces:joinfaces-dependencies:${joinfacesVersion}"
-    }
-}
-
 dependencies {
-    // JoinFaces - JSF integration for Spring Boot
-    implementation "org.joinfaces:mojarra-spring-boot-starter:${joinfacesVersion}"
-    implementation "org.joinfaces:primefaces-spring-boot-starter:${joinfacesVersion}"
-
     // Spring Boot Starters
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect:3.3.0'
 
     // PostgreSQL Driver
     runtimeOnly 'org.postgresql:postgresql'
@@ -74,8 +61,8 @@ dependencies {
     // DotEnv for environment variables
     implementation 'io.github.cdimascio:dotenv-java:3.0.0'
 
-    // OpenAPI Documentation
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
+    // OpenAPI Documentation (SpringDoc + Spring Boot 3.5 compatibility)
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
 
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
