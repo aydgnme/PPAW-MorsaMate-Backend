@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Actualizează Abonamentul - MorseMate</title>
+    <title>Upgrade Subscription - MorseMate</title>
     <style>
         * {
             margin: 0;
@@ -325,28 +325,28 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>⬆️ Actualizează Abonamentul</h1>
-            <p class="subtitle">Alege un plan potrivit călătoriei tale de învățare</p>
+            <h1>⬆️ Upgrade Subscription</h1>
+            <p class="subtitle">Choose a plan that fits your learning journey</p>
         </div>
 
         <!-- Current Plan -->
         <div class="current-plan" th:if="${currentSubscription != null}">
-            <h2>📱 Planul Tău Actual</h2>
+            <h2>📱 Your Current Plan</h2>
             <div class="current-plan-details">
                 <div class="current-detail">
                     <div class="current-detail-label">Plan</div>
-                    <div class="current-detail-value" th:text="${currentSubscription.plan.name}">Premium Lunar</div>
+                    <div class="current-detail-value" th:text="${currentSubscription.plan.name}">Premium Monthly</div>
                 </div>
                 <div class="current-detail">
-                    <div class="current-detail-label">Preț</div>
+                    <div class="current-detail-label">Price</div>
                     <div class="current-detail-value" th:text="${currentSubscription.plan.price} + ' RON'">9.99 RON</div>
                 </div>
                 <div class="current-detail">
-                    <div class="current-detail-label">Inimi</div>
+                    <div class="current-detail-label">Hearts</div>
                     <div class="current-detail-value" th:text="${currentSubscription.plan.maxHearts}">10</div>
                 </div>
                 <div class="current-detail">
-                    <div class="current-detail-label">Expiră</div>
+                    <div class="current-detail-label">Ends</div>
                     <div class="current-detail-value" th:text="${#temporals.format(currentSubscription.endDate, 'dd MMM')}">01 Feb</div>
                 </div>
             </div>
@@ -357,130 +357,130 @@
             <!-- Monthly Plan -->
             <div class="plan-card">
                 <div class="plan-icon">🌟</div>
-                <div class="plan-name">Premium Lunar</div>
+                <div class="plan-name">Premium Monthly</div>
                 <div class="plan-price">
                     9.99 <span class="currency">RON</span>
                     <span class="period">/lună</span>
                 </div>
-                <p>Perfect pentru a testa funcțiile premium</p>
+                <p>Perfect for trying out premium features</p>
                 <ul class="plan-features">
-                    <li>10 Inimi pe zi</li>
-                    <li>Sesiuni de Exersare Nelimitate</li>
-                    <li>Experiență fără Reclame</li>
-                    <li>Statistici de Bază</li>
-                    <li>Suport prin Email</li>
-                    <li>Acces la Aplicația Mobilă</li>
+                    <li>10 Hearts pe zi</li>
+                    <li>Unlimited Practice Sessions</li>
+                    <li>Ad-Free Experience</li>
+                    <li>Basic Statistics</li>
+                    <li>Email Support</li>
+                    <li>Mobile App Access</li>
                 </ul>
                 <button class="upgrade-btn"
                         th:if="${currentSubscription == null or currentSubscription.plan.billingPeriod != 'MONTHLY'}"
                         onclick="upgradePlan(1)">
-                    Actualizează la Lunar
+                    Upgrade to Monthly
                 </button>
                 <button class="upgrade-btn current" disabled
                         th:if="${currentSubscription != null and currentSubscription.plan.billingPeriod == 'MONTHLY'}">
-                    Plan Actual
+                    Current Plan
                 </button>
             </div>
 
             <!-- Yearly Plan (Recommended) -->
             <div class="plan-card recommended">
-                <div class="recommended-badge">CEA MAI BUNĂ VALOARE</div>
+                <div class="recommended-badge">BEST VALUE</div>
                 <div class="plan-icon">🚀</div>
-                <div class="plan-name">Premium Anual</div>
+                <div class="plan-name">Premium Yearly</div>
                 <div class="plan-price">
                     99.99 <span class="currency">RON</span>
                     <span class="period">/an</span>
                 </div>
-                <div class="savings">💰 Economisește 17% anual</div>
-                <p>Alegerea cea mai populară pentru învățarea serioasă</p>
+                <div class="savings">💰 Save 17% annually</div>
+                <p>Most popular choice for serious learners</p>
                 <ul class="plan-features">
-                    <li>15 Inimi pe zi</li>
-                    <li>Sesiuni de Exersare Nelimitate</li>
-                    <li>Experiență fără Reclame</li>
-                    <li>Statistici și Analize Avansate</li>
-                    <li>Suport Prioritar (24/7)</li>
-                    <li>Acces Mobil + Desktop</li>
-                    <li>Conținut Exclusiv</li>
-                    <li>Rapoarte de Progres</li>
+                    <li>15 Hearts pe zi</li>
+                    <li>Unlimited Practice Sessions</li>
+                    <li>Ad-Free Experience</li>
+                    <li>Advanced Statistics Statistici și Analize Avansate Analytics</li>
+                    <li>Priority Support (24/7)</li>
+                    <li>Mobile + Desktop Access</li>
+                    <li>Exclusive Content</li>
+                    <li>Progress Reports</li>
                 </ul>
                 <button class="upgrade-btn"
                         th:if="${currentSubscription == null or currentSubscription.plan.billingPeriod != 'YEARLY'}"
                         onclick="upgradePlan(2)">
-                    Actualizează la Anual
+                    Upgrade to Yearly
                 </button>
                 <button class="upgrade-btn current" disabled
                         th:if="${currentSubscription != null and currentSubscription.plan.billingPeriod == 'YEARLY'}">
-                    Plan Actual
+                    Current Plan
                 </button>
             </div>
 
             <!-- Lifetime Plan -->
             <div class="plan-card">
                 <div class="plan-icon">👑</div>
-                <div class="plan-name">Premium pe Viață</div>
+                <div class="plan-name">Premium Lifetime</div>
                 <div class="plan-price">
                     299.99 <span class="currency">RON</span>
-                    <span class="period">o singură dată</span>
+                    <span class="period">one-time</span>
                 </div>
-                <div class="savings">♾️ Acces pentru Totdeauna</div>
-                <p>O plată, beneficii pe viață</p>
+                <div class="savings">♾️ Forever Access</div>
+                <p>One payment, lifetime benefits</p>
                 <ul class="plan-features">
-                    <li>20 Inimi pe zi</li>
-                    <li>Totul Nelimitat</li>
-                    <li>Experiență fără Reclame</li>
-                    <li>Panou de Statistici Premium</li>
-                    <li>Suport VIP</li>
-                    <li>Acces la Toate Platformele</li>
-                    <li>Tot Conținutul Actual și Viitor</li>
-                    <li>Acces la Funcții Beta</li>
-                    <li>Coach Personal de Învățare</li>
-                    <li>Certificat de Finalizare</li>
+                    <li>20 Hearts pe zi</li>
+                    <li>Unlimited Everything</li>
+                    <li>Ad-Free Experience</li>
+                    <li>Premium Statistics Dashboard</li>
+                    <li>VIP Support</li>
+                    <li>All Platforms Access</li>
+                    <li>All Current Tot Conținutul Actual și Viitor Future Content</li>
+                    <li>Beta Features Access</li>
+                    <li>Personal Learning Coach</li>
+                    <li>Certificatee of Completion</li>
                 </ul>
                 <button class="upgrade-btn"
                         th:if="${currentSubscription == null or currentSubscription.plan.billingPeriod != 'LIFETIME'}"
                         onclick="upgradePlan(3)">
-                    Obține Acces pe Viață
+                    Get Lifetime Access
                 </button>
                 <button class="upgrade-btn current" disabled
                         th:if="${currentSubscription != null and currentSubscription.plan.billingPeriod == 'LIFETIME'}">
-                    Plan Actual
+                    Current Plan
                 </button>
             </div>
         </div>
 
         <!-- Comparison Table -->
         <div class="comparison-table">
-            <h2 class="comparison-title">📊 Comparație Detaliată</h2>
+            <h2 class="comparison-title">📊 Detailed Comparison</h2>
             <table>
                 <thead>
                     <tr>
-                        <th>Caracteristică</th>
-                        <th>Lunar</th>
-                        <th>Anual</th>
-                        <th>Pe Viață</th>
+                        <th>Feature</th>
+                        <th>Monthly</th>
+                        <th>Yearly</th>
+                        <th>Lifetime</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td><strong>Inimi Zilnice</strong></td>
+                        <td><strong>Hearts Zilnice</strong></td>
                         <td>10 <span class="check">✓</span></td>
                         <td>15 <span class="check">✓</span></td>
                         <td>20 <span class="check">✓</span></td>
                     </tr>
                     <tr>
-                        <td><strong>Exersare Nelimitată</strong></td>
+                        <td><strong>Unlimited Practice</strong></td>
                         <td><span class="check">✓</span></td>
                         <td><span class="check">✓</span></td>
                         <td><span class="check">✓</span></td>
                     </tr>
                     <tr>
-                        <td><strong>Fără Reclame</strong></td>
+                        <td><strong>Ad-Free</strong></td>
                         <td><span class="check">✓</span></td>
                         <td><span class="check">✓</span></td>
                         <td><span class="check">✓</span></td>
                     </tr>
                     <tr>
-                        <td><strong>Statistici Avansate</strong></td>
+                        <td><strong>Advanced Statistics</strong></td>
                         <td><span class="cross">✗</span></td>
                         <td><span class="check">✓</span></td>
                         <td><span class="check">✓</span></td>
@@ -492,31 +492,31 @@
                         <td><span class="check">✓ VIP</span></td>
                     </tr>
                     <tr>
-                        <td><strong>Conținut Exclusiv</strong></td>
+                        <td><strong>Exclusive Content</strong></td>
                         <td><span class="cross">✗</span></td>
                         <td><span class="check">✓</span></td>
                         <td><span class="check">✓</span></td>
                     </tr>
                     <tr>
-                        <td><strong>Rapoarte de Progres</strong></td>
+                        <td><strong>Progress Reports</strong></td>
                         <td><span class="cross">✗</span></td>
                         <td><span class="check">✓</span></td>
                         <td><span class="check">✓</span></td>
                     </tr>
                     <tr>
-                        <td><strong>Coach de Învățare</strong></td>
+                        <td><strong>Learning Coach</strong></td>
                         <td><span class="cross">✗</span></td>
                         <td><span class="cross">✗</span></td>
                         <td><span class="check">✓</span></td>
                     </tr>
                     <tr>
-                        <td><strong>Funcții Beta</strong></td>
+                        <td><strong>Beta Features</strong></td>
                         <td><span class="cross">✗</span></td>
                         <td><span class="cross">✗</span></td>
                         <td><span class="check">✓</span></td>
                     </tr>
                     <tr>
-                        <td><strong>Certificat</strong></td>
+                        <td><strong>Certificate</strong></td>
                         <td><span class="cross">✗</span></td>
                         <td><span class="cross">✗</span></td>
                         <td><span class="check">✓</span></td>
@@ -526,13 +526,13 @@
         </div>
 
         <div style="text-align: center;">
-            <a href="/subscriptions/list" class="btn-back">← Înapoi la Abonamentele Mele</a>
+            <a href="/subscriptions/list" class="btn-back">← Back to My Subscriptions</a>
         </div>
     </div>
 
     <script>
         function upgradePlan(planId) {
-            if (confirm('Ești sigur că vrei să actualizezi la acest plan?')) {
+            if (confirm('Are you sure you want to upgrade to this plan?')) {
                 fetch(`/v1/subscriptions/upgrade?newPlanId=${planId}`, {
                     method: 'PUT',
                     headers: {
@@ -541,7 +541,7 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    alert('Plan actualizat cu succes!');
+                    alert('Plan upgraded successfully!');
                     window.location.href = '/subscriptions/list';
                 })
                 .catch(error => {

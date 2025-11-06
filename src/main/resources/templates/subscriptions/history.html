@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Istoric Abonamente - MorseMate</title>
+    <title>Subscription History - MorseMate</title>
     <style>
         * {
             margin: 0;
@@ -300,22 +300,22 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📜 Istoric Abonamente</h1>
-            <a href="/subscriptions/list" class="btn-back">← Înapoi la Abonamente</a>
+            <h1>📜 Subscription History</h1>
+            <a href="/subscriptions/list" class="btn-back">← Back to Subscriptions</a>
         </div>
 
         <!-- Statistics Summary -->
         <div class="stats-summary" th:if="${!history.isEmpty()}">
             <div class="stat-card">
-                <div class="stat-label">Total Abonamente</div>
+                <div class="stat-label">Total Subscriptions</div>
                 <div class="stat-value" th:text="${history.size()}">5</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">Activ</div>
+                <div class="stat-label">Active</div>
                 <div class="stat-value" th:text="${history.stream().filter(s -> s.status == 'ACTIVE').count()}">2</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">Total Cheltuit</div>
+                <div class="stat-label">Total Spent</div>
                 <div class="stat-value" th:text="${history.stream().map(s -> s.plan.price).reduce(0.0, Double::sum)} + ' RON'">199.95 RON</div>
             </div>
         </div>
@@ -349,42 +349,42 @@
 
                     <div class="card-body">
                         <div class="info-item">
-                            <div class="info-label">💰 Preț</div>
+                            <div class="info-label">💰 Price</div>
                             <div class="info-value" th:text="${subscription.plan.price} + ' RON'">9.99 RON</div>
                         </div>
                         <div class="info-item">
-                            <div class="info-label">❤️ Inimi</div>
+                            <div class="info-label">❤️ Hearts</div>
                             <div class="info-value" th:text="${subscription.plan.maxHearts}">10</div>
                         </div>
                         <div class="info-item">
-                            <div class="info-label">📅 Început</div>
+                            <div class="info-label">📅 Start</div>
                             <div class="info-value" th:text="${#temporals.format(subscription.startDate, 'dd MMM')}">01 Ian</div>
                         </div>
                         <div class="info-item">
-                            <div class="info-label">📅 Sfârșit</div>
+                            <div class="info-label">📅 End</div>
                             <div class="info-value" th:text="${subscription.endDate != null ? #temporals.format(subscription.endDate, 'dd MMM') : '∞'}">01 Feb</div>
                         </div>
                         <div class="info-item">
-                            <div class="info-label">🔄 Reînnoire Automată</div>
+                            <div class="info-label">🔄 Auto Renew</div>
                             <div class="info-value" th:text="${subscription.autoRenew ? 'Da' : 'Nu'}">Da</div>
                         </div>
                     </div>
 
                     <div class="card-footer">
                         <div class="duration">
-                            <strong>Durată:</strong>
+                            <strong>Duration:</strong>
                             <span th:if="${subscription.endDate != null}">
                                 [[${#temporals.format(subscription.startDate, 'dd MMM yyyy')}]] -
                                 [[${#temporals.format(subscription.endDate, 'dd MMM yyyy')}]]
                             </span>
                             <span th:unless="${subscription.endDate != null}">
-                                [[${#temporals.format(subscription.startDate, 'dd MMM yyyy')}]] - Pe Viață
+                                [[${#temporals.format(subscription.startDate, 'dd MMM yyyy')}]] - Lifetime
                             </span>
                         </div>
                         <button class="renew-btn"
                                 th:if="${subscription.status == 'EXPIRED' or subscription.status == 'CANCELLED'}"
                                 th:onclick="'renewSubscription(' + ${subscription.id} + ')'">
-                            🔄 Reînnoiește
+                            🔄 Renew
                         </button>
                     </div>
                 </div>
@@ -394,15 +394,15 @@
         <!-- Empty State -->
         <div class="empty-state" th:if="${history.isEmpty()}">
             <div class="empty-icon">📭</div>
-            <h2>Niciun Istoric de Abonamente</h2>
-            <p>Nu te-ai abonat la niciun plan încă. Începe călătoria ta premium astăzi!</p>
-            <a href="/subscriptions/list" class="btn-back">Vezi Planurile Disponibile</a>
+            <h2>No Subscription History</h2>
+            <p>You haven't subscribed to any plan yet. Start your premium journey today!</p>
+            <a href="/subscriptions/list" class="btn-back">View Available Plans</a>
         </div>
     </div>
 
     <script>
         function renewSubscription(subscriptionId) {
-            if (confirm('Ești sigur că vrei să reînnoiești acest abonament?')) {
+            if (confirm('Are you sure you want to renew this subscription?')) {
                 fetch(`/v1/subscriptions/renew/${subscriptionId}`, {
                     method: 'POST',
                     headers: {
@@ -411,7 +411,7 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    alert('Abonament reînnoit cu succes!');
+                    alert('Subscription renewed successfully!');
                     window.location.reload();
                 })
                 .catch(error => {

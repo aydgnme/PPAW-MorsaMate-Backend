@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Abonamentele Mele - MorseMate</title>
+    <title>My Subscriptions - MorseMate</title>
     <style>
         * {
             margin: 0;
@@ -232,52 +232,52 @@
 </head>
 <body>
     <div class="container">
-        <h1>📱 Abonamentele Mele</h1>
+        <h1>📱 My Subscriptions</h1>
 
         <!-- Active Subscription Section -->
         <div th:if="${subscription != null and subscription.isActive}">
             <div class="subscription-card">
                 <div class="subscription-header">
-                    <div class="plan-name" th:text="${subscription.plan.name}">Premium Lunar</div>
-                    <div class="status-badge status-active" th:text="${subscription.status}">ACTIV</div>
+                    <div class="plan-name" th:text="${subscription.plan.name}">Premium Monthly</div>
+                    <div class="status-badge status-active" th:text="${subscription.status}">ACTIVE</div>
                 </div>
 
                 <div class="subscription-details">
                     <div class="detail-item">
-                        <div class="detail-label">💰 Preț</div>
+                        <div class="detail-label">💰 Price</div>
                         <div class="detail-value" th:text="${subscription.plan.price} + ' RON'">9.99 RON</div>
                     </div>
 
                     <div class="detail-item">
-                        <div class="detail-label">❤️ Inimi Maxime</div>
+                        <div class="detail-label">❤️ Max Hearts</div>
                         <div class="detail-value" th:text="${subscription.plan.maxHearts}">10</div>
                     </div>
 
                     <div class="detail-item">
-                        <div class="detail-label">📅 Data Începerii</div>
-                        <div class="detail-value" th:text="${#temporals.format(subscription.startDate, 'dd MMM yyyy')}">01 Ian 2025</div>
+                        <div class="detail-label">📅 Start Date</div>
+                        <div class="detail-value" th:text="${#temporals.format(subscription.startDate, 'dd MMM yyyy')}">01 Jan 2025</div>
                     </div>
 
                     <div class="detail-item">
-                        <div class="detail-label">📅 Data Finalizării</div>
-                        <div class="detail-value" th:text="${subscription.endDate != null ? #temporals.format(subscription.endDate, 'dd MMM yyyy') : 'Pe Viață'}">01 Feb 2025</div>
+                        <div class="detail-label">📅 End Date</div>
+                        <div class="detail-value" th:text="${subscription.endDate != null ? #temporals.format(subscription.endDate, 'dd MMM yyyy') : 'Lifetime'}">01 Feb 2025</div>
                     </div>
 
                     <div class="detail-item">
-                        <div class="detail-label">🔄 Reînnoire Automată</div>
-                        <div class="detail-value" th:text="${subscription.autoRenew ? 'Da' : 'Nu'}">Da</div>
+                        <div class="detail-label">🔄 Auto Renew</div>
+                        <div class="detail-value" th:text="${subscription.autoRenew ? 'Yes' : 'No'}">Yes</div>
                     </div>
 
                     <div class="detail-item">
-                        <div class="detail-label">💳 Următoarea Facturare</div>
+                        <div class="detail-label">💳 Next Billing</div>
                         <div class="detail-value" th:text="${subscription.nextBillingDate != null ? #temporals.format(subscription.nextBillingDate, 'dd MMM yyyy') : 'N/A'}">01 Feb 2025</div>
                     </div>
                 </div>
 
                 <div class="action-buttons">
-                    <button class="btn btn-upgrade" onclick="window.location.href='/subscriptions/upgrade'">⬆️ Actualizează Planul</button>
-                    <button class="btn btn-primary" onclick="window.location.href='/subscriptions/history'">📜 Vezi Istoricul</button>
-                    <button class="btn btn-danger" onclick="cancelSubscription()">❌ Anulează Abonamentul</button>
+                    <button class="btn btn-upgrade" onclick="window.location.href='/subscriptions/upgrade'">⬆️ Upgrade Plan</button>
+                    <button class="btn btn-primary" onclick="window.location.href='/subscriptions/history'">📜 View History</button>
+                    <button class="btn btn-danger" onclick="cancelSubscription()">❌ Cancel Subscription</button>
                 </div>
             </div>
         </div>
@@ -285,56 +285,56 @@
         <!-- No Active Subscription Section -->
         <div th:unless="${subscription != null and subscription.isActive}" class="no-subscription">
             <div class="no-subscription-icon">📭</div>
-            <h2>Niciun Abonament Activ</h2>
-            <p>Nu ai un abonament activ. Alege un plan de mai jos pentru a începe!</p>
+            <h2>No Active Subscription</h2>
+            <p>You don't have an active subscription. Choose a plan below to get started!</p>
 
             <div class="available-plans">
                 <!-- Monthly Plan -->
                 <div class="plan-card">
-                    <h3>🌟 Premium Lunar</h3>
+                    <h3>🌟 Premium Monthly</h3>
                     <div class="plan-price">9.99 RON</div>
-                    <p>Perfect pentru a testa funcțiile premium</p>
+                    <p>Perfect for trying out premium features</p>
                     <ul class="plan-features">
-                        <li>10 Inimi</li>
-                        <li>Exersare Nelimitată</li>
-                        <li>Experiență fără Reclame</li>
-                        <li>Suport Prioritar</li>
-                        <li>Statistici Avansate</li>
+                        <li>10 Hearts</li>
+                        <li>Unlimited Practice</li>
+                        <li>Ad-Free Experience</li>
+                        <li>Priority Support</li>
+                        <li>Advanced Statistics</li>
                     </ul>
-                    <button class="btn btn-primary" onclick="subscribe(1)">Abonează-te Acum</button>
+                    <button class="btn btn-primary" onclick="subscribe(1)">Subscribe Now</button>
                 </div>
 
                 <!-- Yearly Plan -->
                 <div class="plan-card">
-                    <h3>🚀 Premium Anual</h3>
+                    <h3>🚀 Premium Yearly</h3>
                     <div class="plan-price">99.99 RON</div>
-                    <p>Cea mai bună valoare - Economisește 17%!</p>
+                    <p>Best value - Save 17%!</p>
                     <ul class="plan-features">
-                        <li>15 Inimi</li>
-                        <li>Exersare Nelimitată</li>
-                        <li>Experiență fără Reclame</li>
-                        <li>Suport Prioritar</li>
-                        <li>Statistici Avansate</li>
-                        <li>Conținut Exclusiv</li>
+                        <li>15 Hearts</li>
+                        <li>Unlimited Practice</li>
+                        <li>Ad-Free Experience</li>
+                        <li>Priority Support</li>
+                        <li>Advanced Statistics</li>
+                        <li>Exclusive Content</li>
                     </ul>
-                    <button class="btn btn-upgrade" onclick="subscribe(2)">Abonează-te Acum</button>
+                    <button class="btn btn-upgrade" onclick="subscribe(2)">Subscribe Now</button>
                 </div>
 
                 <!-- Lifetime Plan -->
                 <div class="plan-card">
-                    <h3>👑 Premium pe Viață</h3>
+                    <h3>👑 Premium Lifetime</h3>
                     <div class="plan-price">299.99 RON</div>
-                    <p>Plată unică, acces pentru totdeauna!</p>
+                    <p>One-time payment, forever access!</p>
                     <ul class="plan-features">
-                        <li>20 Inimi</li>
-                        <li>Exersare Nelimitată</li>
-                        <li>Experiență fără Reclame</li>
-                        <li>Suport Prioritar</li>
-                        <li>Statistici Avansate</li>
-                        <li>Conținut Exclusiv</li>
-                        <li>Toate Funcțiile Viitoare</li>
+                        <li>20 Hearts</li>
+                        <li>Unlimited Practice</li>
+                        <li>Ad-Free Experience</li>
+                        <li>Priority Support</li>
+                        <li>Advanced Statistics</li>
+                        <li>Exclusive Content</li>
+                        <li>All Future Features</li>
                     </ul>
-                    <button class="btn btn-primary" onclick="subscribe(3)">Abonează-te Acum</button>
+                    <button class="btn btn-primary" onclick="subscribe(3)">Subscribe Now</button>
                 </div>
             </div>
         </div>
@@ -342,7 +342,7 @@
 
     <script>
         function subscribe(planId) {
-            if (confirm('Ești sigur că vrei să te abonezi la acest plan?')) {
+            if (confirm('Are you sure you want to subscribe to this plan?')) {
                 fetch('/v1/subscriptions/subscribe', {
                     method: 'POST',
                     headers: {
@@ -356,17 +356,17 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    alert('Abonament realizat cu succes!');
+                    alert('Subscription successful!');
                     window.location.reload();
                 })
                 .catch(error => {
-                    alert('Eroare: ' + error.message);
+                    alert('Error: ' + error.message);
                 });
             }
         }
 
         function cancelSubscription() {
-            if (confirm('Ești sigur că vrei să anulezi abonamentul? Vei pierde beneficiile premium.')) {
+            if (confirm('Are you sure you want to cancel your subscription? You will lose premium benefits.')) {
                 fetch('/v1/subscriptions/cancel', {
                     method: 'DELETE',
                     headers: {
@@ -375,11 +375,11 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    alert('Abonament anulat cu succes!');
+                    alert('Subscription cancelled successfully!');
                     window.location.reload();
                 })
                 .catch(error => {
-                    alert('Eroare: ' + error.message);
+                    alert('Error: ' + error.message);
                 });
             }
         }
