@@ -82,3 +82,6 @@ stripe:
   payment-methods: ${STRIPE_PAYMENT_METHODS:card,bank_transfer}
   success-url: ${STRIPE_SUCCESS_URL:http://localhost:8080/payment/success}
   cancel-url: ${STRIPE_CANCEL_URL:http://localhost:8080/payment/cancel}
+
+card:
+  encryption-key: ${CARD_ENCRYPTION_KEY:CHANGE-THIS-KEY-IN-PROD-32-BYTES-LONG!!!!}

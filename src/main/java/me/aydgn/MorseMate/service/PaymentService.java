@@ -2,6 +2,11 @@ package me.aydgn.MorseMate.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import me.aydgn.MorseMate.dto.PaymentHistoryDTO;
+import me.aydgn.MorseMate.dto.PaymentRequestDTO;
+import me.aydgn.MorseMate.dto.PaymentResponseDTO;
+import me.aydgn.MorseMate.dto.PaymentStatsDTO;
+import me.aydgn.MorseMate.dto.PaymentCardDTO;
 import me.aydgn.MorseMate.dto.request.CreatePaymentRequest;
 import me.aydgn.MorseMate.dto.request.RefundPaymentRequest;
 import me.aydgn.MorseMate.dto.response.PaymentResponse;
@@ -13,6 +18,7 @@ import me.aydgn.MorseMate.exception.ResourceNotFoundException;
 import me.aydgn.MorseMate.repository.PaymentRepository;
 import me.aydgn.MorseMate.repository.UserRepository;
 import me.aydgn.MorseMate.repository.UserSubscriptionRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -40,6 +46,12 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final UserRepository userRepository;
     private final UserSubscriptionRepository subscriptionRepository;
+    private final PaymentCardService cardService;
+
+    @Value("${payment.default-currency:USD}")
+    private String defaultCurrency;
+
+    // ===== Existing generic payment APIs (kept for compatibility) =====
 
     /**
      * Create a new payment (simulated).
@@ -291,4 +303,153 @@ public class PaymentService {
                 .simulated(true)
                 .build();
     }
+
+    // ===== Card-based simulated subscription payments =====
+
+    /**
+     * Charge a subscription using either a saved card or raw card details.
+     * This method is purely simulated and does not talk to real gateways.
+     */
+    @Transactional
+    public PaymentResponseDTO charge(Long userId, PaymentRequestDTO request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
+
+        UserSubscription subscription = subscriptionRepository.findWithPlanByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Active subscription not found for user: " + userId));
+
+        // Determine amount / currency from request or subscription plan
+        var plan = subscription.getPlan();
+
+        var amount = request.getAmount() != null ? request.getAmount() : plan.getPrice();
+        var currency = request.getCurrency() != null ? request.getCurrency() : defaultCurrency;
+
+        // Validate amount quickly
+        if (amount == null || amount.signum() <= 0) {
+            throw new InvalidOperationException("Amount must be positive");
+        }
+
+        // Get or create card
+        PaymentCardDTO cardDto;
+        if (request.getCardId() != null) {
+            cardDto = cardService.listCards(userId).stream()
+                    .filter(c -> c.getId().equals(request.getCardId()))
+                    .findFirst()
+                    .orElseThrow(() -> new ResourceNotFoundException("Card not found"));
+        } else {
+            if (request.getCardNumber() == null || request.getCvv() == null) {
+                throw new InvalidOperationException("Card information is required when cardId is not provided");
+            }
+            validateCardNumber(request.getCardNumber());
+            validateCvv(request.getCvv());
+            cardDto = cardService.addCard(
+                    userId,
+                    request.getCardholderName(),
+                    request.getCardNumber(),
+                    request.getCvv(),
+                    request.getExpiryMonth(),
+                    request.getExpiryYear(),
+                    true
+            );
+        }
+
+        boolean success = simulateCharge(amount);
+
+        String transactionRef = "SIM-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+
+        return PaymentResponseDTO.builder()
+                .status(success ? "SUCCESS" : "FAILED")
+                .failureReason(success ? null : "Simulated insufficient funds")
+                .amount(amount)
+                .currency(currency)
+                .planId(plan.getId())
+                .planName(plan.getName())
+                .transactionRef(transactionRef)
+                .processedAt(LocalDateTime.now())
+                .cardId(cardDto.getId())
+                .card(cardDto)
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public List<PaymentHistoryDTO> getPaymentHistory(Long userId) {
+        // For now, we derive history from subscription itself as a simple list.
+        // In a real system, this would use a dedicated Payment entity.
+        UserSubscription subscription = subscriptionRepository.findWithPlanByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Active subscription not found for user"));
+
+        return List.of(PaymentHistoryDTO.builder()
+                .subscriptionId(subscription.getId())
+                .planId(subscription.getPlan().getId())
+                .planName(subscription.getPlan().getName())
+                .amount(subscription.getPlan().getPrice())
+                .currency(defaultCurrency)
+                .type("INITIAL")
+                .status("SUCCESS")
+                .createdAt(subscription.getStartDate())
+                .build());
+    }
+
+    @Transactional(readOnly = true)
+    public PaymentStatsDTO getPaymentStats(Long userId) {
+        List<PaymentHistoryDTO> history = getPaymentHistory(userId);
+        long total = history.size();
+        long success = history.stream().filter(h -> "SUCCESS".equals(h.getStatus())).count();
+
+        BigDecimal totalAmount = history.stream()
+                .map(PaymentHistoryDTO::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal avg = total > 0
+                ? totalAmount.divide(BigDecimal.valueOf(total), BigDecimal.ROUND_HALF_UP)
+                : BigDecimal.ZERO;
+
+        long activeSubs = subscriptionRepository.findByStatus(UserSubscription.Status.ACTIVE).size();
+
+        return PaymentStatsDTO.builder()
+                .totalPayments(total)
+                .successfulPayments(success)
+                .failedPayments(total - success)
+                .totalAmount(totalAmount)
+                .averageAmount(avg)
+                .activeSubscriptions(activeSubs)
+                .build();
+    }
+
+    // ===== helpers for simulated charge =====
+
+    private void validateCardNumber(String cardNumber) {
+        String digits = cardNumber.replaceAll("\\s+", "");
+        if (digits.length() < 13 || digits.length() > 19 || !luhnCheck(digits)) {
+            throw new InvalidOperationException("Invalid card number");
+        }
+    }
+
+    private boolean luhnCheck(String digits) {
+        int sum = 0;
+        boolean alternate = false;
+        for (int i = digits.length() - 1; i >= 0; i--) {
+            int n = digits.charAt(i) - '0';
+            if (alternate) {
+                n *= 2;
+                if (n > 9) n -= 9;
+            }
+            sum += n;
+            alternate = !alternate;
+        }
+        return sum % 10 == 0;
+    }
+
+    private void validateCvv(String cvv) {
+        if (cvv == null || !cvv.matches("\\d{3,4}")) {
+            throw new InvalidOperationException("Invalid CVV");
+        }
+    }
+
+    private boolean simulateCharge(BigDecimal amount) {
+        // Very naive heuristic: if cents part ends with 7, fail.
+        int cents = amount.movePointRight(2).remainder(BigDecimal.valueOf(100)).intValue();
+        return cents % 10 != 7;
+    }
 }
+

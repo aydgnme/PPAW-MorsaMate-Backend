@@ -3,9 +3,15 @@ package me.aydgn.MorseMate.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import me.aydgn.MorseMate.dto.PaymentCardDTO;
+import me.aydgn.MorseMate.dto.PaymentHistoryDTO;
+import me.aydgn.MorseMate.dto.PaymentRequestDTO;
+import me.aydgn.MorseMate.dto.PaymentResponseDTO;
+import me.aydgn.MorseMate.dto.PaymentStatsDTO;
 import me.aydgn.MorseMate.dto.request.CreatePaymentRequest;
 import me.aydgn.MorseMate.dto.request.RefundPaymentRequest;
 import me.aydgn.MorseMate.dto.response.PaymentResponse;
+import me.aydgn.MorseMate.service.PaymentCardService;
 import me.aydgn.MorseMate.service.PaymentService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -30,9 +36,12 @@ import java.util.Map;
  * Real Stripe integration will be added in future iterations.
  *
  * Endpoints:
- * - POST   /v1/payments/create          - Create a new payment (simulated)
- * - GET    /v1/payments/my              - Get current user's payments
- * - GET    /v1/payments/my/stats        - Get payment statistics for current user
+ * - POST   /v1/payments/create          - Create a new payment (legacy simulated)
+ * - GET    /v1/payments/my              - Get current user's payments (legacy)
+ * - GET    /v1/payments/my/stats        - Get payment statistics for current user (legacy)
+ * - POST   /v1/payments/charge          - Charge subscription via card (new simulated flow)
+ * - GET    /v1/payments/my/history      - Subscription-centric payment history
+ * - GET    /v1/payments/my/summary      - Aggregated payment statistics DTO
  * - GET    /v1/payments/{id}            - Get payment details
  * - POST   /v1/payments/{id}/refund     - Refund a payment (admin only)
  * - GET    /v1/payments                 - Get all payments (admin only)
@@ -46,6 +55,7 @@ import java.util.Map;
 public class PaymentController {
 
     private final PaymentService paymentService;
+    private final PaymentCardService paymentCardService;
 
     /**
      * Create a new payment (simulated).
@@ -105,6 +115,47 @@ public class PaymentController {
         log.debug("Fetching payment statistics for user ID: {}", userId);
 
         Map<String, Object> stats = paymentService.getUserPaymentStats(userId);
+        return ResponseEntity.ok(stats);
+    }
+
+    /**
+     * Legacy alias endpoint used by frontend to fetch saved cards.
+     * Internally delegates to PaymentCardService.
+     */
+    @GetMapping("/cards")
+    public ResponseEntity<List<PaymentCardDTO>> getMyCards() {
+        Long userId = getCurrentUserId();
+        List<PaymentCardDTO> cards = paymentCardService.listCards(userId);
+        return ResponseEntity.ok(cards);
+    }
+
+    /**
+     * New card-based simulated charge endpoint.
+     */
+    @PostMapping("/charge")
+    public ResponseEntity<PaymentResponseDTO> charge(@RequestBody PaymentRequestDTO request) {
+        Long userId = getCurrentUserId();
+        PaymentResponseDTO response = paymentService.charge(userId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    /**
+     * Subscription-centric payment history for current user.
+     */
+    @GetMapping("/my/history")
+    public ResponseEntity<List<PaymentHistoryDTO>> getMyPaymentHistory() {
+        Long userId = getCurrentUserId();
+        List<PaymentHistoryDTO> history = paymentService.getPaymentHistory(userId);
+        return ResponseEntity.ok(history);
+    }
+
+    /**
+     * Aggregated payment statistics for current user (DTO form).
+     */
+    @GetMapping("/my/summary")
+    public ResponseEntity<PaymentStatsDTO> getMyPaymentSummary() {
+        Long userId = getCurrentUserId();
+        PaymentStatsDTO stats = paymentService.getPaymentStats(userId);
         return ResponseEntity.ok(stats);
     }
 
