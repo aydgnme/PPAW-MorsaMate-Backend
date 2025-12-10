@@ -1,5 +1,6 @@
 package me.aydgn.MorseMate.service;
 
+import com.stripe.exception.StripeException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.aydgn.MorseMate.dto.request.LoginRequest;
@@ -25,6 +26,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final me.aydgn.MorseMate.security.RateLimitService rateLimitService;
+    private final StripeService stripeService;
 
     /**
      * Register a new user with enhanced security validations
@@ -125,6 +127,14 @@ public class AuthService {
         try {
             user = userRepository.save(user);
             log.info("User registered successfully: {} (ID: {})", user.getUsername(), user.getId());
+
+            // Create a Stripe customer for the new user
+            try {
+                stripeService.createCustomer(user);
+            } catch (StripeException e) {
+                log.warn("Failed to create Stripe customer for user ID: {}. Registration will proceed, but payment features will be affected. Error: {}", user.getId(), e.getMessage());
+                // In a production environment, you might want to add this user to a retry queue.
+            }
 
             // Clear rate limit on successful registration
             rateLimitService.registerSuccess(rateLimitKey);

@@ -1,39 +1,26 @@
 package me.aydgn.MorseMate.service;
 
+import com.stripe.exception.StripeException;
+import com.stripe.model.Customer;
+import com.stripe.model.PaymentIntent;
+import com.stripe.model.PaymentMethod;
+import com.stripe.model.PaymentMethodCollection;
+import com.stripe.model.Subscription;
+import com.stripe.net.RequestOptions;
+import com.stripe.param.CustomerCreateParams;
+import com.stripe.param.PaymentIntentCreateParams;
+import com.stripe.param.PaymentMethodAttachParams;
+import com.stripe.param.PaymentMethodListParams;
+import com.stripe.param.SubscriptionCancelParams;
+import com.stripe.param.SubscriptionCreateParams;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import me.aydgn.MorseMate.dto.request.CreatePaymentIntentRequest;
-import me.aydgn.MorseMate.dto.response.PaymentIntentResponse;
-import me.aydgn.MorseMate.dto.response.StripeCustomerResponse;
 import me.aydgn.MorseMate.entity.User;
-import me.aydgn.MorseMate.exception.InvalidOperationException;
-import me.aydgn.MorseMate.exception.ResourceNotFoundException;
 import me.aydgn.MorseMate.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
-/**
- * Simulated Stripe Service.
- *
- * SIMULATION MODE:
- * This service simulates Stripe API operations without actual Stripe integration.
- * All Stripe objects (PaymentIntent, Customer, etc.) are mocked for testing.
- * Real Stripe integration can be added later by replacing simulation logic
- * with actual Stripe API calls.
- *
- * Simulated Stripe Operations:
- * - Create Payment Intent
- * - Confirm Payment Intent
- * - Create Customer
- * - Retrieve Customer
- * - Cancel Payment Intent
- * - Webhook event simulation
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -41,317 +28,170 @@ public class StripeService {
 
     private final UserRepository userRepository;
 
-    // In-memory storage for simulated Stripe objects (in real app, Stripe manages these)
-    private final Map<String, PaymentIntentResponse> paymentIntents = new HashMap<>();
-    private final Map<Long, StripeCustomerResponse> customersByUserId = new HashMap<>();
-    private final Map<String, StripeCustomerResponse> customersById = new HashMap<>();
-
     /**
-     * Create a simulated Payment Intent.
+     * Creates a new Stripe customer for the given user.
+     * If the user already has a Stripe customer ID, it retrieves and returns the existing customer.
      *
-     * @param userId User ID making the payment
-     * @param request Payment Intent creation request
-     * @return Simulated Payment Intent
+     * @param user The user to create a Stripe customer for.
+     * @return The created or retrieved Stripe Customer object.
+     * @throws StripeException if an error occurs while interacting with the Stripe API.
      */
-    public PaymentIntentResponse createPaymentIntent(Long userId, CreatePaymentIntentRequest request) {
-        log.info("Creating simulated Payment Intent for user ID: {}, amount: {} {}",
-                userId, request.getAmount(), request.getCurrency());
-
-        // Validate user exists
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
-
-        // Get or create Stripe customer
-        StripeCustomerResponse customer = getOrCreateCustomer(user);
-
-        // Generate simulated IDs
-        String paymentIntentId = "pi_sim_" + UUID.randomUUID().toString().substring(0, 24);
-        String clientSecret = paymentIntentId + "_secret_" + UUID.randomUUID().toString().substring(0, 16);
-
-        // Convert amount to cents (Stripe uses smallest currency unit)
-        Long amountInCents = request.getAmount().multiply(new BigDecimal("100")).longValue();
-
-        // Determine initial status
-        String status = request.getSimulateFailure() != null && request.getSimulateFailure()
-                ? "requires_payment_method"  // Will fail when confirmed
-                : "requires_confirmation";    // Ready to be confirmed
-
-        // Build metadata
-        Map<String, String> metadata = new HashMap<>();
-        if (request.getMetadata() != null) {
-            metadata.putAll(request.getMetadata());
-        }
-        metadata.put("user_id", userId.toString());
-        metadata.put("customer_id", customer.getId());
-        metadata.put("simulated", "true");
-        if (request.getPlanId() != null) {
-            metadata.put("plan_id", request.getPlanId().toString());
-        }
-        if (request.getPromoCode() != null) {
-            metadata.put("promo_code", request.getPromoCode());
+    public Customer createCustomer(User user) throws StripeException {
+        if (user.getStripeCustomerId() != null) {
+            try {
+                log.info("Retrieving existing Stripe customer for user ID: {}", user.getId());
+                return Customer.retrieve(user.getStripeCustomerId());
+            } catch (StripeException e) {
+                log.error("Failed to retrieve Stripe customer with ID: {}. Will create a new one.", user.getStripeCustomerId(), e);
+                // Fall through to create a new customer if retrieval fails
+            }
         }
 
-        // Create Payment Intent response
-        PaymentIntentResponse paymentIntent = PaymentIntentResponse.builder()
-                .id(paymentIntentId)
-                .clientSecret(clientSecret)
-                .amount(amountInCents)
-                .amountDecimal(request.getAmount())
-                .currency(request.getCurrency().toLowerCase())
-                .status(status)
-                .paymentMethodTypes(request.getPaymentMethodTypes())
-                .metadata(metadata)
-                .simulated(true)
-                .created(Instant.now().getEpochSecond())
+        log.info("Creating new Stripe customer for user ID: {}", user.getId());
+
+        CustomerCreateParams params = CustomerCreateParams.builder()
+                .setName(user.getFullName())
+                .setEmail(user.getEmail())
+                .putMetadata("app_user_id", user.getId().toString())
+                .putMetadata("app_username", user.getUsername())
                 .build();
 
-        // Store in memory (simulating Stripe's database)
-        paymentIntents.put(paymentIntentId, paymentIntent);
+        Customer customer = Customer.create(params);
 
-        log.info("Simulated Payment Intent created: {}, status: {}", paymentIntentId, status);
-        return paymentIntent;
-    }
+        user.setStripeCustomerId(customer.getId());
+        userRepository.save(user);
 
-    /**
-     * Confirm a simulated Payment Intent.
-     *
-     * @param paymentIntentId Payment Intent ID
-     * @return Updated Payment Intent
-     */
-    public PaymentIntentResponse confirmPaymentIntent(String paymentIntentId) {
-        log.info("Confirming simulated Payment Intent: {}", paymentIntentId);
+        log.info("Successfully created Stripe customer with ID: {} for user ID: {}", customer.getId(), user.getId());
 
-        PaymentIntentResponse paymentIntent = paymentIntents.get(paymentIntentId);
-        if (paymentIntent == null) {
-            throw new ResourceNotFoundException("Payment Intent not found: " + paymentIntentId);
-        }
-
-        if ("succeeded".equals(paymentIntent.getStatus())) {
-            throw new InvalidOperationException("Payment Intent already succeeded");
-        }
-
-        if ("canceled".equals(paymentIntent.getStatus())) {
-            throw new InvalidOperationException("Payment Intent is canceled");
-        }
-
-        // Simulate payment processing
-        // Check if this was marked to fail
-        boolean shouldFail = paymentIntent.getMetadata().containsKey("simulate_failure")
-                || "requires_payment_method".equals(paymentIntent.getStatus());
-
-        if (shouldFail) {
-            paymentIntent.setStatus("requires_payment_method");
-            log.warn("Simulated Payment Intent failed: {}", paymentIntentId);
-        } else {
-            paymentIntent.setStatus("succeeded");
-            log.info("Simulated Payment Intent succeeded: {}", paymentIntentId);
-        }
-
-        paymentIntents.put(paymentIntentId, paymentIntent);
-        return paymentIntent;
-    }
-
-    /**
-     * Cancel a simulated Payment Intent.
-     *
-     * @param paymentIntentId Payment Intent ID
-     * @return Updated Payment Intent
-     */
-    public PaymentIntentResponse cancelPaymentIntent(String paymentIntentId) {
-        log.info("Canceling simulated Payment Intent: {}", paymentIntentId);
-
-        PaymentIntentResponse paymentIntent = paymentIntents.get(paymentIntentId);
-        if (paymentIntent == null) {
-            throw new ResourceNotFoundException("Payment Intent not found: " + paymentIntentId);
-        }
-
-        if ("succeeded".equals(paymentIntent.getStatus())) {
-            throw new InvalidOperationException("Cannot cancel succeeded Payment Intent");
-        }
-
-        if ("canceled".equals(paymentIntent.getStatus())) {
-            throw new InvalidOperationException("Payment Intent already canceled");
-        }
-
-        paymentIntent.setStatus("canceled");
-        paymentIntents.put(paymentIntentId, paymentIntent);
-
-        log.info("Simulated Payment Intent canceled: {}", paymentIntentId);
-        return paymentIntent;
-    }
-
-    /**
-     * Retrieve a simulated Payment Intent.
-     *
-     * @param paymentIntentId Payment Intent ID
-     * @return Payment Intent
-     */
-    public PaymentIntentResponse retrievePaymentIntent(String paymentIntentId) {
-        PaymentIntentResponse paymentIntent = paymentIntents.get(paymentIntentId);
-        if (paymentIntent == null) {
-            throw new ResourceNotFoundException("Payment Intent not found: " + paymentIntentId);
-        }
-        return paymentIntent;
-    }
-
-    /**
-     * Get or create a simulated Stripe Customer for a user.
-     *
-     * @param user User entity
-     * @return Simulated Stripe Customer
-     */
-    public StripeCustomerResponse getOrCreateCustomer(User user) {
-        // Check if customer already exists
-        StripeCustomerResponse existingCustomer = customersByUserId.get(user.getId());
-        if (existingCustomer != null) {
-            log.debug("Returning existing simulated customer: {}", existingCustomer.getId());
-            return existingCustomer;
-        }
-
-        // Create new simulated customer
-        String customerId = "cus_sim_" + UUID.randomUUID().toString().substring(0, 24);
-
-        StripeCustomerResponse customer = StripeCustomerResponse.builder()
-                .id(customerId)
-                .email(user.getEmail())
-                .name(user.getFullName())
-                .userId(user.getId())
-                .simulated(true)
-                .created(Instant.now().getEpochSecond())
-                .build();
-
-        // Store in memory
-        customersByUserId.put(user.getId(), customer);
-        customersById.put(customerId, customer);
-
-        log.info("Created simulated Stripe customer: {} for user ID: {}", customerId, user.getId());
         return customer;
     }
 
     /**
-     * Retrieve a simulated Stripe Customer by ID.
+     * Creates a PaymentIntent for a one-time payment.
      *
-     * @param customerId Customer ID
-     * @return Simulated Stripe Customer
+     * @param amount   The amount to charge, in the smallest currency unit (e.g., cents).
+     * @param currency The three-letter ISO currency code.
+     * @param customerId The ID of the Stripe customer making the payment.
+     * @return The created PaymentIntent.
+     * @throws StripeException If an error occurs during the API call.
      */
-    public StripeCustomerResponse retrieveCustomer(String customerId) {
-        StripeCustomerResponse customer = customersById.get(customerId);
-        if (customer == null) {
-            throw new ResourceNotFoundException("Customer not found: " + customerId);
-        }
-        return customer;
-    }
+    public PaymentIntent createPaymentIntent(Long amount, String currency, String customerId) throws StripeException {
+        log.info("Creating PaymentIntent for customer: {}, amount: {}, currency: {}", customerId, amount, currency);
 
-    /**
-     * Get customer by user ID.
-     *
-     * @param userId User ID
-     * @return Simulated Stripe Customer or null
-     */
-    public StripeCustomerResponse getCustomerByUserId(Long userId) {
-        return customersByUserId.get(userId);
-    }
+        PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
+                .setAmount(amount)
+                .setCurrency(currency)
+                .setCustomer(customerId)
+                .setAutomaticPaymentMethods(
+                        PaymentIntentCreateParams.AutomaticPaymentMethods.builder().setEnabled(true).build()
+                )
+                .build();
 
-    /**
-     * Simulate a refund for a Payment Intent.
-     *
-     * @param paymentIntentId Payment Intent ID
-     * @param amount Amount to refund (null for full refund)
-     * @param reason Refund reason
-     * @return Updated Payment Intent
-     */
-    public PaymentIntentResponse refundPaymentIntent(String paymentIntentId, BigDecimal amount, String reason) {
-        log.info("Simulating refund for Payment Intent: {}, amount: {}", paymentIntentId, amount);
+        // Use an idempotency key to prevent creating duplicate charges
+        RequestOptions requestOptions = RequestOptions.builder()
+                .setIdempotencyKey(UUID.randomUUID().toString())
+                .build();
 
-        PaymentIntentResponse paymentIntent = paymentIntents.get(paymentIntentId);
-        if (paymentIntent == null) {
-            throw new ResourceNotFoundException("Payment Intent not found: " + paymentIntentId);
-        }
+        PaymentIntent paymentIntent = PaymentIntent.create(params, requestOptions);
 
-        if (!"succeeded".equals(paymentIntent.getStatus())) {
-            throw new InvalidOperationException("Can only refund succeeded Payment Intents");
-        }
+        log.info("Successfully created PaymentIntent with ID: {}", paymentIntent.getId());
 
-        // Add refund metadata
-        Map<String, String> metadata = paymentIntent.getMetadata();
-        if (metadata == null) {
-            metadata = new HashMap<>();
-        }
-        metadata.put("refunded", "true");
-        metadata.put("refund_amount", amount != null ? amount.toString() : paymentIntent.getAmountDecimal().toString());
-        metadata.put("refund_reason", reason != null ? reason : "requested_by_customer");
-        metadata.put("refund_timestamp", Instant.now().toString());
-        paymentIntent.setMetadata(metadata);
-
-        // Update status (in real Stripe, there's no "refunded" status, but we'll add it for clarity)
-        paymentIntent.getMetadata().put("status_after_refund", "refunded");
-
-        paymentIntents.put(paymentIntentId, paymentIntent);
-
-        log.info("Simulated refund completed for Payment Intent: {}", paymentIntentId);
         return paymentIntent;
     }
 
     /**
-     * Simulate a webhook event.
-     * In real Stripe, webhooks are sent by Stripe to your endpoint.
-     * This method simulates what would happen when a webhook is received.
+     * Creates a new subscription for a customer.
      *
-     * @param eventType Event type (e.g., payment_intent.succeeded)
-     * @param paymentIntentId Payment Intent ID
-     * @return Event data
+     * @param customerId The ID of the Stripe customer.
+     * @param priceId    The ID of the price for the subscription plan.
+     * @return The created Subscription.
+     * @throws StripeException If an error occurs during the API call.
      */
-    public Map<String, Object> simulateWebhookEvent(String eventType, String paymentIntentId) {
-        log.info("Simulating webhook event: {} for Payment Intent: {}", eventType, paymentIntentId);
+    public Subscription createSubscription(String customerId, String priceId) throws StripeException {
+        log.info("Creating subscription for customer: {} with price: {}", customerId, priceId);
 
-        PaymentIntentResponse paymentIntent = paymentIntents.get(paymentIntentId);
-        if (paymentIntent == null) {
-            throw new ResourceNotFoundException("Payment Intent not found: " + paymentIntentId);
-        }
+        SubscriptionCreateParams params = SubscriptionCreateParams.builder()
+                .setCustomer(customerId)
+                .addItem(SubscriptionCreateParams.Item.builder().setPrice(priceId).build())
+                .setPaymentBehavior(SubscriptionCreateParams.PaymentBehavior.DEFAULT_INCOMPLETE)
+                .setExpand(java.util.Arrays.asList("latest_invoice.payment_intent"))
+                .build();
 
-        Map<String, Object> event = new HashMap<>();
-        event.put("id", "evt_sim_" + UUID.randomUUID().toString().substring(0, 24));
-        event.put("type", eventType);
-        event.put("created", Instant.now().getEpochSecond());
-        event.put("livemode", false);
-        event.put("simulated", true);
+        RequestOptions requestOptions = RequestOptions.builder()
+                .setIdempotencyKey(UUID.randomUUID().toString())
+                .build();
 
-        Map<String, Object> data = new HashMap<>();
-        data.put("object", paymentIntent);
-        event.put("data", data);
+        Subscription subscription = Subscription.create(params, requestOptions);
 
-        log.info("Simulated webhook event created: {}", event.get("id"));
-        return event;
+        log.info("Successfully created subscription with ID: {}", subscription.getId());
+
+        return subscription;
     }
 
     /**
-     * Clear all simulated data (for testing purposes).
+     * Cancels a subscription at the end of the current billing period.
+     *
+     * @param subscriptionId The ID of the subscription to cancel.
+     * @return The canceled Subscription.
+     * @throws StripeException If an error occurs during the API call.
      */
-    public void clearSimulatedData() {
-        paymentIntents.clear();
-        customersByUserId.clear();
-        customersById.clear();
-        log.info("Cleared all simulated Stripe data");
+    public Subscription cancelSubscription(String subscriptionId) throws StripeException {
+        log.info("Canceling subscription with ID: {}", subscriptionId);
+
+        Subscription subscription = Subscription.retrieve(subscriptionId);
+
+        SubscriptionCancelParams params = SubscriptionCancelParams.builder().build();
+
+        Subscription canceledSubscription = subscription.cancel(params);
+
+        log.info("Successfully canceled subscription with ID: {}", canceledSubscription.getId());
+
+        return canceledSubscription;
     }
 
     /**
-     * Get statistics about simulated Stripe objects.
+     * Lists the payment methods attached to a customer.
      *
-     * @return Statistics map
+     * @param customerId The ID of the Stripe customer.
+     * @return A collection of payment methods.
+     * @throws StripeException If an error occurs during the API call.
      */
-    public Map<String, Object> getSimulationStats() {
-        Map<String, Object> stats = new HashMap<>();
-        stats.put("totalPaymentIntents", paymentIntents.size());
-        stats.put("totalCustomers", customersById.size());
-        stats.put("succeededPayments", paymentIntents.values().stream()
-                .filter(pi -> "succeeded".equals(pi.getStatus()))
-                .count());
-        stats.put("failedPayments", paymentIntents.values().stream()
-                .filter(pi -> "requires_payment_method".equals(pi.getStatus()))
-                .count());
-        stats.put("canceledPayments", paymentIntents.values().stream()
-                .filter(pi -> "canceled".equals(pi.getStatus()))
-                .count());
-        return stats;
+    public PaymentMethodCollection listPaymentMethods(String customerId) throws StripeException {
+        log.info("Listing payment methods for customer: {}", customerId);
+
+        PaymentMethodListParams params = PaymentMethodListParams.builder()
+                .setCustomer(customerId)
+                .setType(PaymentMethodListParams.Type.CARD)
+                .build();
+
+        PaymentMethodCollection paymentMethods = PaymentMethod.list(params);
+
+        log.info("Found {} payment methods for customer: {}", paymentMethods.getData().size(), customerId);
+
+        return paymentMethods;
+    }
+
+    /**
+     * Attaches a payment method to a customer.
+     *
+     * @param customerId      The ID of the Stripe customer.
+     * @param paymentMethodId The ID of the payment method to attach.
+     * @return The attached PaymentMethod.
+     * @throws StripeException If an error occurs during the API call.
+     */
+    public PaymentMethod attachPaymentMethod(String customerId, String paymentMethodId) throws StripeException {
+        log.info("Attaching payment method: {} to customer: {}", paymentMethodId, customerId);
+
+        PaymentMethod paymentMethod = PaymentMethod.retrieve(paymentMethodId);
+
+        PaymentMethodAttachParams params = PaymentMethodAttachParams.builder()
+                .setCustomer(customerId)
+                .build();
+
+        PaymentMethod attachedPaymentMethod = paymentMethod.attach(params);
+
+        log.info("Successfully attached payment method: {} to customer: {}", attachedPaymentMethod.getId(), customerId);
+
+        return attachedPaymentMethod;
     }
 }

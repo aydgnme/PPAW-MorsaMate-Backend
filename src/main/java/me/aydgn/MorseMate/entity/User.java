@@ -112,6 +112,10 @@ public class User extends BaseEntity {
     @Builder.Default
     private Role role = Role.USER;
 
+    // SQL: stripe_customer_id VARCHAR(255) UNIQUE
+    @Column(name = "stripe_customer_id", length = 255, unique = true)
+    private String stripeCustomerId;
+
     /* --------- Lifecycle hooks: DB varsayılanlarını ve normalizasyonu destekle --------- */
     @PrePersist
     private void prePersist() {
