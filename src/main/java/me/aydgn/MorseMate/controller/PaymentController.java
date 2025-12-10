@@ -1,5 +1,6 @@
 package me.aydgn.MorseMate.controller;
 
+import com.stripe.exception.StripeException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,8 +9,11 @@ import me.aydgn.MorseMate.dto.PaymentHistoryDTO;
 import me.aydgn.MorseMate.dto.PaymentRequestDTO;
 import me.aydgn.MorseMate.dto.PaymentResponseDTO;
 import me.aydgn.MorseMate.dto.PaymentStatsDTO;
+import me.aydgn.MorseMate.dto.request.ConfirmPaymentRequestDto;
+import me.aydgn.MorseMate.dto.request.CreatePaymentIntentRequest;
 import me.aydgn.MorseMate.dto.request.CreatePaymentRequest;
 import me.aydgn.MorseMate.dto.request.RefundPaymentRequest;
+import me.aydgn.MorseMate.dto.response.PaymentIntentResponseDto;
 import me.aydgn.MorseMate.dto.response.PaymentResponse;
 import me.aydgn.MorseMate.service.PaymentCardService;
 import me.aydgn.MorseMate.service.PaymentService;
@@ -58,29 +62,27 @@ public class PaymentController {
     private final PaymentCardService paymentCardService;
 
     /**
-     * Create a new payment (simulated).
+     * Create a new Payment Intent.
      *
      * Example request:
-     * POST /v1/payments/create
+     * POST /v1/payments/create-intent
      * {
-     *   "subscriptionId": 1,
      *   "amount": 9.99,
      *   "currency": "USD",
-     *   "paymentMethod": "credit_card",
-     *   "simulateFailure": false
+     *   "subscriptionId": 1
      * }
      *
      * @param request Payment details
-     * @return Created payment response
+     * @return Client secret for the Payment Intent
      */
-    @PostMapping("/create")
-    public ResponseEntity<PaymentResponse> createPayment(@Valid @RequestBody CreatePaymentRequest request) {
+    @PostMapping("/create-intent")
+    public ResponseEntity<PaymentIntentResponseDto> createPaymentIntent(@Valid @RequestBody CreatePaymentIntentRequest request) throws StripeException {
         Long userId = getCurrentUserId();
-        log.info("User ID: {} creating payment for amount: {} {}",
+        log.info("User ID: {} creating payment intent for amount: {} {}",
                 userId, request.getAmount(), request.getCurrency());
 
-        PaymentResponse payment = paymentService.createPayment(userId, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(payment);
+        PaymentIntentResponseDto response = paymentService.createPaymentIntent(userId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     /**
@@ -151,11 +153,14 @@ public class PaymentController {
     /**
      * New card-based simulated charge endpoint.
      */
-    @PostMapping("/charge")
-    public ResponseEntity<PaymentResponseDTO> charge(@RequestBody PaymentRequestDTO request) {
-        Long userId = getCurrentUserId();
-        PaymentResponseDTO response = paymentService.charge(userId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/confirm")
+    public ResponseEntity<PaymentResponse> confirmPayment(@Valid @RequestBody ConfirmPaymentRequestDto request) throws StripeException {
+        log.info("Confirming payment for local payment ID: {}", request.getPaymentId());
+        PaymentResponse response = paymentService.confirmPayment(request.getPaymentId());
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -313,7 +318,7 @@ public class PaymentController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PaymentResponse> refundPayment(
             @PathVariable("id") Long id,
-            @RequestBody(required = false) RefundPaymentRequest request) {
+            @RequestBody(required = false) RefundPaymentRequest request) throws StripeException {
 
         log.info("Admin refunding payment ID: {}", id);
 

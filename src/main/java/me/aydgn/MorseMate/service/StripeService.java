@@ -6,11 +6,13 @@ import com.stripe.model.PaymentIntent;
 import com.stripe.model.PaymentMethod;
 import com.stripe.model.PaymentMethodCollection;
 import com.stripe.model.Subscription;
+import com.stripe.model.Refund;
 import com.stripe.net.RequestOptions;
 import com.stripe.param.CustomerCreateParams;
 import com.stripe.param.PaymentIntentCreateParams;
 import com.stripe.param.PaymentMethodAttachParams;
 import com.stripe.param.PaymentMethodListParams;
+import com.stripe.param.RefundCreateParams;
 import com.stripe.param.SubscriptionCancelParams;
 import com.stripe.param.SubscriptionCreateParams;
 import lombok.RequiredArgsConstructor;
@@ -193,5 +195,13 @@ public class StripeService {
         log.info("Successfully attached payment method: {} to customer: {}", attachedPaymentMethod.getId(), customerId);
 
         return attachedPaymentMethod;
+    }
+
+    public Refund refund(String paymentIntentId) throws StripeException {
+        log.info("Refunding payment intent: {}", paymentIntentId);
+        RefundCreateParams params = RefundCreateParams.builder().setPaymentIntent(paymentIntentId).build();
+        Refund refund = Refund.create(params);
+        log.info("Successfully created refund with ID: {}", refund.getId());
+        return refund;
     }
 }
