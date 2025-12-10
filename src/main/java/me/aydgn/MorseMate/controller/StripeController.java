@@ -28,51 +28,9 @@ public class StripeController {
     private final StripeService stripeService;
     private final AuthService authService;
 
-    @PostMapping("/create-payment-intent")
-    public ResponseEntity<String> createPaymentIntent(
-            @Valid @RequestBody CreatePaymentIntentRequest request) {
-
-        Long userId = getCurrentUserId();
-        User user = authService.getCurrentUser(userId);
-
-        if (user.getStripeCustomerId() == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User does not have a Stripe customer ID.");
-        }
-
-        try {
-            // Convert amount to cents
-            Long amountInCents = request.getAmount().multiply(new BigDecimal("100")).longValue();
-
-            PaymentIntent paymentIntent = stripeService.createPaymentIntent(
-                    amountInCents,
-                    request.getCurrency(),
-                    user.getStripeCustomerId()
-            );
-            return ResponseEntity.ok(paymentIntent.getClientSecret());
-        } catch (StripeException e) {
-            log.error("Error creating PaymentIntent for user: {}", userId, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-        }
-    }
-
     @PostMapping("/create-subscription")
     public ResponseEntity<String> createSubscription(@RequestBody @Valid CreateSubscriptionRequestDto request) {
-        Long userId = getCurrentUserId();
-        User user = authService.getCurrentUser(userId);
-
-        if (user.getStripeCustomerId() == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User does not have a Stripe customer ID.");
-        }
-
-        try {
-            Subscription subscription = stripeService.createSubscription(user.getStripeCustomerId(), request.getPriceId());
-            // For subscriptions with `payment_behavior=default_incomplete`, the client secret is on the latest invoice's payment intent
-            String clientSecret = subscription.getLatestInvoiceObject().getPaymentIntentObject().getClientSecret();
-            return ResponseEntity.ok(clientSecret);
-        } catch (StripeException e) {
-            log.error("Error creating subscription for user: {}", userId, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-        }
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body("This endpoint is not yet implemented.");
     }
 
     private Long getCurrentUserId() {

@@ -3,6 +3,7 @@ package me.aydgn.MorseMate.service;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
 import com.stripe.model.PaymentIntent;
+import com.stripe.param.PaymentIntentCreateParams;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.aydgn.MorseMate.dto.PaymentHistoryDTO;
@@ -63,41 +64,25 @@ public class PaymentService {
     // ===== Existing generic payment APIs (kept for compatibility) =====
 
     /**
-     * Creates a new Payment Intent for a user.
+     * Creates a new local payment record in a PENDING state.
      *
-     * @param userId  The ID of the user initiating the payment.
-     * @param request The request containing amount, currency, etc.
-     * @return A DTO with the client secret for the Payment Intent.
-     * @throws StripeException If there's an error with the Stripe API.
+     * @param userId   The ID of the user initiating the payment.
+     * @param request  The request containing amount, currency, and metadata.
+     * @return The created Payment entity.
      */
     @Transactional
-    public PaymentIntentResponseDto createPaymentIntent(Long userId, CreatePaymentIntentRequest request) throws StripeException {
-        log.info("Creating Payment Intent for user ID: {}, amount: {} {}",
+    public Payment createPayment(Long userId, CreatePaymentIntentRequest request) {
+        log.info("Creating local payment record for user ID: {}, amount: {} {}",
                 userId, request.getAmount(), request.getCurrency());
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
 
-        // Get or create Stripe customer
-        Customer stripeCustomer = stripeService.createCustomer(user);
-
-        // Convert amount to cents
-        Long amountInCents = request.getAmount().multiply(new BigDecimal("100")).longValue();
-
-        // Create Payment Intent via StripeService
-        com.stripe.model.PaymentIntent paymentIntent = stripeService.createPaymentIntent(
-                amountInCents,
-                request.getCurrency(),
-                stripeCustomer.getId()
-        );
-
-        // Create and save a local Payment record
         Payment payment = Payment.builder()
                 .user(user)
                 .amount(request.getAmount())
                 .currency(request.getCurrency())
                 .status(Payment.Status.PENDING)
-                .stripePaymentId(paymentIntent.getId()) // Store the Payment Intent ID
                 .transactionDate(LocalDateTime.now())
                 .build();
 
@@ -108,12 +93,80 @@ public class PaymentService {
         }
 
         Payment savedPayment = paymentRepository.save(payment);
-        log.info("Local payment record created with ID: {} and status PENDING", savedPayment.getId());
+        log.info("Local payment record created with ID: {}", savedPayment.getId());
 
-        return PaymentIntentResponseDto.builder()
-                .clientSecret(paymentIntent.getClientSecret())
-                .paymentId(savedPayment.getId())
+        return savedPayment;
+    }
+
+    /**
+     * Processes a payment by creating and confirming a PaymentIntent on Stripe.
+     *
+     * @param paymentId The ID of the local payment record.
+     * @param paymentMethodId The ID of the Stripe PaymentMethod to use.
+     * @return The updated Payment entity.
+     * @throws StripeException
+     */
+    @Transactional
+    public Payment processPayment(Long paymentId, String paymentMethodId) throws StripeException {
+        log.info("Processing payment for local payment ID: {}", paymentId);
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Payment not found with ID: " + paymentId));
+
+        if (payment.getStatus() != Payment.Status.PENDING) {
+            throw new InvalidOperationException("Payment is not in PENDING state.");
+        }
+
+        User user = payment.getUser();
+        Customer stripeCustomer = stripeService.createCustomer(user);
+
+        // Create a PaymentIntent on Stripe
+        Long amountInCents = payment.getAmount().multiply(new BigDecimal("100")).longValue();
+
+        PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
+                .setAmount(amountInCents)
+                .setCurrency(payment.getCurrency())
+                .setCustomer(stripeCustomer.getId())
+                .setPaymentMethod(paymentMethodId)
+                .setConfirm(true) // Confirm the payment immediately
+                .setOffSession(true) // For server-side confirmation
                 .build();
+
+        PaymentIntent paymentIntent = PaymentIntent.create(params);
+
+        payment.setStripePaymentId(paymentIntent.getId());
+
+        // Handle the status of the payment intent
+        String stripeStatus = paymentIntent.getStatus();
+        log.info("Stripe Payment Intent {} status after processing: {}", paymentIntent.getId(), stripeStatus);
+        
+        switch (stripeStatus) {
+            case "succeeded":
+                payment.setStatus(Payment.Status.COMPLETED);
+                break;
+            case "requires_action":
+            case "requires_source_action":
+                // 3D Secure is required. The client will need to handle this.
+                // For this example, we'll mark as pending and let the client handle it.
+                // In a real app you might store the client secret of the PI and send it back.
+                payment.setStatus(Payment.Status.PENDING);
+                break;
+            default:
+                payment.setStatus(Payment.Status.FAILED);
+                break;
+        }
+
+        return paymentRepository.save(payment);
+    }
+
+    /**
+     * Validates that the payment amount is positive.
+     *
+     * @param amount The amount to validate.
+     */
+    public void validatePaymentAmount(BigDecimal amount) {
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidOperationException("Payment amount must be positive.");
+        }
     }
 
     /**
@@ -249,17 +302,20 @@ public class PaymentService {
                     "Can only refund completed payments. Current status: " + payment.getStatus());
         }
 
-        if (payment.getStatus() == Payment.Status.REFUNDED) {
-            throw new InvalidOperationException("Payment has already been refunded");
+        Long amountToRefundInCents = null;
+        if (request.getAmount() != null) {
+            if (request.getAmount().compareTo(BigDecimal.ZERO) < 0) {
+                throw new InvalidOperationException("Refund amount cannot be negative.");
+            }
+            if (request.getAmount().compareTo(payment.getAmount()) > 0) {
+                throw new InvalidOperationException("Refund amount cannot be greater than payment amount.");
+            }
+            amountToRefundInCents = request.getAmount().multiply(new BigDecimal("100")).longValue();
         }
 
         // Perform refund via StripeService
-        com.stripe.model.Refund refund = stripeService.refund(payment.getStripePaymentId());
+        com.stripe.model.Refund refund = stripeService.refund(payment.getStripePaymentId(), amountToRefundInCents);
 
-        // Update payment status
-        payment.setStatus(Payment.Status.REFUNDED);
-
-        // Add refund info to metadata
         Map<String, Object> metadata = payment.getMetadata();
         if (metadata == null) {
             metadata = new HashMap<>();
@@ -269,6 +325,11 @@ public class PaymentService {
         metadata.put("refund_date", LocalDateTime.now().toString());
         metadata.put("refund_reason", request.getReason());
         payment.setMetadata(metadata);
+        
+        // A full refund is when the refunded amount equals the original payment amount.
+        if (amountToRefundInCents == null || amountToRefundInCents.equals(payment.getAmount().multiply(new BigDecimal("100")).longValue())) {
+            payment.setStatus(Payment.Status.REFUNDED);
+        }
 
         Payment refundedPayment = paymentRepository.save(payment);
         log.info("Payment ID: {} refunded successfully. Stripe Refund ID: {}",
@@ -327,7 +388,7 @@ public class PaymentService {
     /**
      * Map Payment entity to PaymentResponse DTO.
      */
-    private PaymentResponse mapToResponse(Payment payment) {
+    public PaymentResponse mapToResponse(Payment payment) {
         return PaymentResponse.builder()
                 .id(payment.getId())
                 .userId(payment.getUser().getId())

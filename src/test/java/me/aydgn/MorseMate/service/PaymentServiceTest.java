@@ -6,7 +6,6 @@ import com.stripe.model.PaymentIntent;
 import com.stripe.model.Refund;
 import me.aydgn.MorseMate.dto.request.CreatePaymentIntentRequest;
 import me.aydgn.MorseMate.dto.request.RefundPaymentRequest;
-import me.aydgn.MorseMate.dto.response.PaymentIntentResponseDto;
 import me.aydgn.MorseMate.dto.response.PaymentResponse;
 import me.aydgn.MorseMate.entity.Payment;
 import me.aydgn.MorseMate.entity.User;
@@ -56,8 +55,8 @@ class PaymentServiceTest {
     }
 
     @Test
-    @DisplayName("Should create PaymentIntent successfully")
-    void createPaymentIntent_Success() throws StripeException {
+    @DisplayName("Should create local payment record successfully")
+    void createPayment_Success() {
         // Given
         CreatePaymentIntentRequest request = CreatePaymentIntentRequest.builder()
                 .amount(new BigDecimal("10.00"))
@@ -65,26 +64,57 @@ class PaymentServiceTest {
                 .build();
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> {
+            Payment p = invocation.getArgument(0);
+            p.setId(1L);
+            return p;
+        });
 
-        Customer mockCustomer = new Customer();
-        mockCustomer.setId("cus_123");
-        when(stripeService.createCustomer(user)).thenReturn(mockCustomer);
+        // When
+        Payment payment = paymentService.createPayment(1L, request);
+
+        // Then
+        assertThat(payment).isNotNull();
+        assertThat(payment.getId()).isEqualTo(1L);
+        assertThat(payment.getStatus()).isEqualTo(Payment.Status.PENDING);
+        verify(paymentRepository, times(1)).save(any(Payment.class));
+    }
+
+    @Test
+    @DisplayName("Should process payment successfully")
+    void processPayment_Success() throws StripeException {
+        // Given
+        Payment payment = Payment.builder()
+                .id(1L)
+                .user(user)
+                .amount(new BigDecimal("10.00"))
+                .currency("usd")
+                .status(Payment.Status.PENDING)
+                .build();
+
+        when(paymentRepository.findById(1L)).thenReturn(Optional.of(payment));
+        when(stripeService.createCustomer(user)).thenReturn(new Customer());
 
         PaymentIntent mockPaymentIntent = new PaymentIntent();
         mockPaymentIntent.setId("pi_123");
-        mockPaymentIntent.setClientSecret("pi_123_secret");
-        when(stripeService.createPaymentIntent(1000L, "usd", "cus_123")).thenReturn(mockPaymentIntent);
+        mockPaymentIntent.setStatus("succeeded");
 
-        when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        try (var mockedPi = mockStatic(PaymentIntent.class)) {
+            mockedPi.when(() -> PaymentIntent.create(anyMap())).thenReturn(mockPaymentIntent);
+            
+            when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        // When
-        PaymentIntentResponseDto response = paymentService.createPaymentIntent(1L, request);
+            // When
+            Payment processedPayment = paymentService.processPayment(1L, "pm_123");
 
-        // Then
-        assertThat(response).isNotNull();
-        assertThat(response.getClientSecret()).isEqualTo("pi_123_secret");
-        verify(paymentRepository, times(1)).save(any(Payment.class));
+            // Then
+            assertThat(processedPayment).isNotNull();
+            assertThat(processedPayment.getStatus()).isEqualTo(Payment.Status.COMPLETED);
+            assertThat(processedPayment.getStripePaymentId()).isEqualTo("pi_123");
+            verify(paymentRepository, times(1)).save(processedPayment);
+        }
     }
+
 
     @Test
     @DisplayName("Should confirm payment successfully")
@@ -124,6 +154,7 @@ class PaymentServiceTest {
         Payment payment = Payment.builder()
                 .id(1L)
                 .user(user)
+                .amount(new BigDecimal("10.00"))
                 .stripePaymentId("pi_123")
                 .status(Payment.Status.COMPLETED)
                 .build();
@@ -133,7 +164,7 @@ class PaymentServiceTest {
         mockRefund.setAmount(1000L);
 
         when(paymentRepository.findById(1L)).thenReturn(Optional.of(payment));
-        when(stripeService.refund("pi_123")).thenReturn(mockRefund);
+        when(stripeService.refund(eq("pi_123"), any())).thenReturn(mockRefund);
         when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // When

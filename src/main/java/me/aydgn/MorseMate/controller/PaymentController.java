@@ -12,9 +12,11 @@ import me.aydgn.MorseMate.dto.PaymentStatsDTO;
 import me.aydgn.MorseMate.dto.request.ConfirmPaymentRequestDto;
 import me.aydgn.MorseMate.dto.request.CreatePaymentIntentRequest;
 import me.aydgn.MorseMate.dto.request.CreatePaymentRequest;
+import me.aydgn.MorseMate.dto.request.NewPaymentRequestDto;
 import me.aydgn.MorseMate.dto.request.RefundPaymentRequest;
 import me.aydgn.MorseMate.dto.response.PaymentIntentResponseDto;
 import me.aydgn.MorseMate.dto.response.PaymentResponse;
+import me.aydgn.MorseMate.entity.Payment;
 import me.aydgn.MorseMate.service.PaymentCardService;
 import me.aydgn.MorseMate.service.PaymentService;
 import org.springframework.data.domain.Page;
@@ -60,30 +62,6 @@ public class PaymentController {
 
     private final PaymentService paymentService;
     private final PaymentCardService paymentCardService;
-
-    /**
-     * Create a new Payment Intent.
-     *
-     * Example request:
-     * POST /v1/payments/create-intent
-     * {
-     *   "amount": 9.99,
-     *   "currency": "USD",
-     *   "subscriptionId": 1
-     * }
-     *
-     * @param request Payment details
-     * @return Client secret for the Payment Intent
-     */
-    @PostMapping("/create-intent")
-    public ResponseEntity<PaymentIntentResponseDto> createPaymentIntent(@Valid @RequestBody CreatePaymentIntentRequest request) throws StripeException {
-        Long userId = getCurrentUserId();
-        log.info("User ID: {} creating payment intent for amount: {} {}",
-                userId, request.getAmount(), request.getCurrency());
-
-        PaymentIntentResponseDto response = paymentService.createPaymentIntent(userId, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
 
     /**
      * Get current user's payments.
@@ -150,10 +128,22 @@ public class PaymentController {
         return ResponseEntity.ok(card);
     }
 
-    /**
-     * New card-based simulated charge endpoint.
-     */
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    @PostMapping("/charge")
+    public ResponseEntity<PaymentResponse> charge(@Valid @RequestBody NewPaymentRequestDto request) throws StripeException {
+        Long userId = getCurrentUserId();
+
+        // 1. Create local payment record
+        CreatePaymentIntentRequest createRequest = CreatePaymentIntentRequest.builder()
+                .amount(request.getAmount())
+                .currency(request.getCurrency())
+                .subscriptionId(request.getSubscriptionId())
+                .build();
+        Payment payment = paymentService.createPayment(userId, createRequest);
+
+        // 2. Process the payment
+        Payment processedPayment = paymentService.processPayment(payment.getId(), request.getPaymentMethodId());
+
+        return ResponseEntity.ok(paymentService.mapToResponse(processedPayment));
     }
 
     @PostMapping("/confirm")
