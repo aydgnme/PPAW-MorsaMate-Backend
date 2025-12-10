@@ -12,10 +12,12 @@ import me.aydgn.MorseMate.dto.request.RefundPaymentRequest;
 import me.aydgn.MorseMate.dto.response.PaymentResponse;
 import me.aydgn.MorseMate.entity.Payment;
 import me.aydgn.MorseMate.entity.User;
+import me.aydgn.MorseMate.entity.SubscriptionPlan;
 import me.aydgn.MorseMate.entity.UserSubscription;
 import me.aydgn.MorseMate.exception.InvalidOperationException;
 import me.aydgn.MorseMate.exception.ResourceNotFoundException;
 import me.aydgn.MorseMate.repository.PaymentRepository;
+import me.aydgn.MorseMate.repository.SubscriptionPlanRepository;
 import me.aydgn.MorseMate.repository.UserRepository;
 import me.aydgn.MorseMate.repository.UserSubscriptionRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,7 +48,9 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final UserRepository userRepository;
     private final UserSubscriptionRepository subscriptionRepository;
+    private final SubscriptionPlanRepository subscriptionPlanRepository;
     private final PaymentCardService cardService;
+    private final UserSubscriptionService subscriptionService;
 
     @Value("${payment.default-currency:USD}")
     private String defaultCurrency;
@@ -65,6 +69,7 @@ public class PaymentService {
         log.info("Creating simulated payment for user ID: {}, amount: {} {}",
                 userId, request.getAmount(), request.getCurrency());
 
+        // Load user (needed for payment entity and for potential future validations)
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
 
@@ -315,12 +320,22 @@ public class PaymentService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
 
-        UserSubscription subscription = subscriptionRepository.findWithPlanByUserId(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Active subscription not found for user: " + userId));
+        // Determine plan:
+        // - If planId is provided in the request, use that (new purchase / upgrade case)
+        // - Otherwise, fall back to the user's active subscription plan (renewal case)
+        SubscriptionPlan plan;
+        if (request.getPlanId() != null) {
+            plan = subscriptionPlanRepository.findById(request.getPlanId())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Plan not found with ID: " + request.getPlanId()));
+        } else {
+            UserSubscription subscription = subscriptionRepository.findWithPlanByUserId(userId)
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Active subscription not found for user: " + userId));
+            plan = subscription.getPlan();
+        }
 
         // Determine amount / currency from request or subscription plan
-        var plan = subscription.getPlan();
-
         var amount = request.getAmount() != null ? request.getAmount() : plan.getPrice();
         var currency = request.getCurrency() != null ? request.getCurrency() : defaultCurrency;
 
@@ -332,14 +347,13 @@ public class PaymentService {
         // Get or create card
         PaymentCardDTO cardDto;
         if (request.getCardId() != null) {
+            // Use specified card
             cardDto = cardService.listCards(userId).stream()
                     .filter(c -> c.getId().equals(request.getCardId()))
                     .findFirst()
                     .orElseThrow(() -> new ResourceNotFoundException("Card not found"));
-        } else {
-            if (request.getCardNumber() == null || request.getCvv() == null) {
-                throw new InvalidOperationException("Card information is required when cardId is not provided");
-            }
+        } else if (request.getCardNumber() != null && request.getCvv() != null) {
+            // Add new card from raw data
             validateCardNumber(request.getCardNumber());
             validateCvv(request.getCvv());
             cardDto = cardService.addCard(
@@ -349,13 +363,82 @@ public class PaymentService {
                     request.getCvv(),
                     request.getExpiryMonth(),
                     request.getExpiryYear(),
-                    true
+                    request.isSaveCard()
             );
+        } else {
+            // Try to use default card from saved cards
+            List<PaymentCardDTO> savedCards = cardService.listCards(userId);
+            if (savedCards.isEmpty()) {
+                throw new InvalidOperationException(
+                        "No saved card found. Please provide cardId or card information.");
+            }
+            // Use default card (first in list is default due to ordering)
+            cardDto = savedCards.get(0);
+            log.info("Using default card ID: {} for user ID: {}", cardDto.getId(), userId);
         }
 
         boolean success = simulateCharge(amount);
 
         String transactionRef = "SIM-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        LocalDateTime processedAt = LocalDateTime.now();
+
+        // If payment succeeded and planId is provided, create/update subscription
+        UserSubscription subscription = null;
+        if (success && request.getPlanId() != null) {
+            try {
+                // Check if user already has an active subscription
+                var existingSubscription = subscriptionRepository.findWithPlanByUserId(userId);
+                if (existingSubscription.isPresent() && existingSubscription.get().getStatus() == UserSubscription.Status.ACTIVE) {
+                    // Upgrade existing subscription
+                    var subscriptionResponse = subscriptionService.upgradeSubscription(userId, request.getPlanId());
+                    subscription = subscriptionRepository.findById(subscriptionResponse.getId())
+                            .orElseThrow(() -> new ResourceNotFoundException("Subscription not found after upgrade"));
+                    log.info("Subscription upgraded for user ID: {}, subscription ID: {}", userId, subscription.getId());
+                } else {
+                    // Create new subscription
+                    var subscriptionRequest = me.aydgn.MorseMate.dto.request.UserSubscriptionRequest.builder()
+                            .planId(request.getPlanId())
+                            .autoRenew(true)
+                            .build();
+                    var subscriptionResponse = subscriptionService.subscribeUser(userId, subscriptionRequest);
+                    subscription = subscriptionRepository.findById(subscriptionResponse.getId())
+                            .orElseThrow(() -> new ResourceNotFoundException("Subscription not found after creation"));
+                    log.info("Subscription created for user ID: {}, subscription ID: {}", userId, subscription.getId());
+                }
+            } catch (Exception e) {
+                log.error("Failed to create/update subscription after payment: {}", e.getMessage());
+                // Continue with payment creation even if subscription creation fails
+            }
+        } else if (success) {
+            // For renewal case, get existing subscription
+            subscription = subscriptionRepository.findWithPlanByUserId(userId).orElse(null);
+        }
+
+        // Create Payment entity for history
+        Payment.Status paymentStatus = success ? Payment.Status.COMPLETED : Payment.Status.FAILED;
+        String stripePaymentId = success ? "sim_" + UUID.randomUUID().toString().substring(0, 24) : null;
+
+        Map<String, Object> metadata = new HashMap<>();
+        metadata.put("simulated", true);
+        metadata.put("transaction_ref", transactionRef);
+        metadata.put("card_id", cardDto.getId());
+        metadata.put("card_last4", cardDto.getCardLast4());
+        metadata.put("card_brand", cardDto.getCardBrand());
+
+        Payment payment = Payment.builder()
+                .user(user)
+                .subscription(subscription)
+                .amount(amount)
+                .currency(currency)
+                .status(paymentStatus)
+                .paymentMethod("credit_card")
+                .stripePaymentId(stripePaymentId)
+                .transactionDate(processedAt)
+                .metadata(metadata)
+                .build();
+
+        Payment savedPayment = paymentRepository.save(payment);
+        log.info("Payment saved with ID: {}, status: {}", savedPayment.getId(), savedPayment.getStatus());
 
         return PaymentResponseDTO.builder()
                 .status(success ? "SUCCESS" : "FAILED")
@@ -365,7 +448,7 @@ public class PaymentService {
                 .planId(plan.getId())
                 .planName(plan.getName())
                 .transactionRef(transactionRef)
-                .processedAt(LocalDateTime.now())
+                .processedAt(processedAt)
                 .cardId(cardDto.getId())
                 .card(cardDto)
                 .build();
@@ -373,21 +456,38 @@ public class PaymentService {
 
     @Transactional(readOnly = true)
     public List<PaymentHistoryDTO> getPaymentHistory(Long userId) {
-        // For now, we derive history from subscription itself as a simple list.
-        // In a real system, this would use a dedicated Payment entity.
-        UserSubscription subscription = subscriptionRepository.findWithPlanByUserId(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Active subscription not found for user"));
+        // Get all payments for this user, ordered by transaction date (newest first)
+        List<Payment> payments = paymentRepository.findByUserId(userId);
 
-        return List.of(PaymentHistoryDTO.builder()
-                .subscriptionId(subscription.getId())
-                .planId(subscription.getPlan().getId())
-                .planName(subscription.getPlan().getName())
-                .amount(subscription.getPlan().getPrice())
-                .currency(defaultCurrency)
-                .type("INITIAL")
-                .status("SUCCESS")
-                .createdAt(subscription.getStartDate())
-                .build());
+        return payments.stream()
+                .map(payment -> {
+                    String type = "INITIAL";
+                    if (payment.getSubscription() != null) {
+                        // Determine type based on subscription history
+                        // For simplicity, we'll use INITIAL for now
+                        // In a real system, you'd check if this is a renewal/upgrade
+                        type = "RENEWAL";
+                    }
+
+                    Long planId = null;
+                    String planName = null;
+                    if (payment.getSubscription() != null && payment.getSubscription().getPlan() != null) {
+                        planId = payment.getSubscription().getPlan().getId();
+                        planName = payment.getSubscription().getPlan().getName();
+                    }
+
+                    return PaymentHistoryDTO.builder()
+                            .subscriptionId(payment.getSubscription() != null ? payment.getSubscription().getId() : null)
+                            .planId(planId)
+                            .planName(planName)
+                            .amount(payment.getAmount())
+                            .currency(payment.getCurrency())
+                            .type(type)
+                            .status(payment.getStatus() == Payment.Status.COMPLETED ? "SUCCESS" : "FAILED")
+                            .createdAt(payment.getTransactionDate())
+                            .build();
+                })
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -401,7 +501,7 @@ public class PaymentService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal avg = total > 0
-                ? totalAmount.divide(BigDecimal.valueOf(total), BigDecimal.ROUND_HALF_UP)
+                ? totalAmount.divide(BigDecimal.valueOf(total), 2, java.math.RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
 
         long activeSubs = subscriptionRepository.findByStatus(UserSubscription.Status.ACTIVE).size();

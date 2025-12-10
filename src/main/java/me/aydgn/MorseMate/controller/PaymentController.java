@@ -130,6 +130,25 @@ public class PaymentController {
     }
 
     /**
+     * Legacy alias endpoint used by frontend to add a new card.
+     * Matches the existing frontend POST /v1/payments/cards call.
+     */
+    @PostMapping("/cards")
+    public ResponseEntity<PaymentCardDTO> addMyCard(@RequestBody AddCardRequest request) {
+        Long userId = getCurrentUserId();
+        PaymentCardDTO card = paymentCardService.addCard(
+                userId,
+                request.cardholderName(),
+                request.cardNumber(),
+                request.cvv(),
+                request.expiryMonth(),
+                request.expiryYear(),
+                request.makeDefault()
+        );
+        return ResponseEntity.ok(card);
+    }
+
+    /**
      * New card-based simulated charge endpoint.
      */
     @PostMapping("/charge")
@@ -157,6 +176,20 @@ public class PaymentController {
         Long userId = getCurrentUserId();
         PaymentStatsDTO stats = paymentService.getPaymentStats(userId);
         return ResponseEntity.ok(stats);
+    }
+
+    /**
+     * Simple request body record for adding a card via /v1/payments/cards.
+     * NOTE: This mirrors the structure used in PaymentCardController.
+     */
+    public record AddCardRequest(
+            String cardholderName,
+            String cardNumber,
+            String cvv,
+            Integer expiryMonth,
+            Integer expiryYear,
+            boolean makeDefault
+    ) {
     }
 
     /**
