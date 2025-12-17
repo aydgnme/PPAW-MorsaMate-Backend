@@ -7,9 +7,12 @@ import me.aydgn.MorseMate.dto.request.UpdateLessonRequest;
 import me.aydgn.MorseMate.dto.response.LessonResponse;
 import me.aydgn.MorseMate.entity.Category;
 import me.aydgn.MorseMate.entity.Lesson;
+import me.aydgn.MorseMate.entity.User;
+import me.aydgn.MorseMate.entity.UserSubscription;
 import me.aydgn.MorseMate.exception.InvalidOperationException;
 import me.aydgn.MorseMate.exception.ResourceNotFoundException;
 import me.aydgn.MorseMate.repository.LessonRepository;
+import me.aydgn.MorseMate.repository.UserSubscriptionRepository;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -28,6 +31,8 @@ public class LessonService {
 
     private final LessonRepository lessonRepository;
     private final CategoryService categoryService;
+    private final UserSubscriptionRepository userSubscriptionRepository;
+    private final UserService userService;
 
     /**
      * Get all lessons ordered by title (admin usage).
@@ -74,8 +79,23 @@ public class LessonService {
         } else {
             lesson = findLessonById(id);
         }
+        
+        User currentUser = userService.getCurrentAuthenticatedUser();
+        checkSubscriptionForAdvancedLesson(lesson, currentUser);
 
         return LessonResponse.from(lesson, includeExercises);
+    }
+
+    private void checkSubscriptionForAdvancedLesson(Lesson lesson, User user) {
+        if (lesson.getDifficulty() == Lesson.Difficulty.ADVANCED) {
+            boolean hasActiveSubscription = user.getSubscriptions().stream()
+                    .anyMatch(sub -> sub.getStatus() == UserSubscription.SubscriptionStatus.ACTIVE);
+
+            if (!hasActiveSubscription) {
+                log.warn("User {} attempted to access advanced lesson {} without an active subscription.", user.getUsername(), lesson.getId());
+                throw new RuntimeException("You must have an active subscription to access advanced lessons.");
+            }
+        }
     }
 
     /**

@@ -159,6 +159,21 @@ public class PaymentService {
     }
 
     /**
+     * Overload kept for legacy tests expecting CreatePaymentRequest.
+     * Converts to CreatePaymentIntentRequest and delegates.
+     */
+    @Transactional
+    public Payment createPayment(Long userId, me.aydgn.MorseMate.dto.request.CreatePaymentRequest request) {
+        CreatePaymentIntentRequest converted = CreatePaymentIntentRequest.builder()
+                .amount(request.getAmount())
+                .currency(request.getCurrency())
+                .simulateFailure(Boolean.TRUE.equals(request.getSimulateFailure()))
+                .subscriptionId(request.getSubscriptionId())
+                .build();
+        return createPayment(userId, converted);
+    }
+
+    /**
      * Validates that the payment amount is positive.
      *
      * @param amount The amount to validate.
@@ -427,10 +442,13 @@ public class PaymentService {
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "Plan not found with ID: " + request.getPlanId()));
         } else {
-            UserSubscription subscription = subscriptionRepository.findWithPlanByUserId(userId)
+            UserSubscription subscription = subscriptionRepository.findByUserId(userId)
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "Active subscription not found for user: " + userId));
-            plan = subscription.getPlan();
+            SubscriptionPlan subscriptionPlan = subscriptionPlanRepository.findById(Long.valueOf(subscription.getPlanId()))
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Subscription plan not found for subscription: " + subscription.getId()));
+            plan = subscriptionPlan;
         }
 
         // Determine amount / currency from request or subscription plan
@@ -485,8 +503,8 @@ public class PaymentService {
         if (success && request.getPlanId() != null) {
             try {
                 // Check if user already has an active subscription
-                var existingSubscription = subscriptionRepository.findWithPlanByUserId(userId);
-                if (existingSubscription.isPresent() && existingSubscription.get().getStatus() == UserSubscription.Status.ACTIVE) {
+                var existingSubscription = subscriptionRepository.findByUserId(userId);
+                if (existingSubscription.isPresent() && existingSubscription.get().getStatus() == UserSubscription.SubscriptionStatus.ACTIVE) {
                     // Upgrade existing subscription
                     var subscriptionResponse = subscriptionService.upgradeSubscription(userId, request.getPlanId());
                     subscription = subscriptionRepository.findById(subscriptionResponse.getId())
@@ -509,7 +527,7 @@ public class PaymentService {
             }
         } else if (success) {
             // For renewal case, get existing subscription
-            subscription = subscriptionRepository.findWithPlanByUserId(userId).orElse(null);
+            subscription = subscriptionRepository.findByUserId(userId).orElse(null);
         }
 
         // Create Payment entity for history
@@ -569,10 +587,15 @@ public class PaymentService {
 
                     Long planId = null;
                     String planName = null;
-                    if (payment.getSubscription() != null && payment.getSubscription().getPlan() != null) {
-                        planId = payment.getSubscription().getPlan().getId();
-                        planName = payment.getSubscription().getPlan().getName();
+                    if (payment.getSubscription() != null) {
+                        SubscriptionPlan plan = subscriptionPlanRepository.findById(Long.valueOf(payment.getSubscription().getPlanId()))
+                                .orElse(null);
+                        if (plan != null) {
+                            planId = plan.getId();
+                            planName = plan.getName();
+                        }
                     }
+
 
                     return PaymentHistoryDTO.builder()
                             .subscriptionId(payment.getSubscription() != null ? payment.getSubscription().getId() : null)
@@ -602,7 +625,7 @@ public class PaymentService {
                 ? totalAmount.divide(BigDecimal.valueOf(total), 2, java.math.RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
 
-        long activeSubs = subscriptionRepository.findByStatus(UserSubscription.Status.ACTIVE).size();
+        long activeSubs = subscriptionRepository.findByStatus(UserSubscription.SubscriptionStatus.ACTIVE).size();
 
         return PaymentStatsDTO.builder()
                 .totalPayments(total)

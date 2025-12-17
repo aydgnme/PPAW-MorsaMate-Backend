@@ -24,6 +24,13 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  cache:
+    type: caffeine
+    cache-names:
+    - categories
+    - lessons
+    - subscription-plans
+    - user-subscriptions
   flyway:
     enabled: false
 
@@ -38,6 +45,9 @@ app:
   version: ${APP_VERSION:1.0.0}
   redirect-url: ${APP_REDIRECT_URL:https://aydgn.me}
   admin-panel-url: ${APP_ADMIN_PANEL_URL:/admin/users}
+  cache:
+    ttl-minutes: ${CACHE_TTL_MINUTES:60}
+    max-size: ${CACHE_MAX_SIZE:1000}
 
 jwt:
   expiration: ${JWT_EXPIRATION:86400000}

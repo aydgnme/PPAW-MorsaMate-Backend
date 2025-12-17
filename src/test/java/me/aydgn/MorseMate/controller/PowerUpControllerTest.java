@@ -190,6 +190,6 @@ public class PowerUpControllerTest {
     public void testPowerUpEndpointRequiresAuthentication() throws Exception {
         mockMvc.perform(get("/v1/powerups/me")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 }

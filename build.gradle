@@ -30,6 +30,7 @@ dependencies {
     // Spring Boot Starters
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
@@ -48,6 +49,9 @@ dependencies {
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.3'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.3'
 
+    // In-memory cache with eviction policies
+    implementation 'com.github.ben-manes.caffeine:caffeine'
+
     // MapStruct (DTO mapping)
     implementation 'org.mapstruct:mapstruct:1.5.5.Final'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
@@ -55,8 +59,11 @@ dependencies {
     // Validation
     implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
 
-    // Stripe Payment (for subscriptions)
-    implementation 'com.stripe:stripe-java:24.9.0'
+    // https://mvnrepository.com/artifact/com.stripe/stripe-java
+    implementation("com.stripe:stripe-java:31.0.0")
+
+    // Gson (JSON serialization/deserialization)
+    implementation 'com.google.code.gson:gson:2.10.1'
 
     // DotEnv for environment variables
     implementation 'io.github.cdimascio:dotenv-java:3.0.0'
@@ -76,10 +83,6 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
     finalizedBy jacocoTestReport
-}
-
-test {
-    ignoreFailures = true  // Continue running tests even if some fail
 }
 
 jacoco {

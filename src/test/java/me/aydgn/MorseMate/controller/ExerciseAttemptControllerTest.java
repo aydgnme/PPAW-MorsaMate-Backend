@@ -107,11 +107,11 @@ class ExerciseAttemptControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createRequest)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.userId", is(1)))
-                .andExpect(jsonPath("$.exerciseId", is(1)))
-                .andExpect(jsonPath("$.isCorrect", is(true)))
-                .andExpect(jsonPath("$.pointsEarned", is(5)));
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.userId").value(1))
+                .andExpect(jsonPath("$.exerciseId").value(1))
+                .andExpect(jsonPath("$.isCorrect").value(true))
+                .andExpect(jsonPath("$.pointsEarned").value(5));
 
         verify(exerciseAttemptService, times(1))
                 .recordAttempt(eq(1L), any(CreateExerciseAttemptRequest.class));

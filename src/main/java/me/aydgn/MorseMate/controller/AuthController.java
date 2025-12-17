@@ -95,6 +95,15 @@ public class AuthController {
         return ResponseEntity.ok("Auth service is running");
     }
 
+    /**
+     * Logout endpoint (stateless JWT) — client should discard token.
+     * POST /auth/logout
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout() {
+        return ResponseEntity.ok(new ErrorResponse("Logged out"));
+    }
+
     // Simple error response class
     record ErrorResponse(String message) {}
 }

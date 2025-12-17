@@ -21,3 +21,7 @@ logging:
 
 jwt:
   secret: ${JWT_SECRET:MorseMate-Super-Secret-Key-For-Development-Only-Change-In-Production-2025}
+
+stripe:
+  api:
+    key: "dummy-key"

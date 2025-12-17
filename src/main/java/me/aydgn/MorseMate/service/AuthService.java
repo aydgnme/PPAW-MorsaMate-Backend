@@ -27,6 +27,7 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final me.aydgn.MorseMate.security.RateLimitService rateLimitService;
     private final StripeService stripeService;
+    private final UserSubscriptionService userSubscriptionService;
 
     /**
      * Register a new user with enhanced security validations
@@ -134,6 +135,14 @@ public class AuthService {
             } catch (StripeException e) {
                 log.warn("Failed to create Stripe customer for user ID: {}. Registration will proceed, but payment features will be affected. Error: {}", user.getId(), e.getMessage());
                 // In a production environment, you might want to add this user to a retry queue.
+            }
+
+            // Ensure a Free subscription is created for new users
+            try {
+                userSubscriptionService.ensureFreeSubscriptionOnSignup(user);
+            } catch (Exception ex) {
+                log.error("Failed to create free subscription for user ID: {}", user.getId(), ex);
+                // Do not fail registration on free subscription creation; proceed.
             }
 
             // Clear rate limit on successful registration

@@ -23,5 +23,12 @@ public class CreatePaymentIntentRequest {
     @NotBlank
     private String currency;
 
+    /** Optional plan reference used by tests and simulated flows. */
+    private Long planId;
+
     private Long subscriptionId; // Optional: to link payment to a subscription renewal
+
+    /** Flag to simulate failures in tests. */
+    @Builder.Default
+    private Boolean simulateFailure = false;
 }

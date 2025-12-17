@@ -9,6 +9,7 @@ import me.aydgn.MorseMate.enums.Role;
 import org.hibernate.annotations.Check;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -115,6 +116,9 @@ public class User extends BaseEntity {
     // SQL: stripe_customer_id VARCHAR(255) UNIQUE
     @Column(name = "stripe_customer_id", length = 255, unique = true)
     private String stripeCustomerId;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserSubscription> subscriptions;
 
     /* --------- Lifecycle hooks: DB varsayılanlarını ve normalizasyonu destekle --------- */
     @PrePersist

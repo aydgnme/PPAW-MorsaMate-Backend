@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.aydgn.MorseMate.dto.request.UserSubscriptionRequest;
+import me.aydgn.MorseMate.dto.request.UpgradeSubscriptionRequest;
 import me.aydgn.MorseMate.dto.response.ApiMessage;
 import me.aydgn.MorseMate.dto.response.UserSubscriptionResponse;
 import me.aydgn.MorseMate.service.UserSubscriptionService;
@@ -100,17 +101,26 @@ public class UserSubscriptionController {
 
     /**
      * Upgrade current user's subscription to a different plan.
+     * Accepts target plan via query param `newPlanId` or JSON body `{ "newPlanId": <id> }`.
      * Only allows upgrades (higher price plans).
      *
-     * @param newPlanId New subscription plan ID
+     * @param newPlanId New subscription plan ID (optional if provided in body)
      * @return Updated subscription
      */
     @PutMapping("/upgrade")
-    public ResponseEntity<UserSubscriptionResponse> upgradeSubscription(@RequestParam Long newPlanId) {
+    public ResponseEntity<UserSubscriptionResponse> upgradeSubscription(
+            @RequestParam(value = "newPlanId", required = false) Long newPlanId,
+            @RequestBody(required = false) UpgradeSubscriptionRequest body) {
         Long userId = getCurrentUserId();
-        log.info("User ID: {} upgrading to plan ID: {}", userId, newPlanId);
+        Long resolvedPlanId = newPlanId != null ? newPlanId : (body != null ? body.getNewPlanId() : null);
 
-        UserSubscriptionResponse subscription = subscriptionService.upgradeSubscription(userId, newPlanId);
+        if (resolvedPlanId == null) {
+            log.warn("Upgrade request missing newPlanId (userId: {})", userId);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+
+        log.info("User ID: {} upgrading to plan ID: {}", userId, resolvedPlanId);
+        UserSubscriptionResponse subscription = subscriptionService.upgradeSubscription(userId, resolvedPlanId);
         return ResponseEntity.ok(subscription);
     }
 

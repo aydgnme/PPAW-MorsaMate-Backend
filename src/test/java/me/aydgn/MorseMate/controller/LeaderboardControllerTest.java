@@ -136,6 +136,6 @@ public class LeaderboardControllerTest {
     public void testLeaderboardEndpointRequiresAuthentication() throws Exception {
         mockMvc.perform(get("/v1/leaderboard/points")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 }

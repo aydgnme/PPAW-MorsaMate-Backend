@@ -5,8 +5,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import me.aydgn.MorseMate.entity.UserSubscription;
+import me.aydgn.MorseMate.dto.response.SubscriptionPlanResponse;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 /**
  * Response DTO for user subscription information.
@@ -34,7 +35,12 @@ public class UserSubscriptionResponse {
     private String username;
 
     /**
-     * Details of the subscription plan.
+     * ID of the subscription plan.
+     */
+    private String planId;
+
+    /**
+     * Full plan details (optional, used in tests/builders).
      */
     private SubscriptionPlanResponse plan;
 
@@ -47,23 +53,13 @@ public class UserSubscriptionResponse {
     /**
      * When the subscription started.
      */
-    private LocalDateTime startDate;
+    private OffsetDateTime startDate;
 
     /**
      * When the subscription ends/ended.
      * Null for indefinite subscriptions.
      */
-    private LocalDateTime endDate;
-
-    /**
-     * Next billing date for auto-renewal.
-     */
-    private LocalDateTime nextBillingDate;
-
-    /**
-     * Whether auto-renewal is enabled.
-     */
-    private Boolean autoRenew;
+    private OffsetDateTime endDate;
 
     /**
      * Stripe subscription ID (if integrated).
@@ -79,12 +75,12 @@ public class UserSubscriptionResponse {
     /**
      * When the subscription was created.
      */
-    private LocalDateTime createdAt;
+    private OffsetDateTime createdAt;
 
     /**
      * When the subscription was last updated.
      */
-    private LocalDateTime updatedAt;
+    private OffsetDateTime updatedAt;
 
     /**
      * Static factory method to create response from entity.
@@ -97,65 +93,22 @@ public class UserSubscriptionResponse {
             return null;
         }
 
-        // Check if subscription is currently active
-        boolean isActive = subscription.getStatus() == UserSubscription.Status.ACTIVE
-                && (subscription.getEndDate() == null || subscription.getEndDate().isAfter(LocalDateTime.now()));
+        boolean isActive = subscription.getStatus() == UserSubscription.SubscriptionStatus.ACTIVE
+                && (subscription.getCurrentPeriodEnd() == null || subscription.getCurrentPeriodEnd().isAfter(OffsetDateTime.now()));
 
         return UserSubscriptionResponse.builder()
                 .id(subscription.getId())
                 .userId(subscription.getUser() != null ? subscription.getUser().getId() : null)
                 .username(subscription.getUser() != null ? subscription.getUser().getUsername() : null)
-                .plan(subscription.getPlan() != null ? SubscriptionPlanResponse.from(subscription.getPlan()) : null)
+                .planId(subscription.getPlanId().toString())
+                .plan(null)
                 .status(subscription.getStatus() != null ? subscription.getStatus().name() : null)
-                .startDate(subscription.getStartDate())
-                .endDate(subscription.getEndDate())
-                .nextBillingDate(subscription.getNextBillingDate())
-                .autoRenew(subscription.getAutoRenew())
+                .startDate(subscription.getCurrentPeriodStart())
+                .endDate(subscription.getCurrentPeriodEnd())
                 .stripeSubscriptionId(subscription.getStripeSubscriptionId())
                 .isActive(isActive)
                 .createdAt(subscription.getCreatedAt())
                 .updatedAt(subscription.getUpdatedAt())
                 .build();
-    }
-
-    /**
-     * Static factory method for lightweight response (without plan details).
-     *
-     * @param subscription UserSubscription entity
-     * @return UserSubscriptionResponse DTO with minimal plan info
-     */
-    public static UserSubscriptionResponse fromMinimal(UserSubscription subscription) {
-        if (subscription == null) {
-            return null;
-        }
-
-        boolean isActive = subscription.getStatus() == UserSubscription.Status.ACTIVE
-                && (subscription.getEndDate() == null || subscription.getEndDate().isAfter(LocalDateTime.now()));
-
-        UserSubscriptionResponse response = UserSubscriptionResponse.builder()
-                .id(subscription.getId())
-                .userId(subscription.getUser() != null ? subscription.getUser().getId() : null)
-                .username(subscription.getUser() != null ? subscription.getUser().getUsername() : null)
-                .status(subscription.getStatus() != null ? subscription.getStatus().name() : null)
-                .startDate(subscription.getStartDate())
-                .endDate(subscription.getEndDate())
-                .nextBillingDate(subscription.getNextBillingDate())
-                .autoRenew(subscription.getAutoRenew())
-                .stripeSubscriptionId(subscription.getStripeSubscriptionId())
-                .isActive(isActive)
-                .createdAt(subscription.getCreatedAt())
-                .updatedAt(subscription.getUpdatedAt())
-                .build();
-
-        // Add minimal plan info
-        if (subscription.getPlan() != null) {
-            response.setPlan(SubscriptionPlanResponse.builder()
-                    .id(subscription.getPlan().getId())
-                    .name(subscription.getPlan().getName())
-                    .price(subscription.getPlan().getPrice())
-                    .build());
-        }
-
-        return response;
     }
 }

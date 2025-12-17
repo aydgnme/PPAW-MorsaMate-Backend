@@ -1,79 +1,78 @@
 package me.aydgn.MorseMate.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.io.Serial;
+import java.io.Serializable;
+import java.time.OffsetDateTime;
 
 @Entity
-@Table(
-        name = "user_subscriptions",
-        indexes = {
-                @Index(name = "idx_user_subscriptions_user", columnList = "user_id")
-        }
-)
-@Getter @Setter
+@Table(name = "user_subscriptions")
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class UserSubscription extends BaseEntity {
+public class UserSubscription implements Serializable {
 
-    // id SERIAL PRIMARY KEY
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // user_id UNIQUE, REFERENCES users(id)
-    // Şemanda user bazında tek satır: @OneToOne en doğal eşleşme
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(
-            name = "user_id",
-            nullable = false,
-            unique = true,
-            foreignKey = @ForeignKey(name = "user_subscriptions_user_id_key")
-    )
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // plan_id REFERENCES subscription_plans(id)
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "plan_id",
-            foreignKey = @ForeignKey(name = "user_subscriptions_plan_id_fkey")
-    )
-    private SubscriptionPlan plan;
+    @Column(name = "stripe_subscription_id", unique = true, nullable = false)
+    private String stripeSubscriptionId;
 
-    // status VARCHAR(20) CHECK ('active','cancelled','expired','paused') DEFAULT 'active'
-    public enum Status { ACTIVE, CANCELLED, EXPIRED, PAUSED }
+    @Column(name = "stripe_customer_id", nullable = false)
+    private String stripeCustomerId;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", length = 20, nullable = false)
-    @Builder.Default
-    private Status status = Status.ACTIVE;
+    @Column(name = "plan_id", nullable = false)
+    private Long planId; // e.g., "pro"
 
-    // start_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    @Column(name = "start_date")
-    private LocalDateTime startDate;
-
-    // end_date TIMESTAMP
-    @Column(name = "end_date")
-    private LocalDateTime endDate;
-
-    // next_billing_date TIMESTAMP
-    @Column(name = "next_billing_date")
-    private LocalDateTime nextBillingDate;
-
-    // auto_renew BOOLEAN DEFAULT TRUE
     @Column(name = "auto_renew", nullable = false)
     @Builder.Default
     private Boolean autoRenew = true;
 
-    // stripe_subscription_id VARCHAR(100)
-    @Column(name = "stripe_subscription_id", length = 100)
-    private String stripeSubscriptionId;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private SubscriptionStatus status;
 
-    /* lifecycle */
+    @Column(name = "current_period_start", nullable = false)
+    private OffsetDateTime currentPeriodStart;
+
+    @Column(name = "current_period_end", nullable = false)
+    private OffsetDateTime currentPeriodEnd;
+
+    @Column(name = "created_at", nullable = false)
+    private OffsetDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private OffsetDateTime updatedAt;
+
+    public enum SubscriptionStatus {
+        ACTIVE,
+        CANCELED,
+        INCOMPLETE,
+        PAST_DUE
+    }
+
     @PrePersist
-    private void prePersist() {
-        if (this.startDate == null) this.startDate = LocalDateTime.now();
+    protected void onCreate() {
+        createdAt = OffsetDateTime.now();
+        updatedAt = OffsetDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = OffsetDateTime.now();
     }
 }

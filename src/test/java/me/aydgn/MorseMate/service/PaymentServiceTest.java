@@ -39,6 +39,18 @@ class PaymentServiceTest {
     @Mock
     private StripeService stripeService;
 
+    @Mock
+    private me.aydgn.MorseMate.repository.UserSubscriptionRepository userSubscriptionRepository;
+
+    @Mock
+    private me.aydgn.MorseMate.repository.SubscriptionPlanRepository subscriptionPlanRepository;
+
+    @Mock
+    private me.aydgn.MorseMate.service.PaymentCardService paymentCardService;
+
+    @Mock
+    private me.aydgn.MorseMate.service.UserSubscriptionService userSubscriptionService;
+
     @InjectMocks
     private PaymentService paymentService;
 
@@ -86,12 +98,12 @@ class PaymentServiceTest {
         // Given
         Payment payment = Payment.builder()
                 .id(1L)
-                .user(user)
                 .amount(new BigDecimal("10.00"))
                 .currency("usd")
                 .status(Payment.Status.PENDING)
                 .build();
-
+        payment.setUser(user);
+        
         when(paymentRepository.findById(1L)).thenReturn(Optional.of(payment));
         when(stripeService.createCustomer(user)).thenReturn(new Customer());
 

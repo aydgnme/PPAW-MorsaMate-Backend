@@ -252,9 +252,9 @@ class ExerciseControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.question", is("Updated question")))
-                .andExpect(jsonPath("$.points", is(10)));
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.question").value("Updated question"))
+                .andExpect(jsonPath("$.points").value(10));
 
         verify(exerciseService, times(1)).updateExercise(eq(1L), any(UpdateExerciseRequest.class));
     }

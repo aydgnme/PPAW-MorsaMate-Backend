@@ -2,17 +2,20 @@ package me.aydgn.MorseMate.config;
 
 import com.stripe.Stripe;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@Slf4j
 public class StripeConfig {
 
-    @Value("${STRIPE_SECRET_KEY}")
-    private String secretKey;
+    @Value("${stripe.api-key}")
+    private String apiKey;
 
     @PostConstruct
     public void init() {
-        Stripe.apiKey = secretKey;
+        Stripe.apiKey = apiKey;
+        log.info("Stripe API key initialized.");
     }
 }

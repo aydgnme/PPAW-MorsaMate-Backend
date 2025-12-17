@@ -8,9 +8,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
-import java.util.UUID;
 
 @Component
 @Slf4j
@@ -22,7 +23,7 @@ public class JwtUtil {
     @Value("${jwt.expiration:86400000}") // default 24h in ms
     private Long jwtExpiration;
 
-    private static final int MIN_KEY_LENGTH = 32; // 256 bits minimum
+    private static final int MIN_KEY_LENGTH = 64; // 512 bits minimum for HS512
 
     private SecretKey signingKey;
 
@@ -37,16 +38,18 @@ public class JwtUtil {
 
         byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
         if (keyBytes.length < MIN_KEY_LENGTH) {
-            throw new IllegalStateException(
-                    String.format("JWT secret key is too short (%d bytes). Minimum required: %d bytes (256 bits). " +
-                            "Please use a longer secret key for security.", keyBytes.length, MIN_KEY_LENGTH)
-            );
+            // Derive a deterministic 512-bit key from the provided secret using SHA-512
+            try {
+                MessageDigest sha512 = MessageDigest.getInstance("SHA-512");
+                keyBytes = sha512.digest(keyBytes); // 64 bytes
+                log.warn("JWT secret was {} bytes; derived a 512-bit key via SHA-512 for HS512.", jwtSecret.length());
+            } catch (NoSuchAlgorithmException e) {
+                throw new IllegalStateException("SHA-512 not available to derive HS512 key", e);
+            }
         }
 
-        String runtimeSecret = jwtSecret + ":" + UUID.randomUUID();
-        signingKey = Keys.hmacShaKeyFor(runtimeSecret.getBytes(StandardCharsets.UTF_8));
-
-        log.info("JWT secret key validated successfully ({} bytes base, instance salt applied)", keyBytes.length);
+        signingKey = Keys.hmacShaKeyFor(keyBytes);
+        log.info("JWT secret key ready ({} bytes used for HS512)", keyBytes.length);
     }
 
     private SecretKey getSigningKey() {
@@ -64,14 +67,14 @@ public class JwtUtil {
         Date expiryDate = new Date(now.getTime() + jwtExpiration);
 
         return Jwts.builder()
-                .setSubject(userId.toString())
-                .claim("username", username)
-                .claim("email", email)
-                .claim("role", role)
-                .setIssuedAt(now)
-                .setExpiration(expiryDate)
-                .signWith(getSigningKey(), SignatureAlgorithm.HS512)
-                .compact();
+            .subject(userId.toString())
+            .claim("username", username)
+            .claim("email", email)
+            .claim("role", role)
+            .issuedAt(now)
+            .expiration(expiryDate)
+            .signWith(getSigningKey(), Jwts.SIG.HS512)
+            .compact();
     }
 
     /**

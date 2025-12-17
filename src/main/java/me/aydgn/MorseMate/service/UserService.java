@@ -8,10 +8,13 @@ import me.aydgn.MorseMate.entity.User;
 import me.aydgn.MorseMate.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +22,22 @@ import java.time.LocalDateTime;
 public class UserService {
 
     private final UserRepository userRepository;
+
+    /**
+     * Get the currently authenticated user from the security context.
+     * @return The authenticated User entity.
+     * @throws RuntimeException if no user is authenticated.
+     */
+    @Transactional(readOnly = true)
+    public User getCurrentAuthenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("No authenticated user found.");
+        }
+        String username = authentication.getName();
+        return userRepository.findByUsernameIgnoreCase(username)
+                .orElseThrow(() -> new RuntimeException("Authenticated user not found in database: " + username));
+    }
 
     /**
      * Get user by ID

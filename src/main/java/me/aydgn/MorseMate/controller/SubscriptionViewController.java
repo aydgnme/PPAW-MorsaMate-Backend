@@ -29,6 +29,7 @@ import java.util.List;
 public class SubscriptionViewController {
 
     private final UserSubscriptionService subscriptionService;
+    private final me.aydgn.MorseMate.repository.SubscriptionPlanRepository subscriptionPlanRepository;
 
     /**
      * Display subscription list/management page.
@@ -119,8 +120,13 @@ public class SubscriptionViewController {
             model.addAttribute("currentSubscription", currentSubscription);
             model.addAttribute("userId", userId);
 
-            log.debug("Upgrade page loaded with current subscription: {}",
-                    currentSubscription != null ? currentSubscription.getPlan().getName() : "None");
+            String planName = "None";
+            if (currentSubscription != null) {
+                planName = subscriptionPlanRepository.findById(Long.valueOf(currentSubscription.getPlanId()))
+                        .map(me.aydgn.MorseMate.entity.SubscriptionPlan::getName)
+                        .orElse("None");
+            }
+            log.debug("Upgrade page loaded with current subscription: {}", planName);
 
             return "subscriptions/upgrade";
         } catch (Exception e) {
