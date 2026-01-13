@@ -79,9 +79,13 @@ public class LessonService {
         } else {
             lesson = findLessonById(id);
         }
-        
-        User currentUser = userService.getCurrentAuthenticatedUser();
-        checkSubscriptionForAdvancedLesson(lesson, currentUser);
+
+        userService.getAuthenticatedUser()
+                .ifPresent(user -> checkSubscriptionForAdvancedLesson(lesson, user));
+
+        if (lesson.getDifficulty() == Lesson.Difficulty.ADVANCED && userService.getAuthenticatedUser().isEmpty()) {
+            throw new RuntimeException("Authentication required for advanced lessons.");
+        }
 
         return LessonResponse.from(lesson, includeExercises);
     }
@@ -92,7 +96,8 @@ public class LessonService {
                     .anyMatch(sub -> sub.getStatus() == UserSubscription.SubscriptionStatus.ACTIVE);
 
             if (!hasActiveSubscription) {
-                log.warn("User {} attempted to access advanced lesson {} without an active subscription.", user.getUsername(), lesson.getId());
+                log.warn("User {} attempted to access advanced lesson {} without an active subscription.",
+                        user.getUsername(), lesson.getId());
                 throw new RuntimeException("You must have an active subscription to access advanced lessons.");
             }
         }
@@ -140,8 +145,7 @@ public class LessonService {
             log.error("Invalid difficulty value: {}", request.getDifficulty());
             throw new InvalidOperationException(
                     String.format("Invalid difficulty value: %s. Valid values are: BEGINNER, INTERMEDIATE, ADVANCED",
-                            request.getDifficulty())
-            );
+                            request.getDifficulty()));
         }
 
         // Create new lesson
@@ -196,9 +200,9 @@ public class LessonService {
             } catch (IllegalArgumentException e) {
                 log.error("Invalid difficulty value: {}", request.getDifficulty());
                 throw new InvalidOperationException(
-                        String.format("Invalid difficulty value: %s. Valid values are: BEGINNER, INTERMEDIATE, ADVANCED",
-                                request.getDifficulty())
-                );
+                        String.format(
+                                "Invalid difficulty value: %s. Valid values are: BEGINNER, INTERMEDIATE, ADVANCED",
+                                request.getDifficulty()));
             }
         }
 
@@ -244,8 +248,7 @@ public class LessonService {
             log.error("Cannot delete lesson with id: {} as it has {} associated exercises", id, exerciseCount);
             throw new InvalidOperationException(
                     String.format("Cannot delete lesson '%s' as it has %d associated exercises. " +
-                            "Please delete the exercises first.", lesson.getTitle(), exerciseCount)
-            );
+                            "Please delete the exercises first.", lesson.getTitle(), exerciseCount));
         }
 
         lessonRepository.delete(lesson);

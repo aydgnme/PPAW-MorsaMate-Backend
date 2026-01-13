@@ -12,24 +12,21 @@ import java.time.Duration;
 @Configuration
 public class CacheConfig {
 
-    @Bean
-    public CacheManager cacheManager(
-            @Value("${app.cache.ttl-minutes:60}") long ttlMinutes,
-            @Value("${app.cache.max-size:1000}") long maximumSize
-    ) {
-        CaffeineCacheManager cacheManager = new CaffeineCacheManager(
-                "categories",
-                "lessons",
-                "subscription-plans",
-                "user-subscriptions"
-        );
+        @Bean
+        public CacheManager cacheManager(
+                        @Value("${app.cache.ttl-minutes:60}") long ttlMinutes,
+                        @Value("${app.cache.max-size:1000}") long maximumSize) {
+                CaffeineCacheManager cacheManager = new CaffeineCacheManager(
+                                "categories",
+                                "lessons",
+                                "subscription-plans",
+                                "user-subscriptions");
 
-        cacheManager.setCaffeine(
-                Caffeine.newBuilder()
-                        .expireAfterWrite(Duration.ofMinutes(ttlMinutes))
-                        .maximumSize(maximumSize)
-        );
-        cacheManager.setAllowNullValues(false);
-        return cacheManager;
-    }
+                cacheManager.setCaffeine(
+                                Caffeine.newBuilder()
+                                                .expireAfterWrite(Duration.ofMinutes(ttlMinutes))
+                                                .maximumSize(maximumSize));
+                cacheManager.setAllowNullValues(true);
+                return cacheManager;
+        }
 }

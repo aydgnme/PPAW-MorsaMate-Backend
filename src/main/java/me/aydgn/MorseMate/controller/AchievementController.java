@@ -151,7 +151,7 @@ public class AchievementController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<AchievementResponse>> getMyAchievementsPaged(
             Authentication authentication,
-            @PageableDefault(size = 20, sort = "earnedAt", direction = Sort.Direction.DESC) Pageable pageable) {
+            @PageableDefault(size = 20, sort = "unlockedAt", direction = Sort.Direction.DESC) Pageable pageable) {
         Long userId = Long.parseLong(authentication.getName());
         log.debug("GET /v1/achievements/me/paged - Fetching paged achievements for user id: {}", userId);
         Page<AchievementResponse> achievements = achievementService.getUserAchievementsPaged(userId, pageable);

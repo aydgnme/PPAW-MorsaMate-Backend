@@ -6,8 +6,11 @@ import me.aydgn.MorseMate.entity.ExerciseAttempt;
 
 import java.time.LocalDateTime;
 
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ExerciseAttemptResponse {
 
@@ -17,18 +20,21 @@ public class ExerciseAttemptResponse {
     private Long exerciseId;
 
     private String userAnswer;
+    private String correctAnswer; // Added to show after attempt
     private Boolean isCorrect;
-    private Integer timeTaken;       // seconds
+    private Integer timeTaken; // seconds
     private Integer pointsEarned;
     private LocalDateTime attemptedAt;
 
     public static ExerciseAttemptResponse from(ExerciseAttempt ea) {
-        if (ea == null) return null;
+        if (ea == null)
+            return null;
         return ExerciseAttemptResponse.builder()
                 .id(ea.getId())
                 .userId(ea.getUser() != null ? ea.getUser().getId() : null)
                 .exerciseId(ea.getExercise() != null ? ea.getExercise().getId() : null)
                 .userAnswer(ea.getUserAnswer())
+                .correctAnswer(ea.getExercise() != null ? ea.getExercise().getCorrectAnswer() : null)
                 .isCorrect(ea.getIsCorrect())
                 .timeTaken(ea.getTimeTaken())
                 .pointsEarned(ea.getPointsEarned())

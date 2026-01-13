@@ -57,8 +57,7 @@ public class ExerciseService {
         } catch (IllegalArgumentException e) {
             log.error("Invalid difficulty value: {}", difficulty);
             throw new InvalidOperationException(
-                    String.format("Invalid difficulty value: %s. Valid values are: EASY, MEDIUM, HARD", difficulty)
-            );
+                    String.format("Invalid difficulty value: %s. Valid values are: EASY, MEDIUM, HARD", difficulty));
         }
 
         List<Exercise> exercises = exerciseRepository.findByLessonIdAndDifficulty(lessonId, difficultyEnum);
@@ -82,8 +81,9 @@ public class ExerciseService {
         } catch (IllegalArgumentException e) {
             log.error("Invalid exercise type: {}", type);
             throw new InvalidOperationException(
-                    String.format("Invalid exercise type: %s. Valid values are: ENCODE, DECODE, AUDIO, SPEED_TEST, MULTI_CHOICE", type)
-            );
+                    String.format(
+                            "Invalid exercise type: %s. Valid values are: ENCODE, DECODE, AUDIO, SPEED_TEST, MULTI_CHOICE",
+                            type));
         }
 
         List<Exercise> exercises = exerciseRepository.findByLessonIdAndType(lessonId, typeEnum);
@@ -108,8 +108,9 @@ public class ExerciseService {
             } catch (IllegalArgumentException e) {
                 log.error("Invalid exercise type: {}", type);
                 throw new InvalidOperationException(
-                        String.format("Invalid exercise type: %s. Valid values are: ENCODE, DECODE, AUDIO, SPEED_TEST, MULTI_CHOICE", type)
-                );
+                        String.format(
+                                "Invalid exercise type: %s. Valid values are: ENCODE, DECODE, AUDIO, SPEED_TEST, MULTI_CHOICE",
+                                type));
             }
         }
 
@@ -120,14 +121,13 @@ public class ExerciseService {
             } catch (IllegalArgumentException e) {
                 log.error("Invalid difficulty value: {}", difficulty);
                 throw new InvalidOperationException(
-                        String.format("Invalid difficulty value: %s. Valid values are: EASY, MEDIUM, HARD", difficulty)
-                );
+                        String.format("Invalid difficulty value: %s. Valid values are: EASY, MEDIUM, HARD",
+                                difficulty));
             }
         }
 
         Page<Exercise> randomExercises = exerciseRepository.findRandomByLesson(
-                lessonId, typeEnum, difficultyEnum, PageRequest.of(0, 1)
-        );
+                lessonId, typeEnum, difficultyEnum, PageRequest.of(0, 1));
 
         if (randomExercises.isEmpty()) {
             log.error("No exercises found for lesson id: {} with specified filters", lessonId);
@@ -197,9 +197,9 @@ public class ExerciseService {
         } catch (IllegalArgumentException e) {
             log.error("Invalid exercise type: {}", request.getType());
             throw new InvalidOperationException(
-                    String.format("Invalid exercise type: %s. Valid values are: ENCODE, DECODE, AUDIO, SPEED_TEST, MULTI_CHOICE",
-                            request.getType())
-            );
+                    String.format(
+                            "Invalid exercise type: %s. Valid values are: ENCODE, DECODE, AUDIO, SPEED_TEST, MULTI_CHOICE",
+                            request.getType()));
         }
 
         // Validate and parse difficulty
@@ -210,8 +210,7 @@ public class ExerciseService {
             log.error("Invalid difficulty value: {}", request.getDifficulty());
             throw new InvalidOperationException(
                     String.format("Invalid difficulty value: %s. Valid values are: EASY, MEDIUM, HARD",
-                            request.getDifficulty())
-            );
+                            request.getDifficulty()));
         }
 
         // Create new exercise
@@ -256,9 +255,9 @@ public class ExerciseService {
             } catch (IllegalArgumentException e) {
                 log.error("Invalid exercise type: {}", request.getType());
                 throw new InvalidOperationException(
-                        String.format("Invalid exercise type: %s. Valid values are: ENCODE, DECODE, AUDIO, SPEED_TEST, MULTI_CHOICE",
-                                request.getType())
-                );
+                        String.format(
+                                "Invalid exercise type: %s. Valid values are: ENCODE, DECODE, AUDIO, SPEED_TEST, MULTI_CHOICE",
+                                request.getType()));
             }
         }
 
@@ -286,8 +285,7 @@ public class ExerciseService {
                 log.error("Invalid difficulty value: {}", request.getDifficulty());
                 throw new InvalidOperationException(
                         String.format("Invalid difficulty value: %s. Valid values are: EASY, MEDIUM, HARD",
-                                request.getDifficulty())
-                );
+                                request.getDifficulty()));
             }
         }
 
@@ -332,8 +330,8 @@ public class ExerciseService {
             return false;
         }
         // Normalize both answers: trim and lowercase for comparison
-        String normalizedUserAnswer = userAnswer.trim().toLowerCase();
-        String normalizedCorrectAnswer = correctAnswer.trim().toLowerCase();
+        String normalizedUserAnswer = userAnswer.trim().toLowerCase(java.util.Locale.ROOT);
+        String normalizedCorrectAnswer = correctAnswer.trim().toLowerCase(java.util.Locale.ROOT);
         return normalizedUserAnswer.equals(normalizedCorrectAnswer);
     }
 
@@ -382,8 +380,7 @@ public class ExerciseService {
                 int cost = (s1.charAt(i - 1) == s2.charAt(j - 1)) ? 0 : 1;
                 dp[i][j] = Math.min(
                         Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1),
-                        dp[i - 1][j - 1] + cost
-                );
+                        dp[i - 1][j - 1] + cost);
             }
         }
 

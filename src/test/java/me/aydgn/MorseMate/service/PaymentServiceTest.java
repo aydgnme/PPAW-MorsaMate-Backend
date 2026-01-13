@@ -103,7 +103,7 @@ class PaymentServiceTest {
                 .status(Payment.Status.PENDING)
                 .build();
         payment.setUser(user);
-        
+
         when(paymentRepository.findById(1L)).thenReturn(Optional.of(payment));
         when(stripeService.createCustomer(user)).thenReturn(new Customer());
 
@@ -112,8 +112,9 @@ class PaymentServiceTest {
         mockPaymentIntent.setStatus("succeeded");
 
         try (var mockedPi = mockStatic(PaymentIntent.class)) {
-            mockedPi.when(() -> PaymentIntent.create(anyMap())).thenReturn(mockPaymentIntent);
-            
+            mockedPi.when(() -> PaymentIntent.create(any(com.stripe.param.PaymentIntentCreateParams.class)))
+                    .thenReturn(mockPaymentIntent);
+
             when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
             // When
@@ -126,7 +127,6 @@ class PaymentServiceTest {
             verify(paymentRepository, times(1)).save(processedPayment);
         }
     }
-
 
     @Test
     @DisplayName("Should confirm payment successfully")

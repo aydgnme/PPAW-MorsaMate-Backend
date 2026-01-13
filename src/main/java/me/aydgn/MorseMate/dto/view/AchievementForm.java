@@ -29,10 +29,15 @@ public class AchievementForm {
     @Size(max = 1000, message = "Description must not exceed 1000 characters")
     private String description;
 
-    @Size(max = 50, message = "Icon must not exceed 50 characters")
-    private String icon;
+    @Size(max = 255, message = "Icon URL must not exceed 255 characters")
+    private String iconUrl;
 
-    private String criteriaJson; // JSON string representation
+    private String criteriaJson;
+
+    private String category = "PROGRESS";
+    private String rarity = "COMMON";
+    private String criteriaType = "LESSONS_COMPLETED";
+    private Integer criteriaTarget = 1;
 
     @Min(value = 0, message = "Points must be non-negative")
     private Integer points = 10;
@@ -44,8 +49,12 @@ public class AchievementForm {
         return CreateAchievementRequest.builder()
                 .name(name)
                 .description(description)
-                .icon(icon)
-                .criteria(parseCriteriaJson())
+                .iconUrl(iconUrl)
+                .category(category)
+                .rarity(rarity)
+                .criteriaType(criteriaType)
+                .criteriaTarget(criteriaTarget)
+                .criteriaMetadata(parseCriteriaJson())
                 .points(points != null ? points : 10)
                 .gemReward(gemReward != null ? gemReward : 0)
                 .build();
@@ -55,8 +64,12 @@ public class AchievementForm {
         return UpdateAchievementRequest.builder()
                 .name(name)
                 .description(description)
-                .icon(icon)
-                .criteria(parseCriteriaJson())
+                .iconUrl(iconUrl)
+                .category(category)
+                .rarity(rarity)
+                .criteriaType(criteriaType)
+                .criteriaTarget(criteriaTarget)
+                .criteriaMetadata(parseCriteriaJson())
                 .points(points)
                 .gemReward(gemReward)
                 .build();
@@ -67,20 +80,23 @@ public class AchievementForm {
         form.setId(achievement.getId());
         form.setName(achievement.getName());
         form.setDescription(achievement.getDescription());
-        form.setIcon(achievement.getIcon());
-        form.setCriteriaJson(achievement.getCriteria() != null ? achievement.getCriteria().toString() : null);
+        form.setIconUrl(achievement.getIconUrl());
+        form.setCategory(achievement.getCategory());
+        form.setRarity(achievement.getRarity());
+        form.setCriteriaType(achievement.getCriteriaType());
+        form.setCriteriaTarget(achievement.getCriteriaTarget());
+        form.setCriteriaJson(
+                achievement.getCriteriaMetadata() != null ? achievement.getCriteriaMetadata().toString() : null);
         form.setPoints(achievement.getPoints());
         form.setGemReward(achievement.getGemReward());
         return form;
     }
 
     private Map<String, Object> parseCriteriaJson() {
-        // Simple JSON parsing - can be improved
         if (criteriaJson == null || criteriaJson.isBlank()) {
             return null;
         }
         try {
-            // Basic parsing for simple JSON - in production use Jackson
             return java.util.Collections.emptyMap();
         } catch (Exception e) {
             return null;

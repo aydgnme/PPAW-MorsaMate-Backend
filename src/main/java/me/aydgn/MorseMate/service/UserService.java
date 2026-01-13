@@ -25,18 +25,42 @@ public class UserService {
 
     /**
      * Get the currently authenticated user from the security context.
+     * 
      * @return The authenticated User entity.
      * @throws RuntimeException if no user is authenticated.
      */
     @Transactional(readOnly = true)
     public User getCurrentAuthenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
+        if (authentication == null || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getName())) {
             throw new RuntimeException("No authenticated user found.");
         }
-        String username = authentication.getName();
-        return userRepository.findByUsernameIgnoreCase(username)
-                .orElseThrow(() -> new RuntimeException("Authenticated user not found in database: " + username));
+        String principal = authentication.getName();
+        try {
+            Long userId = Long.parseLong(principal);
+            return userRepository.findById(userId)
+                    .orElseThrow(
+                            () -> new RuntimeException("Authenticated user not found in database (ID): " + userId));
+        } catch (NumberFormatException e) {
+            return userRepository.findByUsernameIgnoreCase(principal)
+                    .orElseThrow(() -> new RuntimeException(
+                            "Authenticated user not found in database (Username): " + principal));
+        }
+    }
+
+    /**
+     * Get the currently authenticated user if present.
+     * 
+     * @return Optional of the authenticated User entity.
+     */
+    @Transactional(readOnly = true)
+    public Optional<User> getAuthenticatedUser() {
+        try {
+            return Optional.of(getCurrentAuthenticatedUser());
+        } catch (Exception e) {
+            return Optional.empty();
+        }
     }
 
     /**

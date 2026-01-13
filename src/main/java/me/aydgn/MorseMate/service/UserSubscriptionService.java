@@ -22,7 +22,8 @@ import java.util.List;
 
 /**
  * Service for managing user subscriptions.
- * Handles subscription lifecycle: creation, cancellation, renewal, and upgrades.
+ * Handles subscription lifecycle: creation, cancellation, renewal, and
+ * upgrades.
  */
 @Service
 @RequiredArgsConstructor
@@ -36,6 +37,21 @@ public class UserSubscriptionService {
     private static final String FREE_PLAN_NAME = "Free";
 
     /**
+     * Helper to map subscription entity to response DTO with full plan details.
+     */
+    private UserSubscriptionResponse mapToResponse(UserSubscription subscription) {
+        UserSubscriptionResponse response = UserSubscriptionResponse.from(subscription);
+
+        if (subscription.getPlanId() != null) {
+            planRepository.findById(subscription.getPlanId())
+                    .ifPresent(plan -> response
+                            .setPlan(me.aydgn.MorseMate.dto.response.SubscriptionPlanResponse.from(plan)));
+        }
+
+        return response;
+    }
+
+    /**
      * Get current active subscription for a user.
      *
      * @param userId User ID
@@ -47,7 +63,7 @@ public class UserSubscriptionService {
         log.debug("Fetching subscription for user ID: {}", userId);
 
         return subscriptionRepository.findByUserId(userId)
-                .map(UserSubscriptionResponse::from)
+                .map(this::mapToResponse)
                 .orElse(null);
     }
 
@@ -55,11 +71,11 @@ public class UserSubscriptionService {
      * Subscribe user to a plan.
      * Creates new subscription if none exists, or replaces cancelled/expired ones.
      *
-     * @param userId User ID
+     * @param userId  User ID
      * @param request Subscription request with plan details
      * @return Created UserSubscriptionResponse
      * @throws ResourceNotFoundException if user or plan not found
-     * @throws IllegalStateException if user already has active subscription
+     * @throws IllegalStateException     if user already has active subscription
      */
     @CacheEvict(value = "user-subscriptions", key = "#userId")
     @Transactional
@@ -72,39 +88,60 @@ public class UserSubscriptionService {
 
         // Validate plan exists and is active
         SubscriptionPlan plan = planRepository.findById(request.getPlanId())
-                .orElseThrow(() -> new ResourceNotFoundException("Subscription plan not found with ID: " + request.getPlanId()));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Subscription plan not found with ID: " + request.getPlanId()));
 
         if (!Boolean.TRUE.equals(plan.getIsActive())) {
             throw new IllegalStateException("Cannot subscribe to inactive plan: " + plan.getName());
         }
 
         // Check for existing active subscription
-        subscriptionRepository.findByUserId(userId).ifPresent(existing -> {
-            if (existing.getStatus() == UserSubscription.SubscriptionStatus.ACTIVE
-                    && (existing.getCurrentPeriodEnd() == null || existing.getCurrentPeriodEnd().isAfter(OffsetDateTime.now()))) {
-                throw new IllegalStateException("User already has an active subscription. Please cancel or upgrade instead.");
+        UserSubscription existingSubscription = subscriptionRepository.findByUserId(userId).orElse(null);
+
+        if (existingSubscription != null) {
+            if (existingSubscription.getStatus() == UserSubscription.SubscriptionStatus.ACTIVE
+                    && (existingSubscription.getCurrentPeriodEnd() == null
+                            || existingSubscription.getCurrentPeriodEnd().isAfter(OffsetDateTime.now()))) {
+                throw new IllegalStateException(
+                        "User already has an active subscription. Please cancel or upgrade instead.");
             }
-        });
+        }
 
         OffsetDateTime now = OffsetDateTime.now();
         OffsetDateTime endDate = calculateEndDate(now, plan.getBillingPeriod());
 
-        String stripeCustomerId = user.getStripeCustomerId() != null ? user.getStripeCustomerId() : ("local-cus-" + user.getId());
+        String stripeCustomerId = user.getStripeCustomerId() != null ? user.getStripeCustomerId()
+                : ("local-cus-" + user.getId());
 
-        // Create subscription
-        UserSubscription subscription = UserSubscription.builder()
-                .user(user)
-                .planId(plan.getId())
-                .status(UserSubscription.SubscriptionStatus.ACTIVE)
-                .currentPeriodStart(now)
-                .currentPeriodEnd(endDate)
-            .stripeSubscriptionId(request.getPaymentMethodId()) // TODO: Integrate with actual Stripe
-            .stripeCustomerId(stripeCustomerId)
-            .autoRenew(true)
-                .build();
+        UserSubscription subscriptionToSave;
 
-        UserSubscription savedSubscription = subscriptionRepository.save(subscription);
-        log.info("Subscription created successfully with ID: {}", savedSubscription.getId());
+        if (existingSubscription != null) {
+            // Update existing subscription
+            subscriptionToSave = existingSubscription;
+            subscriptionToSave.setPlanId(plan.getId());
+            subscriptionToSave.setStatus(UserSubscription.SubscriptionStatus.ACTIVE);
+            subscriptionToSave.setCurrentPeriodStart(now);
+            subscriptionToSave.setCurrentPeriodEnd(endDate);
+            subscriptionToSave.setStripeSubscriptionId(request.getPaymentMethodId()); // TODO: Integrate with actual
+                                                                                      // Stripe
+            subscriptionToSave.setStripeCustomerId(stripeCustomerId);
+            subscriptionToSave.setAutoRenew(true);
+        } else {
+            // Create NEW subscription
+            subscriptionToSave = UserSubscription.builder()
+                    .user(user)
+                    .planId(plan.getId())
+                    .status(UserSubscription.SubscriptionStatus.ACTIVE)
+                    .currentPeriodStart(now)
+                    .currentPeriodEnd(endDate)
+                    .stripeSubscriptionId(request.getPaymentMethodId()) // TODO: Integrate with actual Stripe
+                    .stripeCustomerId(stripeCustomerId)
+                    .autoRenew(true)
+                    .build();
+        }
+
+        UserSubscription savedSubscription = subscriptionRepository.save(subscriptionToSave);
+        log.info("Subscription created/updated successfully with ID: {}", savedSubscription.getId());
 
         // Update user role to PREMIUM
         updateUserRole(user, Role.PREMIUM);
@@ -116,7 +153,7 @@ public class UserSubscriptionService {
             log.debug("Updated user {} maxHearts to {}", userId, plan.getMaxHearts());
         }
 
-        return UserSubscriptionResponse.from(savedSubscription);
+        return mapToResponse(savedSubscription);
     }
 
     /**
@@ -124,7 +161,7 @@ public class UserSubscriptionService {
      *
      * @param userId User ID
      * @throws ResourceNotFoundException if no subscription found
-     * @throws IllegalStateException if subscription already cancelled/expired
+     * @throws IllegalStateException     if subscription already cancelled/expired
      */
     @CacheEvict(value = "user-subscriptions", key = "#userId")
     @Transactional
@@ -159,7 +196,7 @@ public class UserSubscriptionService {
      * @param subscriptionId Subscription ID
      * @return Renewed UserSubscriptionResponse
      * @throws ResourceNotFoundException if subscription not found
-     * @throws IllegalStateException if subscription is not expired or cancelled
+     * @throws IllegalStateException     if subscription is not expired or cancelled
      */
     @CacheEvict(value = "user-subscriptions", key = "#result.userId")
     @Transactional
@@ -175,7 +212,8 @@ public class UserSubscriptionService {
         }
 
         SubscriptionPlan plan = planRepository.findById(Long.valueOf(subscription.getPlanId()))
-                .orElseThrow(() -> new ResourceNotFoundException("Subscription plan not found with ID: " + subscription.getPlanId()));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Subscription plan not found with ID: " + subscription.getPlanId()));
 
         // Renew subscription
         OffsetDateTime now = OffsetDateTime.now();
@@ -198,17 +236,18 @@ public class UserSubscriptionService {
         }
 
         log.info("Subscription renewed successfully: {}", subscriptionId);
-        return UserSubscriptionResponse.from(renewed);
+        return mapToResponse(renewed);
     }
 
     /**
      * Upgrade user's subscription to a different plan.
      *
-     * @param userId User ID
+     * @param userId    User ID
      * @param newPlanId New plan ID
      * @return Updated UserSubscriptionResponse
      * @throws ResourceNotFoundException if user, subscription, or plan not found
-     * @throws IllegalStateException if no active subscription or downgrade attempted
+     * @throws IllegalStateException     if no active subscription or downgrade
+     *                                   attempted
      */
     @CacheEvict(value = "user-subscriptions", key = "#userId")
     @Transactional
@@ -217,10 +256,12 @@ public class UserSubscriptionService {
 
         // Get current subscription
         UserSubscription subscription = subscriptionRepository.findByUserId(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("No active subscription found for user ID: " + userId));
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("No active subscription found for user ID: " + userId));
 
         SubscriptionPlan oldPlan = planRepository.findById(Long.valueOf(subscription.getPlanId()))
-                .orElseThrow(() -> new ResourceNotFoundException("Subscription plan not found with ID: " + subscription.getPlanId()));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Subscription plan not found with ID: " + subscription.getPlanId()));
 
         // Get new plan
         SubscriptionPlan newPlan = planRepository.findById(newPlanId)
@@ -250,7 +291,7 @@ public class UserSubscriptionService {
         UserSubscription upgraded = subscriptionRepository.save(subscription);
         log.info("Subscription upgraded successfully for user ID: {}", userId);
 
-        return UserSubscriptionResponse.from(upgraded);
+        return mapToResponse(upgraded);
     }
 
     /**
@@ -266,7 +307,7 @@ public class UserSubscriptionService {
         // For now, we only store one subscription per user
         // If history is needed, we'd need to modify the schema
         return subscriptionRepository.findByUserId(userId)
-                .map(UserSubscriptionResponse::from)
+                .map(this::mapToResponse)
                 .map(List::of)
                 .orElse(List.of());
     }
@@ -283,12 +324,14 @@ public class UserSubscriptionService {
     }
 
     /**
-     * Ensure a user has a Free subscription on signup. Creates the Free plan if missing.
+     * Ensure a user has a Free subscription on signup. Creates the Free plan if
+     * missing.
      * Does NOT grant premium role or alter user hearts beyond plan defaults.
      */
     @Transactional
     public void ensureFreeSubscriptionOnSignup(User user) {
-        if (user == null || user.getId() == null) return;
+        if (user == null || user.getId() == null)
+            return;
 
         // If user already has a subscription record, skip creating another
         if (subscriptionRepository.findByUserId(user.getId()).isPresent()) {
@@ -312,7 +355,8 @@ public class UserSubscriptionService {
         OffsetDateTime now = OffsetDateTime.now();
         OffsetDateTime end = now.plusMonths(1); // rotate monthly for bookkeeping
 
-        String stripeCustomerId = user.getStripeCustomerId() != null ? user.getStripeCustomerId() : ("free-cus-" + user.getId());
+        String stripeCustomerId = user.getStripeCustomerId() != null ? user.getStripeCustomerId()
+                : ("free-cus-" + user.getId());
 
         UserSubscription subscription = UserSubscription.builder()
                 .user(user)
@@ -330,7 +374,7 @@ public class UserSubscriptionService {
     /**
      * Calculate subscription end date based on billing period.
      *
-     * @param startDate Start date
+     * @param startDate     Start date
      * @param billingPeriod Billing period (MONTHLY, YEARLY, etc.)
      * @return Calculated end date
      */

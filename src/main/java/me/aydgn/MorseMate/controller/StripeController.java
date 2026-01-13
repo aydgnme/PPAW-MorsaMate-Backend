@@ -11,10 +11,8 @@ import me.aydgn.MorseMate.service.StripeService;
 import me.aydgn.MorseMate.service.SubscriptionService;
 import me.aydgn.MorseMate.service.UserService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
@@ -30,11 +28,13 @@ public class StripeController {
     private final UserService userService;
     private static final Gson gson = new Gson();
 
-    public record SimulateCheckoutRequest(String sessionId) {}
+    public record SimulateCheckoutRequest(String sessionId) {
+    }
 
     /**
      * Simulates the completion of a checkout session.
-     * This endpoint should be called by the frontend after a "successful" simulated checkout.
+     * This endpoint should be called by the frontend after a "successful" simulated
+     * checkout.
      * It manually triggers the webhook logic.
      */
     @PostMapping("/simulate-checkout-completion")
@@ -47,7 +47,8 @@ public class StripeController {
         }
 
         try {
-            // Correctly construct a simulated Event object that matches what the service expects
+            // Correctly construct a simulated Event object that matches what the service
+            // expects
             String sessionJson = gson.toJson(session);
             JsonObject eventData = new JsonObject();
             eventData.add("object", gson.fromJson(sessionJson, JsonObject.class));
@@ -71,15 +72,16 @@ public class StripeController {
      * Creates a simulated Stripe Customer Portal session.
      */
     @PostMapping("/create-portal-session")
-    public ResponseEntity<Map<String, String>> createPortalSession(@AuthenticationPrincipal Principal principal) throws StripeException {
-        User user = userService.getUserByUsername(principal.getName());
+    public ResponseEntity<Map<String, String>> createPortalSession() throws StripeException {
+        User user = userService.getCurrentAuthenticatedUser();
 
         if (user.getStripeCustomerId() == null) {
             stripeService.createCustomer(user);
         }
 
         String returnUrl = "http://localhost:8080/profile"; // URL to return to after portal
-        com.stripe.model.billingportal.Session portalSession = stripeService.createCustomerPortalSession(user.getStripeCustomerId(), returnUrl);
+        com.stripe.model.billingportal.Session portalSession = stripeService
+                .createCustomerPortalSession(user.getStripeCustomerId(), returnUrl);
 
         return ResponseEntity.ok(Collections.singletonMap("url", portalSession.getUrl()));
     }

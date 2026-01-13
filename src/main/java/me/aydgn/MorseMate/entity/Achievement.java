@@ -1,10 +1,6 @@
-// Achievement.java
 package me.aydgn.MorseMate.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -20,39 +16,66 @@ import java.util.Map;
 @Builder
 public class Achievement extends BaseEntity {
 
-    // id SERIAL PRIMARY KEY
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // name VARCHAR(100) NOT NULL
-    @NotBlank
-    @Size(max = 100)
-    @Column(name = "name", nullable = false, length = 100)
+    @Column(nullable = false, length = 100)
     private String name;
 
-    // description TEXT
-    @Column(name = "description", columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String description;
 
-    // icon VARCHAR(50)
-    @Size(max = 50)
-    @Column(name = "icon", length = 50)
-    private String icon;
+    @Column(name = "icon_url")
+    private String iconUrl;
 
-    // criteria JSONB -- {"type":"streak","value":7}
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "criteria", columnDefinition = "jsonb")
-    private Map<String, Object> criteria;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AchievementCategory category;
 
-    // points INTEGER DEFAULT 10
-    @Min(0)
-    @Column(name = "points", nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private AchievementRarity rarity = AchievementRarity.COMMON;
+
+    @Column(nullable = false)
     @Builder.Default
     private Integer points = 10;
 
-    @Min(0)
     @Column(name = "gem_reward", nullable = false)
     @Builder.Default
     private Integer gemReward = 0;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "criteria_type", nullable = false)
+    private CriteriaType criteriaType;
+
+    @Column(name = "criteria_target", nullable = false)
+    @Builder.Default
+    private Integer criteriaTarget = 1;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "criteria_metadata", columnDefinition = "jsonb")
+    private Map<String, Object> criteriaMetadata;
+
+    @Column(name = "is_active", nullable = false)
+    @Builder.Default
+    private Boolean isActive = true;
+
+    public enum AchievementCategory {
+        PROGRESS, STREAK, SOCIAL, PERFORMANCE, HIDDEN
+    }
+
+    public enum AchievementRarity {
+        COMMON, RARE, EPIC, LEGENDARY
+    }
+
+    public enum CriteriaType {
+        LESSONS_COMPLETED,
+        STREAK_DAYS,
+        PERFECT_SCORE,
+        TOTAL_POINTS,
+        USE_HEARTS,
+        EXERCISES_COMPLETED
+    }
 }

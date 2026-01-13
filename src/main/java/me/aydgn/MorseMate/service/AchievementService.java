@@ -19,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,9 +30,6 @@ public class AchievementService {
     private final UserAchievementRepository userAchievementRepository;
     private final UserService userService;
 
-    /**
-     * Get all achievements
-     */
     @Transactional(readOnly = true)
     public List<AchievementResponse> getAllAchievements() {
         log.debug("Fetching all achievements");
@@ -43,9 +39,6 @@ public class AchievementService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Get all achievements with pagination
-     */
     @Transactional(readOnly = true)
     public Page<AchievementResponse> getAllAchievementsPaged(Pageable pageable) {
         log.debug("Fetching paged achievements");
@@ -53,9 +46,6 @@ public class AchievementService {
         return achievements.map(AchievementResponse::from);
     }
 
-    /**
-     * Get achievement by ID
-     */
     @Transactional(readOnly = true)
     public AchievementResponse getAchievementById(Long id) {
         log.debug("Fetching achievement with id: {}", id);
@@ -63,9 +53,6 @@ public class AchievementService {
         return AchievementResponse.from(achievement);
     }
 
-    /**
-     * Get achievement entity by ID (internal use)
-     */
     @Transactional(readOnly = true)
     public Achievement findAchievementById(Long id) {
         return achievementRepository.findById(id)
@@ -75,9 +62,6 @@ public class AchievementService {
                 });
     }
 
-    /**
-     * Get achievement by name
-     */
     @Transactional(readOnly = true)
     public AchievementResponse getAchievementByName(String name) {
         log.debug("Fetching achievement with name: {}", name);
@@ -89,28 +73,28 @@ public class AchievementService {
         return AchievementResponse.from(achievement);
     }
 
-    /**
-     * Create a new achievement
-     */
     @Transactional
     public AchievementResponse createAchievement(CreateAchievementRequest request) {
         log.debug("Creating new achievement: {}", request.getName());
 
-        // Check if achievement with same name already exists
         if (achievementRepository.existsByNameIgnoreCase(request.getName())) {
             log.error("Achievement already exists with name: {}", request.getName());
             throw new InvalidOperationException(
-                    String.format("Achievement already exists with name: %s", request.getName())
-            );
+                    String.format("Achievement already exists with name: %s", request.getName()));
         }
 
         Achievement achievement = Achievement.builder()
                 .name(request.getName())
                 .description(request.getDescription())
-                .icon(request.getIcon())
-                .criteria(request.getCriteria())
+                .iconUrl(request.getIconUrl())
+                .category(parseCategory(request.getCategory()))
+                .rarity(parseRarity(request.getRarity()))
+                .criteriaType(parseCriteriaType(request.getCriteriaType()))
+                .criteriaTarget(request.getCriteriaTarget() != null ? request.getCriteriaTarget() : 1)
+                .criteriaMetadata(request.getCriteriaMetadata())
                 .points(request.getPoints() != null ? request.getPoints() : 10)
                 .gemReward(request.getGemReward() != null ? request.getGemReward() : 0)
+                .isActive(true)
                 .build();
 
         achievement = achievementRepository.save(achievement);
@@ -119,51 +103,40 @@ public class AchievementService {
         return AchievementResponse.from(achievement);
     }
 
-    /**
-     * Update an existing achievement
-     */
     @Transactional
     public AchievementResponse updateAchievement(Long id, UpdateAchievementRequest request) {
         log.debug("Updating achievement with id: {}", id);
 
         Achievement achievement = findAchievementById(id);
 
-        // Update name if provided and check uniqueness
         if (request.getName() != null && !request.getName().isEmpty()) {
             if (!achievement.getName().equalsIgnoreCase(request.getName()) &&
                     achievementRepository.existsByNameIgnoreCase(request.getName())) {
                 log.error("Achievement already exists with name: {}", request.getName());
                 throw new InvalidOperationException(
-                        String.format("Achievement already exists with name: %s", request.getName())
-                );
+                        String.format("Achievement already exists with name: %s", request.getName()));
             }
             achievement.setName(request.getName());
         }
 
-        // Update description if provided
-        if (request.getDescription() != null) {
+        if (request.getDescription() != null)
             achievement.setDescription(request.getDescription());
-        }
-
-        // Update icon if provided
-        if (request.getIcon() != null) {
-            achievement.setIcon(request.getIcon());
-        }
-
-        // Update criteria if provided
-        if (request.getCriteria() != null) {
-            achievement.setCriteria(request.getCriteria());
-        }
-
-        // Update points if provided
-        if (request.getPoints() != null) {
+        if (request.getIconUrl() != null)
+            achievement.setIconUrl(request.getIconUrl());
+        if (request.getCategory() != null)
+            achievement.setCategory(parseCategory(request.getCategory()));
+        if (request.getRarity() != null)
+            achievement.setRarity(parseRarity(request.getRarity()));
+        if (request.getCriteriaType() != null)
+            achievement.setCriteriaType(parseCriteriaType(request.getCriteriaType()));
+        if (request.getCriteriaTarget() != null)
+            achievement.setCriteriaTarget(request.getCriteriaTarget());
+        if (request.getCriteriaMetadata() != null)
+            achievement.setCriteriaMetadata(request.getCriteriaMetadata());
+        if (request.getPoints() != null)
             achievement.setPoints(request.getPoints());
-        }
-
-        // Update gem reward if provided
-        if (request.getGemReward() != null) {
+        if (request.getGemReward() != null)
             achievement.setGemReward(request.getGemReward());
-        }
 
         achievement = achievementRepository.save(achievement);
         log.info("Achievement updated successfully with id: {}", id);
@@ -171,31 +144,23 @@ public class AchievementService {
         return AchievementResponse.from(achievement);
     }
 
-    /**
-     * Delete an achievement
-     */
     @Transactional
     public void deleteAchievement(Long id) {
         log.debug("Deleting achievement with id: {}", id);
 
         Achievement achievement = findAchievementById(id);
 
-        // Check if any users have earned this achievement
         long usersWithAchievement = userAchievementRepository.countByAchievementId(id);
         if (usersWithAchievement > 0) {
             log.warn("Attempting to delete achievement {} that has been earned by {} users", id, usersWithAchievement);
             throw new InvalidOperationException(
-                    String.format("Cannot delete achievement. It has been earned by %d user(s)", usersWithAchievement)
-            );
+                    String.format("Cannot delete achievement. It has been earned by %d user(s)", usersWithAchievement));
         }
 
         achievementRepository.delete(achievement);
         log.info("Achievement deleted successfully with id: {}", id);
     }
 
-    /**
-     * Award achievement to user
-     */
     @Transactional
     public void awardAchievementToUser(Long userId, Long achievementId) {
         log.debug("Awarding achievement {} to user {}", achievementId, userId);
@@ -203,173 +168,145 @@ public class AchievementService {
         User user = userService.getUserById(userId);
         Achievement achievement = findAchievementById(achievementId);
 
-        // Check if user already has this achievement
         if (userAchievementRepository.existsByUserIdAndAchievementId(userId, achievementId)) {
             log.warn("User {} already has achievement {}", userId, achievementId);
-            throw new InvalidOperationException(
-                    String.format("User already has this achievement")
-            );
+            return;
         }
 
-        // Create user achievement record
         UserAchievement userAchievement = UserAchievement.builder()
                 .user(user)
                 .achievement(achievement)
-                .earnedAt(LocalDateTime.now())
+                .isUnlocked(true)
+                .unlockedAt(LocalDateTime.now())
+                .currentProgress(achievement.getCriteriaTarget())
                 .build();
 
         userAchievementRepository.save(userAchievement);
 
-        // Award points to user
         user.setTotalPoints(user.getTotalPoints() + achievement.getPoints());
 
-        // Award gems if any
         if (achievement.getGemReward() > 0) {
-            // Gem awarding will be handled by GemService in future
             log.info("Achievement {} awards {} gems to user {}", achievementId, achievement.getGemReward(), userId);
         }
 
         log.info("Achievement {} awarded to user {} successfully", achievementId, userId);
     }
 
-    /**
-     * Get user's achievements
-     */
     @Transactional(readOnly = true)
     public List<AchievementResponse> getUserAchievements(Long userId) {
         log.debug("Fetching achievements for user id: {}", userId);
-
-        // Verify user exists
         userService.getUserById(userId);
 
         List<UserAchievement> userAchievements = userAchievementRepository
-                .findByUserIdOrderByEarnedAtDesc(userId);
+                .findByUserIdOrderByUnlockedAtDesc(userId);
 
         return userAchievements.stream()
                 .map(ua -> {
                     AchievementResponse response = AchievementResponse.from(ua.getAchievement());
-                    response.setEarnedAt(ua.getEarnedAt());
+                    response.setUnlockedAt(ua.getUnlockedAt());
                     response.setEarned(true);
+                    response.setCurrentProgress(ua.getCurrentProgress());
                     return response;
                 })
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Get user's achievements with pagination
-     */
     @Transactional(readOnly = true)
     public Page<AchievementResponse> getUserAchievementsPaged(Long userId, Pageable pageable) {
         log.debug("Fetching paged achievements for user id: {}", userId);
-
-        // Verify user exists
         userService.getUserById(userId);
 
         Page<UserAchievement> userAchievements = userAchievementRepository.findByUserId(userId, pageable);
 
         return userAchievements.map(ua -> {
             AchievementResponse response = AchievementResponse.from(ua.getAchievement());
-            response.setEarnedAt(ua.getEarnedAt());
+            response.setUnlockedAt(ua.getUnlockedAt());
             response.setEarned(true);
+            response.setCurrentProgress(ua.getCurrentProgress());
             return response;
         });
     }
 
-    /**
-     * Check if user has specific achievement
-     */
     @Transactional(readOnly = true)
     public boolean hasUserEarnedAchievement(Long userId, Long achievementId) {
-        log.debug("Checking if user {} has achievement {}", userId, achievementId);
         return userAchievementRepository.existsByUserIdAndAchievementId(userId, achievementId);
     }
 
-    /**
-     * Get achievement count for user
-     */
     @Transactional(readOnly = true)
     public long getUserAchievementCount(Long userId) {
         log.debug("Counting achievements for user id: {}", userId);
-
-        // Verify user exists
         userService.getUserById(userId);
-
         return userAchievementRepository.countByUserId(userId);
     }
 
-    /**
-     * Get total achievement count
-     */
     @Transactional(readOnly = true)
     public long getTotalAchievementCount() {
         return achievementRepository.count();
     }
 
-    /**
-     * Check achievement criteria for user
-     * This is a placeholder for future implementation
-     */
     public void checkAndAwardAchievements(Long userId) {
         log.debug("Checking achievement criteria for user: {}", userId);
-
         User user = userService.getUserById(userId);
-        List<Achievement> allAchievements = achievementRepository.findAll();
+        List<Achievement> activeAchievements = achievementRepository.findAll();
 
-        for (Achievement achievement : allAchievements) {
-            // Skip if user already has this achievement
-            if (hasUserEarnedAchievement(userId, achievement.getId())) {
+        for (Achievement achievement : activeAchievements) {
+            if (!achievement.getIsActive())
                 continue;
-            }
+            if (hasUserEarnedAchievement(userId, achievement.getId()))
+                continue;
 
-            // Check criteria
-            if (checkAchievementCriteria(user, achievement.getCriteria())) {
+            if (checkAchievementCriteria(user, achievement)) {
                 awardAchievementToUser(userId, achievement.getId());
             }
         }
     }
 
-    /**
-     * Check if user meets achievement criteria
-     * This is a placeholder for future implementation
-     */
-    private boolean checkAchievementCriteria(User user, Map<String, Object> criteria) {
-        if (criteria == null || criteria.isEmpty()) {
-            return false;
-        }
+    private boolean checkAchievementCriteria(User user, Achievement achievement) {
+        Achievement.CriteriaType type = achievement.getCriteriaType();
+        int target = achievement.getCriteriaTarget();
 
-        String type = (String) criteria.get("type");
-        Object value = criteria.get("value");
-
-        if (type == null || value == null) {
+        if (type == null)
             return false;
-        }
 
         switch (type) {
-            case "streak":
-                int requiredStreak = ((Number) value).intValue();
-                return user.getCurrentStreak() >= requiredStreak;
-
-            case "points":
-                int requiredPoints = ((Number) value).intValue();
-                return user.getTotalPoints() >= requiredPoints;
-
-            case "level":
-                int requiredLevel = ((Number) value).intValue();
-                return user.getLevel() >= requiredLevel;
-
-            case "lessons_completed":
-                // This requires UserProgress service integration
-                log.debug("Lessons completed criteria check not yet implemented");
+            case STREAK_DAYS:
+                return user.getCurrentStreak() >= target;
+            case TOTAL_POINTS:
+                return user.getTotalPoints() >= target;
+            case LESSONS_COMPLETED:
                 return false;
-
-            case "exercises_completed":
-                // This requires ExerciseAttempt service integration
-                log.debug("Exercises completed criteria check not yet implemented");
-                return false;
-
             default:
-                log.warn("Unknown achievement criteria type: {}", type);
                 return false;
+        }
+    }
+
+    private Achievement.AchievementCategory parseCategory(String ignored) {
+        if (ignored == null)
+            return Achievement.AchievementCategory.PROGRESS;
+        try {
+            return Achievement.AchievementCategory.valueOf(ignored.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return Achievement.AchievementCategory.PROGRESS;
+        }
+    }
+
+    private Achievement.AchievementRarity parseRarity(String val) {
+        if (val == null)
+            return Achievement.AchievementRarity.COMMON;
+        try {
+            return Achievement.AchievementRarity.valueOf(val.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return Achievement.AchievementRarity.COMMON;
+        }
+    }
+
+    private Achievement.CriteriaType parseCriteriaType(String val) {
+        if (val == null)
+            return Achievement.CriteriaType.LESSONS_COMPLETED;
+        try {
+            return Achievement.CriteriaType.valueOf(val.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return Achievement.CriteriaType.LESSONS_COMPLETED;
         }
     }
 }

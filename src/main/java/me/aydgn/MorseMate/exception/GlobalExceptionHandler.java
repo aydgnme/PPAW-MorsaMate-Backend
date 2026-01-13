@@ -48,6 +48,14 @@ public class GlobalExceptionHandler {
                 .body(new ApiMessage(ex.getMessage()));
     }
 
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ApiMessage> handleIllegalState(IllegalStateException ex) {
+        log.warn("Illegal state: {}", ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ApiMessage(ex.getMessage()));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
@@ -67,7 +75,14 @@ public class GlobalExceptionHandler {
                 .body(response);
     }
 
-    @ExceptionHandler(Exception.class)
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<ApiMessage> handleAccessDenied(org.springframework.security.access.AccessDeniedException ex) {
+        log.warn("Access denied: {}", ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(new ApiMessage("Access denied"));
+    }
+
     public ResponseEntity<ApiMessage> handleGenericException(Exception ex) {
         log.error("Unexpected error occurred", ex);
         return ResponseEntity
