@@ -54,7 +54,7 @@
                                     <strong th:text="${achievement.name}">First Steps</strong>
                                     <small th:text="${achievement.description}">Complete your first lesson</small>
                                 </td>
-                                <td th:text="${achievement.icon ?: '—'}">🏆</td>
+                                <td th:text="${achievement.iconUrl ?: '—'}">🏆</td>
                                 <td th:text="${achievement.points}">10</td>
                                 <td th:text="${achievement.gemReward}">5</td>
                                 <td th:text="${achievement.createdAt != null ? #temporals.format(achievement.createdAt, 'dd MMM yyyy') : '—'}">01 Jan 2024</td>

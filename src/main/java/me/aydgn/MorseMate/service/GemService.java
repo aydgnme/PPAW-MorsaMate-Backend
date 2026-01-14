@@ -57,7 +57,7 @@ public class GemService {
     /**
      * Get user's gem balance
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public UserGemsResponse getUserGems(Long userId) {
         log.debug("Fetching gems for user id: {}", userId);
 
@@ -114,11 +114,10 @@ public class GemService {
         // Check if user has enough gems
         if (userGems.getBalance() < amount) {
             log.error("User id: {} has insufficient gems. Balance: {}, Required: {}",
-                      userId, userGems.getBalance(), amount);
+                    userId, userGems.getBalance(), amount);
             throw new InvalidOperationException(
                     String.format("Insufficient gems. You have %d gems but need %d",
-                                  userGems.getBalance(), amount)
-            );
+                            userGems.getBalance(), amount));
         }
 
         // Update balance
@@ -278,7 +277,7 @@ public class GemService {
     /**
      * Get transaction statistics for user
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public Map<String, Object> getUserTransactionStatistics(Long userId) {
         log.debug("Calculating gem transaction statistics for user id: {}", userId);
 
@@ -315,7 +314,7 @@ public class GemService {
     /**
      * Check if user has enough gems
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public boolean hasEnoughGems(Long userId, Integer amount) {
         if (amount == null || amount <= 0) {
             return false;

@@ -8,6 +8,10 @@ import me.aydgn.MorseMate.entity.Lesson;
 import me.aydgn.MorseMate.repository.CategoryRepository;
 import me.aydgn.MorseMate.repository.ExerciseRepository;
 import me.aydgn.MorseMate.repository.LessonRepository;
+import me.aydgn.MorseMate.repository.UserRepository;
+import me.aydgn.MorseMate.entity.User;
+import me.aydgn.MorseMate.enums.Role;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +27,8 @@ public class DataSeeder implements CommandLineRunner {
         private final LessonRepository lessonRepository;
         private final ExerciseRepository exerciseRepository;
         private final me.aydgn.MorseMate.repository.AchievementRepository achievementRepository;
+        private final UserRepository userRepository;
+        private final PasswordEncoder passwordEncoder;
 
         @Override
         @Transactional
@@ -38,6 +44,8 @@ public class DataSeeder implements CommandLineRunner {
                 } else {
                         log.info("Achievements already seeded.");
                 }
+
+                seedUsers();
         }
 
         private void seedContent() {
@@ -306,5 +314,30 @@ public class DataSeeder implements CommandLineRunner {
                                                 .build());
 
                 exerciseRepository.saveAll(exercises);
+        }
+
+        private void seedUsers() {
+                if (userRepository.existsByUsernameIgnoreCase("admin")) {
+                        log.info("Admin user already exists.");
+                        return;
+                }
+
+                log.info("Seeding admin user...");
+                User admin = User.builder()
+                                .username("admin")
+                                .email("admin@morsemate.com")
+                                .passwordHash(passwordEncoder.encode("Aamert12.")) // Password: Aamert12.
+                                .role(Role.ADMIN)
+                                .fullName("System Admin")
+                                .emailVerified(true)
+                                .isActive(true)
+                                .hearts(999)
+                                .maxHearts(999)
+                                .level(100)
+                                .totalPoints(100000)
+                                .build();
+
+                userRepository.save(admin);
+                log.info("Admin user seeded successfully.");
         }
 }

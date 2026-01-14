@@ -33,6 +33,8 @@ public class AchievementResponse {
     private Boolean earned;
     private LocalDateTime unlockedAt;
     private Integer currentProgress;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     public static AchievementResponse from(Achievement achievement) {
         if (achievement == null)
@@ -51,6 +53,8 @@ public class AchievementResponse {
                 .points(achievement.getPoints())
                 .gemReward(achievement.getGemReward())
                 .earned(false)
+                .createdAt(achievement.getCreatedAt())
+                .updatedAt(achievement.getUpdatedAt())
                 .build();
     }
 }
